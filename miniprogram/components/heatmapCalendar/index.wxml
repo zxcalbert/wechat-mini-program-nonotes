@@ -1,0 +1,10 @@
+<view class="heatmap-calendar">
+  <view class="month-row" wx:for="{{weeks}}" wx:key="index">
+    <view class="day-box {{getIntensity(item)}}" 
+          wx:for="{{item}}" 
+          wx:for-item="day" 
+          wx:key="index">
+      <text wx:if="{{day.count >= 0}}" class="day-count">{{day.count}}</text>
+    </view>
+  </view>
+</view>

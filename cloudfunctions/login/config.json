@@ -1,0 +1,7 @@
+{
+  "name": "login",
+  "description": "获取用户 openid",
+  "runtime": "nodejs14",
+  "memorySize": 256,
+  "timeout": 30
+}

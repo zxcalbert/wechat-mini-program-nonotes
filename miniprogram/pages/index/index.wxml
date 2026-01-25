@@ -1,0 +1,53 @@
+<side-menu 
+  show-menu="{{showMenu}}"
+  user-stamps="{{userStamps}}"
+  heatmap-data="{{heatmapData}}"
+  bind:close="closeSideMenu"
+/>
+
+<view class="container">
+  <!-- 页头：菜单按钮 + 标题 -->
+  <view class="header">
+    <text class="menu-toggle" bindtap="toggleSideMenu">☰</text>
+    <text class="header-title">我的笔记</text>
+  </view>
+
+  <!-- 笔记列表 -->
+  <scroll-view scroll-y="true" class="notes-list">
+    <view wx:if="{{letters.length === 0}}" class="empty-state">
+      <text class="empty-icon">📝</text>
+      <text class="empty-text">还没有笔记呢</text>
+      <text class="empty-subtext">点击下方按钮开始写第一篇</text>
+    </view>
+
+    <view 
+      wx:for="{{letters}}" 
+      wx:key="_id" 
+      class="note-card"
+      bindtap="goToDetail"
+      bindlongpress="deleteLetter"
+      data-id="{{item._id}}"
+    >
+      <view class="note-header">
+        <text class="note-mood">{{item.mood}}</text>
+        <text class="note-mentor">致{{item.mentor || '查理·芒格'}}</text>
+      </view>
+      
+      <view class="note-content-preview">{{item.content}}</view>
+      
+      <view class="note-footer">
+        <text class="note-date">{{item.displayDate || '刚刚'}}</text>
+        <view class="note-status {{item.status}}">
+          <text wx:if="{{item.status === 'replied'}}">已回复</text>
+          <text wx:elif="{{item.status === 'pending'}}">待回复</text>
+          <text wx:else>{{item.status}}</text>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 浮动写笔记按钮 -->
+  <view class="fab-button" bindtap="goToWrite">
+    <text class="fab-icon">+</text>
+  </view>
+</view>

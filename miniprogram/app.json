@@ -1,0 +1,21 @@
+{
+    "pages":[
+        "pages/login/login",
+        "pages/index/index",
+        "pages/write/write",
+        "pages/detail/detail",
+        "pages/stamps/stamps"
+    ],
+    "window":{
+        "navigationBarBackgroundColor": "#000000",
+        "navigationBarTextStyle": "white",
+        "navigationBarTitleText": "投资笔记"
+    },
+    "permission": {
+        "scope.userInfo": {
+            "desc": "用于识别用户身份"
+        }
+    },
+    "requiredBackgroundModes": [],
+    "lazyCodeLoading": "requiredComponents"
+}

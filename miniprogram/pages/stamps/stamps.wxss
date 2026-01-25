@@ -1,0 +1,238 @@
+.container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.back-btn {
+  font-size: 24px;
+  padding: 8px 16px;
+  cursor: pointer;
+  margin-right: 16px;
+}
+
+.header-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #000000;
+}
+
+.content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+/* 邮票余额卡片 */
+.stamp-card {
+  background: linear-gradient(135deg, #8b4513 0%, #a0522d 100%);
+  padding: 30px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 12px rgba(139, 69, 19, 0.2);
+}
+
+.stamp-icon {
+  font-size: 48px;
+  margin-right: 24px;
+}
+
+.stamp-info {
+  flex: 1;
+}
+
+.current-stamps {
+  display: block;
+  font-size: 32px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.stamps-label {
+  display: block;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 4px;
+}
+
+/* 信息区域 */
+.info-section,
+.mechanism-section,
+.purchase-section,
+.history-section {
+  margin-bottom: 30px;
+  padding: 16px;
+  background-color: #fafafa;
+  border-radius: 8px;
+}
+
+.section-title {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  color: #333333;
+  margin-bottom: 12px;
+}
+
+.info-text {
+  display: block;
+  font-size: 13px;
+  color: #666666;
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+
+/* 机制项 */
+.mechanism-item {
+  display: flex;
+  margin-bottom: 8px;
+}
+
+.mechanism-bullet {
+  font-size: 13px;
+  color: #999999;
+  margin-right: 8px;
+  min-width: 8px;
+}
+
+.mechanism-text {
+  font-size: 13px;
+  color: #666666;
+  line-height: 1.6;
+}
+
+/* 购买套餐 */
+.stamp-package {
+  background-color: #ffffff;
+  border: 1px solid #e0d5b1;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.stamp-package.popular {
+  border-color: #8b4513;
+  background-color: rgba(139, 69, 19, 0.02);
+}
+
+.popular-badge {
+  position: absolute;
+  top: -12px;
+  right: 12px;
+  background-color: #ff6b6b;
+  color: #ffffff;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.package-name {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333333;
+  margin-bottom: 8px;
+}
+
+.package-stamps {
+  display: block;
+  font-size: 13px;
+  color: #666666;
+  margin-bottom: 8px;
+}
+
+.package-price {
+  display: block;
+  font-size: 18px;
+  font-weight: 700;
+  color: #2ecc71;
+  margin-bottom: 12px;
+}
+
+.buy-btn {
+  padding: 10px 16px;
+  background-color: #f5f5f5;
+  border: 1px solid #eeeeee;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #333333;
+  transition: all 0.2s ease;
+}
+
+.buy-btn:active {
+  opacity: 0.8;
+}
+
+.buy-btn.primary {
+  background-color: #2ecc71;
+  color: #ffffff;
+  border-color: #2ecc71;
+}
+
+/* 历史记录 */
+.empty-history {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.empty-text {
+  display: block;
+  font-size: 14px;
+  color: #999999;
+}
+
+.history-item {
+  background-color: #ffffff;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  border-left: 3px solid #2ecc71;
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.history-action {
+  display: block;
+  font-size: 13px;
+  color: #333333;
+  font-weight: 500;
+}
+
+.history-change {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.history-change.positive {
+  color: #2ecc71;
+}
+
+.history-change.negative {
+  color: #ff6b6b;
+}
+
+.history-time {
+  display: block;
+  font-size: 11px;
+  color: #999999;
+}

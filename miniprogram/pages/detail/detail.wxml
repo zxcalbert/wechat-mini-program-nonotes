@@ -1,0 +1,29 @@
+<view class="container">
+  <view class="letter-paper full-view">
+    <view class="letter-header">
+      <text class="mentor-name">致：{{letter.mentor || '查理·芒格'}}</text>
+    </view>
+    
+    <view class="letter-content">
+      <text user-select="true">{{letter.content}}</text>
+    </view>
+    
+    <view class="letter-footer">
+      <text class="date">{{letter.displayDate}}</text>
+    </view>
+  </view>
+
+  <view class="reply-zone">
+    <block wx:if="{{letter.status === 'replied'}}">
+      <view class="reply-card">
+        <view class="reply-title">大师回响</view>
+        <text class="reply-text">{{letter.replyContent}}</text>
+      </view>
+    </block>
+    
+    <view wx:else class="waiting-hint">
+      <icon type="waiting" size="18" color="#8b4513"/>
+      <text> 芒格正在奥马哈寓所研读，回信约在24小时内送达</text>
+    </view>
+  </view>
+</view>

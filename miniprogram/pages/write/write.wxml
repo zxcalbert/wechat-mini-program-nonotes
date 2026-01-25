@@ -1,0 +1,75 @@
+<view class="container">
+  <view class="write-header">
+    <text class="back-btn" bindtap="goBack">←</text>
+    <text class="header-title">写笔记</text>
+  </view>
+
+  <scroll-view scroll-y="true" class="write-content">
+    <view class="selector-group">
+      <picker bindchange="onMentorChange" value="{{mentorIndex}}" range="{{mentors}}">
+        <view class="picker-item">指引导师：<text class="highlight">{{mentors[mentorIndex]}}</text></view>
+      </picker>
+      
+      <view class="mood-title">当前心境：</view>
+      <view class="mood-tags">
+        <view wx:for="{{moodOptions}}" wx:key="*this" 
+              class="mood-tag {{selectedMood === item ? 'active' : ''}}"
+              bindtap="selectMood" data-mood="{{item}}">
+          {{item}}
+        </view>
+      </view>
+    </view>
+
+    <view class="letter-paper">
+      <view class="header">
+        <text class="to">致：{{mentors[mentorIndex]}}</text>
+        <text class="date">{{currentDate}}</text>
+      </view>
+      
+      <textarea 
+        class="content-area" 
+        placeholder="亲爱的{{mentors[mentorIndex]}}，关于最近的市场波动，我有些思考想与你分享..." 
+        maxlength="5000"
+        bindinput="onInput"
+        value="{{content}}"
+      />
+      
+      <view class="footer">
+        <text class="word-count">当前字数：{{wordCount}}</text>
+      </view>
+    </view>
+
+    <!-- 邮票选择 -->
+    <view class="stamp-section">
+      <view class="stamp-title">📮 需要大师回信吗？</view>
+      <view class="stamp-options">
+        <view class="stamp-option {{needReply === false ? 'selected' : ''}}" bindtap="selectNeedReply" data-need="{{false}}">
+          <text class="option-text">无需回复</text>
+          <text class="option-desc">自己思考就好</text>
+        </view>
+        <view class="stamp-option {{needReply === true ? 'selected' : ''}}" bindtap="selectNeedReply" data-need="{{true}}">
+          <text class="option-text">需要回信</text>
+          <text class="option-desc">使用邮票 ({{userStamps}}/3)</text>
+        </view>
+      </view>
+      
+      <view wx:if="{{needReply && userStamps === 0}}" class="warn-section">
+        <text class="warn-text">⚠️ 免费邮票已用完，需购买邮票才能获得大师回信</text>
+        <button class="buy-stamps-btn" bindtap="buyStamps">购买邮票</button>
+      </view>
+
+      <view wx:if="{{needReply}}" class="reply-info">
+        <text class="info-title">回信说明：</text>
+        <text class="info-text">• 每个用户拥有3张免费邮票</text>
+        <text class="info-text">• 请求回信后，需等待18小时才能收到</text>
+        <text class="info-text">• 这个机制可帮助你深入思考和写作</text>
+      </view>
+    </view>
+  </scroll-view>
+
+  <view class="send-buttons">
+    <button class="send-btn {{!canSend ? 'disabled' : ''}}" bindtap="submitLetter" disabled="{{!canSend}}">
+      {{needReply ? '📮 寄出并请求回信' : '📝 寄出笔记'}}
+    </button>
+  </view>
+</view>

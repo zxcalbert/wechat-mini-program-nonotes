@@ -1,0 +1,57 @@
+<view class="login-container">
+  <block wx:if="{{hasUserInfo && userInfo}}">
+    <view class="user-info-section">
+      <view class="avatar-wrapper">
+        <image class="avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill" />
+      </view>
+      <view class="user-details">
+        <text class="nickname">{{userInfo.nickName}}</text>
+        <text class="location">{{userInfo.country}} {{userInfo.province}} {{userInfo.city}}</text>
+      </view>
+    </view>
+
+    <view class="info-card">
+      <text class="info-title">欢迎使用投资笔记</text>
+      <text class="info-text">与投资大师对话，获得智慧启蒙。你的所有记录和回复内容完全保密，仅限本人访问。</text>
+    </view>
+
+    <button class="btn btn-primary" bindtap="goToIndex">开始使用</button>
+    <button class="btn btn-logout" bindtap="logout">退出登录</button>
+  </block>
+
+  <block wx:else>
+    <view class="logo-section">
+      <text class="logo">📮</text>
+      <text class="app-name">投资笔记</text>
+      <text class="slogan">与大师对话，获得启蒙</text>
+    </view>
+
+    <view class="intro-section">
+      <view class="intro-item">
+        <text class="intro-icon">✍️</text>
+        <text class="intro-text">写下你的思考与困惑</text>
+      </view>
+      <view class="intro-item">
+        <text class="intro-icon">🤖</text>
+        <text class="intro-text">AI 大师智能回复</text>
+      </view>
+      <view class="intro-item">
+        <text class="intro-icon">🔒</text>
+        <text class="intro-text">隐私保护，仅限本人查看</text>
+      </view>
+    </view>
+
+    <view class="privacy-notice">
+      <text class="notice-title">隐私说明</text>
+      <text class="notice-text">我们需要获取你的微信昵称和头像用于识别身份。你的所有信件和回复内容将被严格保护，仅限你本人可以查看。</text>
+    </view>
+
+    <button 
+      class="btn btn-login"
+      bindtap="handleLogin"
+      loading="{{loading}}"
+    >
+      <text>用微信账号登录</text>
+    </button>
+  </block>
+</view>

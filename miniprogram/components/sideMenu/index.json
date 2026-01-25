@@ -1,0 +1,6 @@
+{
+  "component": true,
+  "usingComponents": {
+    "heatmap-calendar": "/components/heatmapCalendar/index"
+  }
+}

@@ -1,0 +1,44 @@
+.heatmap-calendar {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.month-row {
+  display: flex;
+  gap: 4px;
+}
+
+.day-box {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.day-box.intensity-0 {
+  background-color: #f0f0f0;
+  color: transparent;
+}
+
+.day-box.intensity-1 {
+  background-color: #c6e48b;
+}
+
+.day-box.intensity-2 {
+  background-color: #7bc96f;
+}
+
+.day-box.intensity-3 {
+  background-color: #239a3b;
+}
+
+.day-count {
+  font-size: 8px;
+  font-weight: 600;
+}

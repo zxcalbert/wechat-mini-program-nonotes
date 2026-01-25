@@ -1,0 +1,45 @@
+/* pages/detail/detail.wxss */
+page {
+  background-color: #f0f0f0;
+  padding: 30rpx;
+}
+
+.letter-paper {
+  background-color: #fdfaf2;
+  padding: 50rpx;
+  min-height: 600rpx;
+  box-shadow: 0 10rpx 30rpx rgba(0,0,0,0.1);
+  border: 1rpx solid #e0d5b1;
+}
+
+.letter-text {
+  font-size: 32rpx;
+  line-height: 2;
+  color: #333;
+  word-break: break-all;
+}
+
+.reply-container {
+  margin-top: 50rpx;
+  padding-bottom: 100rpx;
+}
+
+.reply-card {
+  background-color: #ffffff;
+  border-left: 10rpx solid #27ae60;
+  padding: 40rpx;
+  border-radius: 4rpx;
+}
+
+.reply-badge {
+  color: #27ae60;
+  font-weight: bold;
+  font-size: 24rpx;
+  margin-bottom: 20rpx;
+}
+
+.waiting-card {
+  text-align: center;
+  padding: 60rpx;
+  color: #999;
+}

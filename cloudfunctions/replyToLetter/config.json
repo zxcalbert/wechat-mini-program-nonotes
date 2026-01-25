@@ -1,0 +1,12 @@
+{
+  "name": "replyToLetter",
+  "description": "获取投资大师的回复",
+  "runtime": "nodejs14",
+  "memorySize": 256,
+  "timeout": 30,
+  "permissions": {
+    "openapi": [
+      "ai.chat"
+    ]
+  }
+}
