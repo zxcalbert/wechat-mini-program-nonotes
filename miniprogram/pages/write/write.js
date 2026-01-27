@@ -38,21 +38,21 @@ Page({
    */
   checkAuth: function() {
     const openid = wx.getStorageSync('openid');
-    
+
     if (!openid) {
       wx.redirectTo({
         url: '../login/login'
       });
       return;
     }
-    
+
     this.setData({ openid });
-    this.checkDailyLimit();
     this.fetchUserStamps();
   },
 
   /**
-   * 检查今天是否已寄信过
+   * 检查今天需要大师回复的信件数量（限制2次/天）
+   * @returns {Promise<{canSend: boolean, remaining: number, total: number}>}
    */
   async checkDailyLimit() {
     try {
@@ -63,6 +63,7 @@ Page({
       const result = await cloudbaseUtil.query('letters', {
         where: {
           _openid: this.data.openid,
+          needReply: true,
           createTime: {
             $gte: startOfDay.getTime(),
             $lt: endOfDay.getTime()
@@ -70,18 +71,17 @@ Page({
         }
       });
 
-      if (result.success && result.data.length > 0) {
-        wx.showToast({
-          title: '今天已经寄信过了',
-          icon: 'none',
-          duration: 3000
-        });
-        setTimeout(() => {
-          wx.navigateBack();
-        }, 3000);
-      }
+      const totalSent = result.success ? result.data.length : 0;
+      const remaining = Math.max(0, 2 - totalSent);
+
+      return {
+        canSend: remaining > 0,
+        remaining: remaining,
+        total: totalSent
+      };
     } catch (err) {
       console.error('检查每日限制失败:', err);
+      return { canSend: true, remaining: 2, total: 0 };
     }
   },
 
@@ -130,9 +130,9 @@ Page({
   /**
    * 选择是否需要大师回信
    */
-  selectNeedReply(e) {
+  async selectNeedReply(e) {
     const need = e.currentTarget.dataset.need;
-    
+
     // 如果需要回信但没有邮票，提示
     if (need && this.data.userStamps === 0) {
       wx.showToast({
@@ -140,6 +140,27 @@ Page({
         icon: 'none'
       });
       return;
+    }
+
+    // 如果需要回信，检查每日限制
+    if (need) {
+      const limit = await this.checkDailyLimit();
+      if (!limit.canSend) {
+        wx.showModal({
+          title: '每日寄信次数已用完',
+          content: '今天已寄信2次，大师需要时间深思熟虑，明天再来吧',
+          showCancel: false
+        });
+        return;
+      }
+      // 显示剩余次数提示
+      if (limit.remaining > 1) {
+        wx.showToast({
+          title: `今天还可以寄信${limit.remaining}次`,
+          icon: 'none',
+          duration: 2000
+        });
+      }
     }
 
     this.setData({ needReply: need });
@@ -183,6 +204,19 @@ Page({
       return;
     }
 
+    // 如果需要回信，检查每日限制
+    if (this.data.needReply) {
+      const limit = await this.checkDailyLimit();
+      if (!limit.canSend) {
+        wx.showModal({
+          title: '每日寄信次数已用完',
+          content: '今天已寄信2次，大师需要时间深思熟虑，明天再来吧',
+          showCancel: false
+        });
+        return;
+      }
+    }
+
     const mentor = this.data.mentors[this.data.mentorIndex];
     const mood = this.data.selectedMood;
     const content = this.data.content;
@@ -209,7 +243,7 @@ Page({
 
       // 2. 如果需要回信，扣除邮票并调用云函数生成回复
       if (needReply) {
-        wx.showLoading({ title: '大师正在思考...', mask: true });
+        wx.showLoading({ title: '正在传送信件......', mask: true });
 
         // 扣除邮票
         const updateUserRes = await cloudbaseUtil.query('users', {
