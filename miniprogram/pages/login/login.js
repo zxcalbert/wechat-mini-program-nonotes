@@ -78,13 +78,13 @@ Page({
     // 跳转前清除首次登录标记，确保下次打开小程序时能自动跳转
     wx.removeStorageSync('isFirstLogin');
 
-    wx.switchTab({
+    wx.reLaunch({
       url: '/pages/index/index',
       success: () => {
         console.log('跳转至首页成功');
       },
       fail: (err) => {
-        console.error('跳转失败，请确保 index 在 app.json 的 tabBar 中:', err);
+        console.error('跳转失败:', err);
       }
     });
   },
