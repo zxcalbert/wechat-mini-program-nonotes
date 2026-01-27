@@ -1,6 +1,6 @@
 /* pages/index/index.wxss */
 page {
-  background-color: #ffffff;
+  background-color: #f5f5f5;
   padding: 0;
 }
 
@@ -8,16 +8,17 @@ page {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background-color: #ffffff;
+  background-color: #f5f5f5;
 }
 
+/* 页头 */
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid #f0f0f0;
+  padding: 12px 16px;
   background-color: #ffffff;
+  border-bottom: 1px solid #f0f0f0;
   position: sticky;
   top: 0;
   z-index: 10;
@@ -25,140 +26,160 @@ page {
 
 .menu-toggle {
   font-size: 24px;
-  padding: 8px 16px;
+  padding: 8px;
   cursor: pointer;
-  color: #000000;
+  color: #333333;
 }
 
 .header-title {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 600;
-  color: #000000;
+  color: #333333;
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
 }
 
+/* 右上角添加按钮 */
+.add-button {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #333333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.add-button:active {
+  opacity: 0.7;
+  transform: scale(0.95);
+}
+
+.add-icon {
+  font-size: 20px;
+  color: #ffffff;
+  line-height: 1;
+}
+
+/* 笔记列表 */
 .notes-list {
   flex: 1;
   overflow-y: auto;
-  padding: 16px 20px;
+  padding: 12px;
+  padding-bottom: 80px;
 }
 
+/* 空状态 */
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px 20px;
+  padding: 80px 20px;
   color: #999999;
 }
 
 .empty-icon {
-  font-size: 60px;
+  font-size: 64px;
   margin-bottom: 20px;
+  opacity: 0.5;
 }
 
 .empty-text {
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 500;
   margin-bottom: 8px;
+  color: #666666;
 }
 
 .empty-subtext {
   font-size: 14px;
-  color: #cccccc;
+  color: #999999;
 }
 
+/* 笔记卡片 */
 .note-card {
-  background-color: #fdfaf2;
-  border: 1px solid #e0d5b1;
+  background-color: #ffffff;
   padding: 16px;
-  margin-bottom: 16px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  position: relative;
-}
-
-.note-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: 12px;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  position: relative;
+  transition: all 0.2s;
 }
 
-.note-mood {
-  font-size: 12px;
-  color: #8b4513;
-  background-color: rgba(139, 69, 19, 0.1);
-  padding: 4px 8px;
-  border-radius: 4px;
-}
-
-.note-mentor {
-  font-size: 14px;
-  font-weight: 600;
-  color: #8b4513;
+.note-card:active {
+  opacity: 0.85;
+  transform: scale(0.98);
 }
 
 .note-content-preview {
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.6;
-  color: #444444;
+  color: #333333;
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 4;
   overflow: hidden;
   margin-bottom: 12px;
+  word-break: break-all;
 }
 
 .note-footer {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
-  font-size: 12px;
 }
 
 .note-date {
+  font-size: 12px;
   color: #999999;
 }
 
-.note-status {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.note-status.pending {
-  background-color: #fff3cd;
-  color: #856404;
-}
-
-.note-status.replied {
-  background-color: #d4edda;
-  color: #155724;
-}
-
-/* 浮动写笔记按钮 */
-.fab-button {
-  position: fixed;
-  bottom: 40px;
-  right: 20px;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background-color: #2ecc71;
+/* 底部导航栏 */
+.bottom-nav {
   display: flex;
   align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
+  justify-content: space-around;
+  height: 60px;
+  background-color: #ffffff;
+  border-top: 1px solid #f0f0f0;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
   z-index: 100;
-  cursor: pointer;
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
-.fab-icon {
-  font-size: 32px;
-  color: #ffffff;
-  line-height: 1;
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  height: 100%;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.nav-item.active {
+  color: #333333;
+}
+
+.nav-item:active {
+  opacity: 0.6;
+}
+
+.nav-icon {
+  font-size: 22px;
+  margin-bottom: 4px;
+}
+
+.nav-text {
+  font-size: 10px;
+  font-weight: 500;
 }
