@@ -4,10 +4,16 @@ page {
 }
 
 .container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  align-items: flex-start;
   background-color: #ffffff;
+  padding-top: env(safe-area-inset-top);
 }
 
 .write-header {
@@ -33,9 +39,6 @@ page {
   font-size: 18px;
   font-weight: 600;
   color: #000000;
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
 }
 
 .write-content {
