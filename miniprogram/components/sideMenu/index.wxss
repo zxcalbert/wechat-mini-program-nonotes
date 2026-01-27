@@ -123,3 +123,18 @@
   color: #d84040;
   font-weight: 500;
 }
+
+/* 购买邮票按钮样式 */
+.menu-item.buy-stamp {
+  background: linear-gradient(135deg, #fff9e6 0%, #fffaeb 100%);
+  border-left: 3px solid #ffa500;
+}
+
+.menu-item.buy-stamp .menu-icon {
+  font-size: 20px;
+}
+
+.menu-item.buy-stamp .menu-text.urgent {
+  color: #ff6600;
+  font-weight: 600;
+}

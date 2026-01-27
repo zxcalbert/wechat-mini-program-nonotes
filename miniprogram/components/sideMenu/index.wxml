@@ -29,7 +29,13 @@
 
       <view class="menu-item" bindtap="viewStamps">
         <text class="menu-icon">🎫</text>
-        <text class="menu-text">邮票（{{userStamps}}/3）</text>
+        <text class="menu-text">邮票（{{userStamps}}张）</text>
+      </view>
+
+      <!-- 邮票不足时显示购买提示 -->
+      <view class="menu-item buy-stamp" wx:if="{{userStamps <= 1}}" bindtap="buyStamps">
+        <text class="menu-icon">💰</text>
+        <text class="menu-text urgent">邮票不足，点击购买</text>
       </view>
 
       <view class="menu-item" bindtap="viewAbout">

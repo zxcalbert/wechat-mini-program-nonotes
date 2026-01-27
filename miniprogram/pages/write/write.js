@@ -96,7 +96,9 @@ Page({
       });
 
       if (result.success && result.data.length > 0) {
-        const stamps = result.data[0].stamps || 3;
+        const userStamps = result.data[0].stamps;
+        // 只有当 stamps 字段不存在时才使用默认值 3
+        const stamps = userStamps !== undefined ? userStamps : 3;
         this.setData({ userStamps: stamps });
       } else {
         this.setData({ userStamps: 3 });
@@ -264,7 +266,7 @@ Page({
         } else {
           // 更新邮票数
           await cloudbaseUtil.update('users', userDoc._id, {
-            stamps: Math.max(0, (userDoc.stamps || 3) - 1)
+            stamps: Math.max(0, (userDoc.stamps !== undefined ? userDoc.stamps : 3) - 1)
           });
         }
 

@@ -41,6 +41,13 @@ Component({
       this.closeSideMenu();
     },
 
+    buyStamps() {
+      wx.navigateTo({
+        url: '/pages/stamps/stamps'
+      });
+      this.closeSideMenu();
+    },
+
     viewAbout() {
       wx.navigateTo({
         url: '/pages/about/about'
