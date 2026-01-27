@@ -6,10 +6,23 @@
 />
 
 <view class="container">
-  <!-- 页头：菜单按钮 + 标题 -->
+  <!-- 页头：菜单按钮 + 标题 + 搜索图标 -->
   <view class="header">
     <text class="menu-toggle" bindtap="toggleSideMenu">☰</text>
     <text class="header-title">我的笔记</text>
+    <text class="search-icon" bindtap="showSearchInput">🔍</text>
+  </view>
+
+  <!-- 搜索框 -->
+  <view wx:if="{{showSearch}}" class="search-container">
+    <input
+      class="search-input"
+      placeholder="搜索笔记..."
+      value="{{searchKeyword}}"
+      bindinput="onSearchInput"
+      focus="{{searchFocus}}"
+    />
+    <text class="search-close" bindtap="hideSearchInput">✕</text>
   </view>
 
   <!-- 浮动添加按钮 -->
@@ -19,14 +32,14 @@
 
   <!-- 笔记列表 -->
   <scroll-view scroll-y="true" class="notes-list" scroll-with-animation="{{true}}">
-    <view wx:if="{{letters.length === 0}}" class="empty-state">
+    <view wx:if="{{displayLetters.length === 0}}" class="empty-state">
       <text class="empty-icon">📝</text>
       <text class="empty-text">还没有笔记呢</text>
       <text class="empty-subtext">点击右上角 + 开始写第一篇</text>
     </view>
 
     <view
-      wx:for="{{letters}}"
+      wx:for="{{displayLetters}}"
       wx:key="_id"
       class="note-card"
       bindtap="goToDetail"

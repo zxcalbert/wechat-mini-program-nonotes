@@ -3,12 +3,16 @@ const cloudbaseUtil = require('../../utils/cloudbaseUtil');
 Page({
   data: {
     letters: [],
+    displayLetters: [],
     loading: false,
     openid: null,
     showMenu: false,
     userStamps: 3,
     heatmapData: [],
-    userInfo: null
+    userInfo: null,
+    showSearch: false,
+    searchKeyword: '',
+    searchFocus: false
   },
 
   onLoad: function() {
@@ -85,7 +89,7 @@ Page({
           statusLabel: this.getStatusLabel(item.status)
         }));
 
-        this.setData({ letters });
+        this.setData({ letters, displayLetters: letters });
         console.log('加载成功，共', letters.length, '篇笔记');
       } else {
         wx.showToast({ title: '加载失败', icon: 'error' });
@@ -208,6 +212,54 @@ Page({
     wx.navigateTo({
       url: '../write/write'
     });
+  },
+
+  /**
+   * 显示搜索框
+   */
+  showSearchInput: function() {
+    this.setData({
+      showSearch: true,
+      searchFocus: true
+    });
+  },
+
+  /**
+   * 隐藏搜索框
+   */
+  hideSearchInput: function() {
+    this.setData({
+      showSearch: false,
+      searchKeyword: '',
+      displayLetters: this.data.letters,
+      searchFocus: false
+    });
+  },
+
+  /**
+   * 搜索输入处理
+   */
+  onSearchInput: function(e) {
+    const keyword = e.detail.value.trim();
+    this.setData({ searchKeyword: keyword });
+
+    if (keyword === '') {
+      this.setData({ displayLetters: this.data.letters });
+      return;
+    }
+
+    this.filterLetters(keyword);
+  },
+
+  /**
+   * 过滤笔记
+   */
+  filterLetters: function(keyword) {
+    const letters = this.data.letters;
+    const filtered = letters.filter(letter => {
+      return letter.content && letter.content.toLowerCase().includes(keyword.toLowerCase());
+    });
+    this.setData({ displayLetters: filtered });
   }
 });
 
