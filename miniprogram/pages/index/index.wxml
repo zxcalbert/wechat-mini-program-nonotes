@@ -40,20 +40,4 @@
       </view>
     </view>
   </scroll-view>
-
-  <!-- 底部导航栏 -->
-  <view class="bottom-nav">
-    <view class="nav-item active" bindtap="navToHome">
-      <text class="nav-icon">📋</text>
-      <text class="nav-text">首页</text>
-    </view>
-    <view class="nav-item" bindtap="navToSearch">
-      <text class="nav-icon">🔍</text>
-      <text class="nav-text">搜索</text>
-    </view>
-    <view class="nav-item" bindtap="navToProfile">
-      <text class="nav-icon">👤</text>
-      <text class="nav-text">我的</text>
-    </view>
-  </view>
 </view>

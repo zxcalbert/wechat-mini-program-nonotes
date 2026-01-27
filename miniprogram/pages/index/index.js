@@ -208,33 +208,6 @@ Page({
     wx.navigateTo({
       url: '../write/write'
     });
-  },
-
-  /**
-   * 底部导航 - 首页
-   */
-  navToHome: function() {
-    // 当前已在首页，无需跳转
-  },
-
-  /**
-   * 底部导航 - 搜索
-   */
-  navToSearch: function() {
-    wx.showToast({
-      title: '搜索功能开发中',
-      icon: 'none'
-    });
-  },
-
-  /**
-   * 底部导航 - 我的
-   */
-  navToProfile: function() {
-    wx.showToast({
-      title: '个人中心开发中',
-      icon: 'none'
-    });
   }
 });
 
