@@ -256,11 +256,11 @@ exports.main = async (event, context) => {
         replyContent = generateSmartReply(mentor, mood || '平和', content);
       }
       
-      // 保存生成的回复
+      // 保存生成的回复，但不改变status（保持pending，由前端根据replyExpectTime判断是否显示）
       await db.collection('letters').doc(letterId).update({
         data: {
           replyContent: replyContent,
-          status: 'replied',
+          // status 保持 'pending'，由detail页面根据replyExpectTime判断是否显示
           replyTime: db.serverDate()
         }
       });

@@ -43,10 +43,15 @@ Page({
           return;
         }
 
+        // 检查是否超过18小时
+        const now = Date.now();
+        const canShowReply = result.data.replyContent && result.data.replyExpectTime && now >= result.data.replyExpectTime;
+
         const letter = {
           ...result.data,
           displayDate: cloudbaseUtil.formatDateTime(result.data.createTime),
-          statusLabel: this.getStatusLabel(result.data.status)
+          statusLabel: this.getStatusLabel(result.data.status),
+          canShowReply: canShowReply  // 新增字段，用于前端判断是否显示回复
         };
         
         this.setData({ letter });

@@ -14,16 +14,16 @@
   </view>
 
   <view class="reply-zone">
-    <block wx:if="{{letter.status === 'replied'}}">
+    <block wx:if="{{letter.canShowReply}}">
       <view class="reply-card">
         <view class="reply-title">大师回响</view>
         <text class="reply-text">{{letter.replyContent}}</text>
       </view>
     </block>
-    
+
     <view wx:else class="waiting-hint">
       <icon type="waiting" size="18" color="#8b4513"/>
-      <text> 芒格正在奥马哈寓所研读，回信约在24小时内送达</text>
+      <text> 大师正在奥马哈寓所研读，回信约在18小时内送达</text>
     </view>
   </view>
 </view>
