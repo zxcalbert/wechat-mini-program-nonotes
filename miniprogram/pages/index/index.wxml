@@ -6,13 +6,15 @@
 />
 
 <view class="container">
-  <!-- 页头：菜单按钮 + 标题 + 添加按钮 -->
+  <!-- 页头：菜单按钮 + 标题 -->
   <view class="header">
     <text class="menu-toggle" bindtap="toggleSideMenu">☰</text>
     <text class="header-title">我的笔记</text>
-    <view class="add-button" bindtap="goToWrite">
-      <text class="add-icon">+</text>
-    </view>
+  </view>
+
+  <!-- 浮动添加按钮 -->
+  <view class="float-add-button" bindtap="goToWrite">
+    <text class="float-add-icon">+</text>
   </view>
 
   <!-- 笔记列表 -->
