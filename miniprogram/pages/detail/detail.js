@@ -43,9 +43,12 @@ Page({
           return;
         }
 
-        // 检查是否超过18小时
+        // 检查是否显示回复：
+        // 1. 老数据数据（没有 replyExpectTime）：只要有 replyContent 就显示
+        // 2. 新数据（有 replyExpectTime）：需要等待18小时后才能看到
         const now = Date.now();
-        const canShowReply = result.data.replyContent && result.data.replyExpectTime && now >= result.data.replyExpectTime;
+        const canShowReply = result.data.replyContent &&
+          (!result.data.replyExpectTime || now >= result.data.replyExpectTime);
 
         const letter = {
           ...result.data,

@@ -135,15 +135,6 @@ Page({
   async selectNeedReply(e) {
     const need = e.currentTarget.dataset.need;
 
-    // 如果需要回信但没有邮票，提示
-    if (need && this.data.userStamps === 0) {
-      wx.showToast({
-        title: '邮票不足，请购买',
-        icon: 'none'
-      });
-      return;
-    }
-
     // 如果需要回信，检查每日限制
     if (need) {
       const limit = await this.checkDailyLimit();

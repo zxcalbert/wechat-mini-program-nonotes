@@ -58,6 +58,11 @@
         <button class="buy-stamps-btn" bindtap="buyStamps">购买邮票</button>
       </view>
 
+      <view wx:if="{{needReply && userStamps === 1}}" class="warn-section tip-section">
+        <text class="warn-text">💡 邮票即将用完（剩余1张），建议提前购买</text>
+        <button class="buy-stamps-btn" bindtap="buyStamps">购买邮票</button>
+      </view>
+
       <view wx:if="{{needReply}}" class="reply-info">
         <text class="info-title">回信说明：</text>
         <text class="info-text">• 每个用户拥有3张免费邮票</text>
