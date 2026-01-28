@@ -4,7 +4,8 @@
         "pages/index/index",
         "pages/write/write",
         "pages/detail/detail",
-        "pages/stamps/stamps"
+        "pages/stamps/stamps",
+        "pages/trash/trash"
     ],
     "window":{
         "navigationBarBackgroundColor": "#000000",

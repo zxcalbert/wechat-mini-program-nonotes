@@ -75,7 +75,7 @@ Page({
    */
   async fetchLetters() {
     this.setData({ loading: true });
-    
+
     try {
       const result = await cloudbaseUtil.query('letters', {
         where: { _openid: this.data.openid },
@@ -85,11 +85,14 @@ Page({
       });
 
       if (result.success) {
-        const letters = result.data.map(item => ({
-          ...item,
-          displayDate: cloudbaseUtil.formatDate(item.createTime),
-          statusLabel: this.getStatusLabel(item.status)
-        }));
+        // 在客户端过滤已删除的笔记（兼容旧数据没有 deleted 字段）
+        const letters = result.data
+          .filter(item => !item.deleted)
+          .map(item => ({
+            ...item,
+            displayDate: cloudbaseUtil.formatDate(item.createTime),
+            statusLabel: this.getStatusLabel(item.status)
+          }));
 
         this.setData({ letters, displayLetters: letters });
         console.log('加载成功，共', letters.length, '篇笔记');
