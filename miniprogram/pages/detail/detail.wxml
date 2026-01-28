@@ -21,7 +21,7 @@
       </view>
     </block>
 
-    <view wx:else class="waiting-hint">
+    <view wx:elif="{{letter.needReply}}" class="waiting-hint">
       <icon type="waiting" size="18" color="#8b4513"/>
       <text> 大师正在奥马哈寓所研读，回信约在18小时内送达</text>
     </view>
