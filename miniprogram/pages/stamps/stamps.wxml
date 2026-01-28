@@ -1,9 +1,4 @@
 <view class="container">
-  <view class="header" style="padding-top: {{statusBarHeight + 16}}px; padding-bottom: 16px;">
-    <text class="back-btn" bindtap="goBack">←</text>
-    <text class="header-title">邮票管理</text>
-  </view>
-
   <scroll-view scroll-y="true" class="content">
     <!-- 邮票余额卡片 -->
     <view class="stamp-card">

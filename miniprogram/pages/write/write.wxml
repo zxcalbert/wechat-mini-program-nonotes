@@ -1,9 +1,4 @@
 <view class="container">
-  <view class="write-header" style="padding-top: {{statusBarHeight + 16}}px; padding-bottom: 16px;">
-    <text class="back-btn" bindtap="goBack">←</text>
-    <text class="header-title">写笔记</text>
-  </view>
-
   <scroll-view scroll-y="true" class="write-content">
     <view class="selector-group">
       <picker bindchange="onMentorChange" value="{{mentorIndex}}" range="{{mentors}}">
