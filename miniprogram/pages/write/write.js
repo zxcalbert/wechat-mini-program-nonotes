@@ -13,10 +13,13 @@ Page({
     openid: null,
     needReply: false,
     userStamps: 3,
-    canSend: false
+    canSend: false,
+    statusBarHeight: 0
   },
 
   onLoad() {
+    const systemInfo = wx.getSystemInfoSync();
+    this.setData({ statusBarHeight: systemInfo.statusBarHeight });
     this.checkAuth();
     
     // 设置今天的日期

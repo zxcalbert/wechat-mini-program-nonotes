@@ -12,10 +12,13 @@ Page({
     userInfo: null,
     showSearch: false,
     searchKeyword: '',
-    searchFocus: false
+    searchFocus: false,
+    statusBarHeight: 0
   },
 
   onLoad: function() {
+    const systemInfo = wx.getSystemInfoSync();
+    this.setData({ statusBarHeight: systemInfo.statusBarHeight });
     this.checkAuth();
     this.generateHeatmapData();
   },

@@ -7,7 +7,7 @@
 
 <view class="container">
   <!-- 页头：菜单按钮 + 标题 + 搜索图标 -->
-  <view class="header">
+  <view class="header" style="padding-top: {{statusBarHeight + 8}}px">
     <text class="menu-toggle" bindtap="toggleSideMenu">☰</text>
     <text class="header-title">我的笔记</text>
     <text class="search-icon" bindtap="showSearchInput">🔍</text>

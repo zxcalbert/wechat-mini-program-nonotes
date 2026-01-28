@@ -1,5 +1,5 @@
 <view class="container">
-  <view class="header">
+  <view class="header" style="padding-top: {{statusBarHeight + 16}}px; padding-bottom: 16px;">
     <text class="back-btn" bindtap="goBack">←</text>
     <text class="header-title">邮票管理</text>
   </view>
