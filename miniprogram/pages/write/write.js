@@ -279,8 +279,8 @@ Page({
 
         if (cloudReplyRes.result && cloudReplyRes.result.success) {
           wx.hideLoading();
-          wx.showToast({ 
-            title: '笔记已寄出，大师将在18小时内回复',
+          wx.showToast({
+            title: '笔记已寄出',
             icon: 'success',
             duration: 3000
           });

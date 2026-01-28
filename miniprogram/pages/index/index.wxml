@@ -6,9 +6,10 @@
 />
 
 <view class="container">
-  <!-- 操作栏 -->
-  <view class="action-bar">
+  <!-- 自定义导航栏 -->
+  <view class="custom-navbar">
     <text class="menu-toggle" bindtap="toggleSideMenu">☰</text>
+    <text class="navbar-title">我的笔记</text>
     <text class="search-icon" bindtap="showSearchInput">🔍</text>
   </view>
 
