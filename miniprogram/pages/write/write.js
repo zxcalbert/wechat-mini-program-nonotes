@@ -3,7 +3,7 @@ const cloudbaseUtil = require('../../utils/cloudbaseUtil');
 
 Page({
   data: {
-    mentors: ['查理·芒格', '巴菲特', '段永平'],
+    mentors: ['查理·芒格', '巴菲特', '段永平', '张小龙', '乔布斯', '马斯克'],
     mentorIndex: 0,
     moodOptions: ['焦虑', '贪婪', '平和', '困惑'],
     selectedMood: '平和',
