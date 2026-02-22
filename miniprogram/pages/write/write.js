@@ -1,5 +1,6 @@
 const db = wx.cloud.database();
 const cloudbaseUtil = require('../../utils/cloudbaseUtil');
+const sensitiveWordUtil = require('../../utils/sensitiveWordUtil');
 
 Page({
   data: {
@@ -14,7 +15,9 @@ Page({
     needReply: false,
     userStamps: 3,
     canSend: false,
-    statusBarHeight: 0
+    statusBarHeight: 0,
+    hasSensitiveWarning: false,
+    sensitiveWarning: ''
   },
 
   onLoad() {
@@ -22,23 +25,18 @@ Page({
     this.setData({ statusBarHeight: systemInfo.statusBarHeight });
     this.checkAuth();
     
-    // 设置今天的日期
     const date = new Date();
     this.setData({
       currentDate: `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`
     });
   },
 
-  /**
-   * 返回
-   */
-  goBack() {
-    wx.navigateBack();
+  onUnload() {
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+    }
   },
 
-  /**
-   * 检查登录状态
-   */
   checkAuth: function() {
     const openid = wx.getStorageSync('openid');
 
@@ -53,10 +51,6 @@ Page({
     this.fetchUserStamps();
   },
 
-  /**
-   * 检查今天需要大师回复的信件数量（限制2次/天）
-   * @returns {Promise<{canSend: boolean, remaining: number, total: number}>}
-   */
   async checkDailyLimit() {
     try {
       const db = wx.cloud.database();
@@ -87,9 +81,6 @@ Page({
     }
   },
 
-  /**
-   * 获取用户邮票数
-   */
   async fetchUserStamps() {
     try {
       const result = await cloudbaseUtil.query('users', {
@@ -99,7 +90,6 @@ Page({
 
       if (result.success && result.data.length > 0) {
         const userStamps = result.data[0].stamps;
-        // 只有当 stamps 字段不存在时才使用默认值 3
         const stamps = userStamps !== undefined ? userStamps : 3;
         this.setData({ userStamps: stamps });
       } else {
@@ -129,15 +119,43 @@ Page({
       wordCount: wordCount,
       canSend: wordCount >= 100
     });
+
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+    }
+    this.debounceTimer = setTimeout(() => {
+      this.checkSensitiveWords(e.detail.value);
+    }, 500);
   },
 
-  /**
-   * 选择是否需要大师回信
-   */
+  checkSensitiveWords(text) {
+    const result = sensitiveWordUtil.detect(text);
+
+    if (result.hasSensitive) {
+      if (result.isHighSensitive) {
+        this.setData({
+          hasSensitiveWarning: true,
+          sensitiveWarning: '您的内容包含敏感词，请修改后再提交。',
+          canSend: false
+        });
+      } else if (result.isInvestment) {
+        this.setData({
+          hasSensitiveWarning: true,
+          sensitiveWarning: '注意：您的内容包含投资相关词汇，AI回复不会提供具体投资建议。'
+        });
+      }
+    } else {
+      this.setData({
+        hasSensitiveWarning: false,
+        sensitiveWarning: '',
+        canSend: this.data.wordCount >= 100
+      });
+    }
+  },
+
   async selectNeedReply(e) {
     const need = e.currentTarget.dataset.need;
 
-    // 如果需要回信，检查每日限制
     if (need) {
       const limit = await this.checkDailyLimit();
       if (!limit.canSend) {
@@ -148,7 +166,6 @@ Page({
         });
         return;
       }
-      // 显示剩余次数提示
       if (limit.remaining > 1) {
         wx.showToast({
           title: `今天还可以寄信${limit.remaining}次`,
@@ -161,18 +178,12 @@ Page({
     this.setData({ needReply: need });
   },
 
-  /**
-   * 购买邮票
-   */
   buyStamps() {
     wx.navigateTo({
       url: '/pages/stamps/stamps'
     });
   },
 
-  /**
-   * 提交笔记
-   */
   async submitLetter() {
     if (this.data.wordCount < 100) {
       wx.showModal({
@@ -183,7 +194,6 @@ Page({
       return;
     }
 
-    // 检查是否需要回信且有邮票
     if (this.data.needReply && this.data.userStamps === 0) {
       wx.showModal({
         title: '邮票不足',
@@ -199,7 +209,6 @@ Page({
       return;
     }
 
-    // 如果需要回信，检查每日限制
     if (this.data.needReply) {
       const limit = await this.checkDailyLimit();
       if (!limit.canSend) {
@@ -220,7 +229,6 @@ Page({
     wx.showLoading({ title: '寄出中...', mask: true });
 
     try {
-      // 1. 保存笔记到数据库
       const addRes = await db.collection('letters').add({
         data: {
           mentor: mentor,
@@ -236,11 +244,9 @@ Page({
       const letterId = addRes._id;
       console.log('笔记已保存，ID:', letterId);
 
-      // 2. 如果需要回信，扣除邮票并调用云函数生成回复
       if (needReply) {
         wx.showLoading({ title: '正在传送信件......', mask: true });
 
-        // 扣除邮票
         const updateUserRes = await cloudbaseUtil.query('users', {
           where: { _openid: this.data.openid },
           limit: 1
@@ -248,22 +254,19 @@ Page({
 
         let userDoc = updateUserRes.data[0];
         if (!userDoc) {
-          // 创建用户记录
           await db.collection('users').add({
             data: {
-              stamps: 2, // 3张免费邮票用掉1张
+              stamps: 2,
               totalLetters: 1,
               createdAt: db.serverDate()
             }
           });
         } else {
-          // 更新邮票数
           await cloudbaseUtil.update('users', userDoc._id, {
             stamps: Math.max(0, (userDoc.stamps !== undefined ? userDoc.stamps : 3) - 1)
           });
         }
 
-        // 调用云函数生成回复
         const cloudReplyRes = await wx.cloud.callFunction({
           name: 'replyToLetter',
           data: {
@@ -284,7 +287,6 @@ Page({
             duration: 3000
           });
           
-          // 更新邮票显示
           this.setData({ userStamps: Math.max(0, this.data.userStamps - 1) });
           
           setTimeout(() => {
@@ -294,9 +296,8 @@ Page({
           throw new Error(cloudReplyRes.result?.error || '云函数调用失败');
         }
       } else {
-        // 无需回信，直接返回
         wx.hideLoading();
-        wx.showToast({ 
+        wx.showToast({
           title: '笔记已保存',
           icon: 'success',
           duration: 2000
@@ -307,34 +308,17 @@ Page({
         }, 2000);
       }
     } catch (err) {
+      console.error('提交失败:', err);
       wx.hideLoading();
-      console.error('提交失败：', err);
-
-      let errorMsg = '邮路受阻，请重试';
-      if (err.message) {
-        errorMsg = err.message;
-      }
-
       wx.showModal({
-        title: '发送失败',
-        content: errorMsg,
+        title: '提交失败',
+        content: err.message || '请稍后重试',
         showCancel: false
       });
     }
   },
 
-  insertTemplate() {
-    const template = `## 公司定性分析 (SWOT)
-- **S (优势)**: 
-- **W (劣势)**: 
-- **O (机会)**: 
-- **T (威胁)**: 
----
-**核心护城河**: `;
-    this.setData({
-      content: template,
-      wordCount: template.length
-    });
+  goBack() {
+    wx.navigateBack();
   }
 });
-

@@ -15,6 +15,11 @@
       </view>
     </view>
 
+    <view wx:if="{{hasSensitiveWarning}}" class="sensitive-warning">
+      <text class="warning-icon">⚠️</text>
+      <text class="warning-text">{{sensitiveWarning}}</text>
+    </view>
+
     <view class="letter-paper">
       <view class="header">
         <text class="to">致：{{mentors[mentorIndex]}}</text>
