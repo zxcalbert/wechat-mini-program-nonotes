@@ -59,6 +59,8 @@ Page({
    */
   async checkDailyLimit() {
     try {
+      const db = wx.cloud.database();
+      const _ = db.command;
       const today = new Date();
       const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
       const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
@@ -67,10 +69,7 @@ Page({
         where: {
           _openid: this.data.openid,
           needReply: true,
-          createTime: {
-            $gte: startOfDay.getTime(),
-            $lt: endOfDay.getTime()
-          }
+          createTime: _.gte(startOfDay).and(_.lt(endOfDay))
         }
       });
 
