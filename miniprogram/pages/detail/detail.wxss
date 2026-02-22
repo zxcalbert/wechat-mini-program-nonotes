@@ -24,6 +24,20 @@ page {
   padding-bottom: 100rpx;
 }
 
+.ai-disclaimer {
+  background-color: #fff3cd;
+  border: 1rpx solid #ffc107;
+  border-radius: 8rpx;
+  padding: 20rpx 30rpx;
+  margin-bottom: 30rpx;
+}
+
+.disclaimer-text {
+  font-size: 26rpx;
+  color: #856404;
+  line-height: 1.5;
+}
+
 .reply-card {
   background-color: #ffffff;
   border-left: 10rpx solid #27ae60;

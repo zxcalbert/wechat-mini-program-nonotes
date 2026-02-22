@@ -15,6 +15,9 @@
 
   <view class="reply-zone">
     <block wx:if="{{letter.canShowReply}}">
+      <view class="ai-disclaimer">
+        <text class="disclaimer-text">⚠️ AI 生成内容仅供参考，不构成任何建议</text>
+      </view>
       <view class="reply-card">
         <view class="reply-title">大师回响</view>
         <text class="reply-text">{{letter.replyContent}}</text>
