@@ -25,7 +25,7 @@ function getMentorPrompt(mentor, mood, content) {
       tone: '朴实、直接、不绕弯子',
       focus: '强调本分文化、企业文化的重要性、做对的事情比把事情做对更重要',
       examples: '常说"本分"、"做对的事情，把事情做对"、"企业文化是最重要的护城河"',
-      location: '深圳'
+      location: '帕洛阿托'
     },
     '张小龙': {
       style: '用户体验、极简设计、产品思维',

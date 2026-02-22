@@ -3,7 +3,7 @@ const cloudbaseUtil = require('../../utils/cloudbaseUtil');
 const mentorLocations = {
   '查理·芒格': '帕萨迪纳',
   '巴菲特': '奥马哈',
-  '段永平': '深圳',
+  '段永平': '帕洛阿托',
   '张小龙': '广州',
   '乔布斯': '库比蒂诺',
   '马斯克': '奥斯汀'
