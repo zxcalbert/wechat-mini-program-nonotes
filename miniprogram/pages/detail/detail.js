@@ -1,11 +1,21 @@
 const cloudbaseUtil = require('../../utils/cloudbaseUtil');
 
+const mentorLocations = {
+  '查理·芒格': '帕萨迪纳',
+  '巴菲特': '奥马哈',
+  '段永平': '深圳',
+  '张小龙': '广州',
+  '乔布斯': '库比蒂诺',
+  '马斯克': '奥斯汀'
+};
+
 Page({
   data: {
     letter: null,
     loading: true,
     replyContent: '',
-    openid: null
+    openid: null,
+    mentorLocation: ''
   },
 
   onLoad: function(options) {
@@ -54,10 +64,12 @@ Page({
           ...result.data,
           displayDate: cloudbaseUtil.formatDateTime(result.data.createTime),
           statusLabel: this.getStatusLabel(result.data.status),
-          canShowReply: canShowReply  // 新增字段，用于前端判断是否显示回复
+          canShowReply: canShowReply
         };
         
-        this.setData({ letter });
+        const mentorLocation = mentorLocations[result.data.mentor] || '奥马哈';
+        
+        this.setData({ letter, mentorLocation });
         console.log('加载详情成功:', letter);
       } else {
         wx.showToast({ title: '加载失败', icon: 'error' });
