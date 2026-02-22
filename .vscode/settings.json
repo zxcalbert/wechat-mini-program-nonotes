@@ -1,0 +1,5 @@
+{
+    // Claude Code扩展 配置豆包大模型（火山方舟兼容Claude协议）
+    "claude-code.apiBaseUrl": "https://ark.cn-beijing.volces.com/api/coding/v3",
+    "claude-code.apiKey": "0fd40e34-c260-4b33-a109-80e693448b3b"
+}

@@ -1,0 +1,32 @@
+<view class="container">
+  <!-- 空状态 -->
+  <view wx:if="{{empty && !loading}}" class="empty-state">
+    <text class="empty-icon">🗑️</text>
+    <text class="empty-text">回收站为空</text>
+  </view>
+
+  <!-- 已删除笔记列表 -->
+  <scroll-view wx:else scroll-y="true" class="notes-list">
+    <view wx:for="{{deletedLetters}}" wx:key="_id" class="note-card">
+      <!-- 点击查看详情 -->
+      <view class="note-main" bindtap="viewLetter" data-id="{{item._id}}">
+        <view class="note-content-preview">{{item.content}}</view>
+        <view class="note-footer">
+          <text class="note-date">{{item.displayDate || '刚刚'}}</text>
+          <text class="note-status" wx:if="{{item.statusLabel}}">{{item.statusLabel}}</text>
+        </view>
+      </view>
+
+      <!-- 操作按钮 -->
+      <view class="note-actions" catchtap="stopPropagation">
+        <button class="action-btn restore-btn" size="mini" bindtap="restoreLetter" data-id="{{item._id}}">恢复</button>
+        <button class="action-btn delete" size="mini" bindtap="permanentDelete" data-id="{{item._id}}">永久删除</button>
+      </view>
+    </view>
+
+    <!-- 加载提示 -->
+    <view wx:if="{{loading}}" class="loading">
+      <text>加载中...</text>
+    </view>
+  </scroll-view>
+</view>

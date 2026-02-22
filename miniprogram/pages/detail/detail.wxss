@@ -27,8 +27,9 @@ page {
 .reply-card {
   background-color: #ffffff;
   border-left: 10rpx solid #27ae60;
-  padding: 40rpx;
+  padding: 40rpx 40rpx 60rpx 40rpx;
   border-radius: 4rpx;
+  margin-bottom: 30rpx;
 }
 
 .reply-badge {
@@ -36,6 +37,34 @@ page {
   font-weight: bold;
   font-size: 24rpx;
   margin-bottom: 20rpx;
+}
+
+.reply-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #27ae60;
+  margin-bottom: 30rpx;
+}
+
+.reply-text {
+  font-size: 30rpx;
+  line-height: 1.8;
+  color: #333;
+  word-break: break-all;
+  display: block;
+  margin-bottom: 40rpx;
+}
+
+.reply-signature {
+  text-align: right;
+  padding-top: 30rpx;
+  border-top: 1rpx solid #e0e0e0;
+}
+
+.signature-text {
+  font-size: 28rpx;
+  color: #666;
+  font-style: italic;
 }
 
 .waiting-card {
