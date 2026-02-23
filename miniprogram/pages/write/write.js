@@ -62,7 +62,7 @@ Page({
       });
 
       const totalSent = result.success ? result.data.length : 0;
-      const remaining = Math.max(0, 2 - totalSent);
+      const remaining = Math.max(0, 6 - totalSent);
 
       return {
         canSend: remaining > 0,
@@ -71,7 +71,7 @@ Page({
       };
     } catch (err) {
       console.error('检查每日限制失败:', err);
-      return { canSend: true, remaining: 2, total: 0 };
+      return { canSend: true, remaining: 6, total: 0 };
     }
   },
 
@@ -146,7 +146,7 @@ Page({
       if (!limit.canSend) {
         wx.showModal({
           title: '每日寄信次数已用完',
-          content: '今天已寄信2次，大师需要时间深思熟虑，明天再来吧',
+          content: '今天已寄信6次，大师需要时间深思熟虑，明天再来吧',
           showCancel: false
         });
         return;
@@ -199,7 +199,7 @@ Page({
       if (!limit.canSend) {
         wx.showModal({
           title: '每日寄信次数已用完',
-          content: '今天已寄信2次，大师需要时间深思熟虑，明天再来吧',
+          content: '今天已寄信6次，大师需要时间深思熟虑，明天再来吧',
           showCancel: false
         });
         return;
