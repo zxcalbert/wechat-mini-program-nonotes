@@ -31,12 +31,6 @@ Page({
     });
   },
 
-  onUnload() {
-    if (this.debounceTimer) {
-      clearTimeout(this.debounceTimer);
-    }
-  },
-
   checkAuth: function() {
     const openid = wx.getStorageSync('openid');
 
@@ -119,13 +113,6 @@ Page({
       wordCount: wordCount,
       canSend: wordCount >= 100
     });
-
-    if (this.debounceTimer) {
-      clearTimeout(this.debounceTimer);
-    }
-    this.debounceTimer = setTimeout(() => {
-      this.checkSensitiveWords(e.detail.value);
-    }, 500);
   },
 
   checkSensitiveWords(text) {
@@ -133,24 +120,22 @@ Page({
 
     if (result.hasSensitive) {
       if (result.isHighSensitive) {
-        this.setData({
-          hasSensitiveWarning: true,
-          sensitiveWarning: '您的内容包含敏感词，请修改后再提交。',
-          canSend: false
-        });
+        return {
+          canSubmit: false,
+          message: '您的内容包含敏感词，请修改后再提交。'
+        };
       } else if (result.isInvestment) {
-        this.setData({
-          hasSensitiveWarning: true,
-          sensitiveWarning: '注意：您的内容包含投资相关词汇，AI回复不会提供具体投资建议。'
-        });
+        return {
+          canSubmit: true,
+          message: '注意：您的内容包含投资相关词汇，AI回复不会提供具体投资建议。'
+        };
       }
-    } else {
-      this.setData({
-        hasSensitiveWarning: false,
-        sensitiveWarning: '',
-        canSend: this.data.wordCount >= 100
-      });
     }
+
+    return {
+      canSubmit: true,
+      message: ''
+    };
   },
 
   async selectNeedReply(e) {
@@ -219,6 +204,24 @@ Page({
         });
         return;
       }
+    }
+
+    const sensitiveCheck = this.checkSensitiveWords(this.data.content);
+
+    if (!sensitiveCheck.canSubmit) {
+      wx.showModal({
+        title: '内容包含敏感词',
+        content: sensitiveCheck.message,
+        showCancel: false
+      });
+      return;
+    }
+
+    if (sensitiveCheck.message) {
+      this.setData({
+        hasSensitiveWarning: true,
+        sensitiveWarning: sensitiveCheck.message
+      });
     }
 
     const mentor = this.data.mentors[this.data.mentorIndex];
