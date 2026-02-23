@@ -212,18 +212,32 @@ Page({
       wx.showModal({
         title: '内容包含敏感词',
         content: sensitiveCheck.message,
-        showCancel: false
+        showCancel: false,
+        confirmText: '我知道了'
       });
       return;
     }
 
     if (sensitiveCheck.message) {
-      this.setData({
-        hasSensitiveWarning: true,
-        sensitiveWarning: sensitiveCheck.message
+      wx.showModal({
+        title: '温馨提示',
+        content: sensitiveCheck.message + '\n\n是否继续提交？',
+        confirmText: '继续提交',
+        cancelText: '修改内容',
+        success: (res) => {
+          if (res.confirm) {
+            this.doSubmit();
+          } else {
+            return;
+          }
+        }
       });
+    } else {
+      this.doSubmit();
     }
+  },
 
+  async doSubmit() {
     const mentor = this.data.mentors[this.data.mentorIndex];
     const mood = this.data.selectedMood;
     const content = this.data.content;
