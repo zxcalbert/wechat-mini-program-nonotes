@@ -2,6 +2,85 @@ const cloud = require('wx-server-sdk');
 const axios = require('axios');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
+const sensitiveWords = {
+  violence: [
+    '杀人', '暴力', '恐怖', '袭击', '爆炸', '枪支', '武器',
+    '血腥', '残忍', '虐待', '杀戮', '谋杀', '伤害', '残害'
+  ],
+  porn: [
+    '色情', '淫秽', '性交易', '嫖娼', '卖淫', '裸聊',
+    '成人', '黄色', '低俗', '下流', '猥琐', '淫秽物品'
+  ],
+  investment: [
+    '买入', '卖出', '推荐', '估值', '收益率', '回报率',
+    '目标价', '股价', '基金净值', '投资建议', '理财规划',
+    '增持', '减持', '抄底', '逃顶', '加仓', '减仓'
+  ]
+};
+
+function detectSensitiveWords(text) {
+  if (!text) {
+    return {
+      hasSensitive: false,
+      isHighSensitive: false,
+      isInvestment: false
+    };
+  }
+
+  let hasSensitive = false;
+  let isHighSensitive = false;
+  let isInvestment = false;
+
+  for (const word of sensitiveWords.violence) {
+    if (text.includes(word)) {
+      hasSensitive = true;
+      isHighSensitive = true;
+      break;
+    }
+  }
+
+  if (!isHighSensitive) {
+    for (const word of sensitiveWords.porn) {
+      if (text.includes(word)) {
+        hasSensitive = true;
+        isHighSensitive = true;
+        break;
+      }
+    }
+  }
+
+  if (!isHighSensitive) {
+    for (const word of sensitiveWords.investment) {
+      if (text.includes(word)) {
+        hasSensitive = true;
+        isInvestment = true;
+        break;
+      }
+    }
+  }
+
+  return {
+    hasSensitive,
+    isHighSensitive,
+    isInvestment
+  };
+}
+
+function processReply(replyContent) {
+  const detection = detectSensitiveWords(replyContent);
+
+  if (detection.isHighSensitive) {
+    return "感谢你的来信。由于内容合规性要求，我无法针对这个话题给出具体回复。建议你从更宏观的角度思考问题，关注原则和方法论，而不是具体的标的或建议。";
+  }
+
+  if (detection.isInvestment) {
+    const disclaimer = "\n\n---\n\n⚠️ 免责声明：以上内容仅供参考，不构成任何投资建议。投资有风险，决策需谨慎。";
+    return replyContent + disclaimer;
+  }
+
+  return replyContent;
+}
+
 
 // 为不同投资大师生成个性化的系统提示词
 function getMentorPrompt(mentor, mood, content) {
@@ -294,9 +373,11 @@ exports.main = async (event, context) => {
   try {
     // 如果传入了 replyContent，说明是从小程序端生成的回复，直接保存
     if (replyContent) {
+      const processedReply = processReply(replyContent.trim());
+      
       await db.collection('letters').doc(letterId).update({
         data: {
-          replyContent: replyContent.trim(),
+          replyContent: processedReply,
           status: 'replied',
           replyTime: db.serverDate()
         }
@@ -304,36 +385,33 @@ exports.main = async (event, context) => {
 
       return { 
         success: true,
-        replyLength: replyContent.length
+        replyLength: processedReply.length
       };
     }
 
-    // 如果传入了 mentor, mood, content，说明需要云函数生成回复
     if (mentor && content) {
       const systemPrompt = getMentorPrompt(mentor, mood || '平和', content);
       
-      // 尝试调用 DeepSeek API
       let replyContent;
       try {
         replyContent = await callDeepSeekAPI(systemPrompt, content);
       } catch (aiErr) {
         console.log('AI调用失败，使用智能回复生成器:', aiErr.message);
-        // 回退到基于规则的智能回复生成器
         replyContent = generateSmartReply(mentor, mood || '平和', content);
       }
       
-      // 保存生成的回复，但不改变status（保持pending，由前端根据replyExpectTime判断是否显示）
+      const processedReply = processReply(replyContent);
+      
       await db.collection('letters').doc(letterId).update({
         data: {
-          replyContent: replyContent,
-          // status 保持 'pending'，由detail页面根据replyExpectTime判断是否显示
+          replyContent: processedReply,
           replyTime: db.serverDate()
         }
       });
 
       return {
         success: true,
-        replyLength: replyContent.length
+        replyLength: processedReply.length
       };
     }
 
