@@ -35,7 +35,7 @@
     </view>
 
     <!-- 购买邮票 -->
-    <view class="purchase-section" wx:if="{{userStamps < 10}}">
+    <view class="purchase-section">
       <text class="section-title">🛒 购买邮票</text>
       
       <view class="stamp-package">
