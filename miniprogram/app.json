@@ -18,5 +18,8 @@
         }
     },
     "requiredBackgroundModes": [],
-    "lazyCodeLoading": "requiredComponents"
+    "lazyCodeLoading": "requiredComponents",
+    "darkmode": true,
+    "themeLocation": "theme.json",
+    "themeType": "system"
 }

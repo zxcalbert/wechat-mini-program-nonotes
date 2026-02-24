@@ -1,0 +1,26 @@
+{
+  "light": {
+    "backgroundColor": "#ffffff",
+    "textColor": "#333333",
+    "secondaryTextColor": "#666666",
+    "highlightColor": "#8b4513",
+    "borderColor": "#f0f0f0",
+    "cardBackgroundColor": "#fdfaf2",
+    "cardBorderColor": "#e0d5b1",
+    "warningBackgroundColor": "#fff3cd",
+    "warningBorderColor": "#ffc107",
+    "warningTextColor": "#856404"
+  },
+  "dark": {
+    "backgroundColor": "#121212",
+    "textColor": "#e0e0e0",
+    "secondaryTextColor": "#999999",
+    "highlightColor": "#d4a574",
+    "borderColor": "#333333",
+    "cardBackgroundColor": "#1e1e1e",
+    "cardBorderColor": "#444444",
+    "warningBackgroundColor": "#3d3d00",
+    "warningBorderColor": "#666600",
+    "warningTextColor": "#e0e000"
+  }
+}
