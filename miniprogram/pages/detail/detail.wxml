@@ -20,7 +20,7 @@
       </view>
       <view class="reply-card">
         <view class="reply-title">大师回响</view>
-        <text class="reply-text">{{letter.replyContent}}</text>
+        <text class="reply-text" user-select="true">{{letter.replyContent}}</text>
         <view class="reply-signature">
           <text class="signature-text">—— {{letter.mentor || '查理·芒格'}}</text>
         </view>
