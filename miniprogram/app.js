@@ -33,18 +33,22 @@ App({
     this.globalData.themeMode = mode;
     wx.setStorageSync('themeMode', mode);
     
-    if (mode === 'system') {
-      wx.setThemeStyle({
-        style: 'auto'
-      });
-    } else if (mode === 'light') {
-      wx.setThemeStyle({
-        style: 'light'
-      });
-    } else if (mode === 'dark') {
-      wx.setThemeStyle({
-        style: 'dark'
-      });
+    if (wx.setThemeStyle) {
+      if (mode === 'system') {
+        wx.setThemeStyle({
+          style: 'auto'
+        });
+      } else if (mode === 'light') {
+        wx.setThemeStyle({
+          style: 'light'
+        });
+      } else if (mode === 'dark') {
+        wx.setThemeStyle({
+          style: 'dark'
+        });
+      }
+    } else {
+      console.warn('当前基础库不支持 wx.setThemeStyle，主题切换功能将不可用');
     }
   },
 
