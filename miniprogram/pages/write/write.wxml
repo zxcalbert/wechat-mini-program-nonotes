@@ -2,7 +2,12 @@
   <scroll-view scroll-y="true" class="write-content">
     <view class="selector-group">
       <picker bindchange="onMentorChange" value="{{mentorIndex}}" range="{{mentors}}">
-        <view class="picker-item">指引导师：<text class="highlight">{{mentors[mentorIndex]}}</text></view>
+        <view class="picker-item">
+          <text class="picker-label">指引导师：</text>
+          <text class="highlight">{{mentors[mentorIndex]}}</text>
+          <text class="picker-arrow">▼</text>
+          <text class="picker-hint">点击选择</text>
+        </view>
       </picker>
       
       <view class="mood-title">当前心境：</view>
