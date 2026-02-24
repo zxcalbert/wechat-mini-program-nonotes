@@ -1,6 +1,7 @@
+
 /* pages/write/write.wxss */
 page {
-  background-color: #ffffff;
+  background-color: var(--backgroundColor, #ffffff);
 }
 
 .container {
@@ -11,7 +12,7 @@ page {
   bottom: 0;
   display: flex;
   flex-direction: column;
-  background-color: #ffffff;
+  background-color: var(--backgroundColor, #ffffff);
   padding-top: env(safe-area-inset-top);
 }
 
@@ -20,8 +21,8 @@ page {
   align-items: center;
   padding-left: 20px;
   padding-right: 20px;
-  border-bottom: 1px solid #f0f0f0;
-  background-color: #ffffff;
+  border-bottom: 1px solid var(--borderColor, #f0f0f0);
+  background-color: var(--backgroundColor, #ffffff);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -32,14 +33,14 @@ page {
   font-size: 24px;
   padding: 8px 16px;
   cursor: pointer;
-  color: #000000;
+  color: var(--textColor, #000000);
   margin-right: 16px;
 }
 
 .header-title {
   font-size: 18px;
   font-weight: 600;
-  color: #000000;
+  color: var(--textColor, #000000);
 }
 
 .write-content {
@@ -56,8 +57,8 @@ page {
   display: flex;
   align-items: flex-start;
   padding: 20rpx 30rpx;
-  background-color: #fff3cd;
-  border: 1rpx solid #ffc107;
+  background-color: var(--warningBackgroundColor, #fff3cd);
+  border: 1rpx solid var(--warningBorderColor, #ffc107);
   border-radius: 8rpx;
   margin-bottom: 30rpx;
 }
@@ -70,15 +71,15 @@ page {
 
 .warning-text {
   font-size: 26rpx;
-  color: #856404;
+  color: var(--warningTextColor, #856404);
   line-height: 1.6;
 }
 
 .picker-item {
   padding: 12px;
   font-size: 14px;
-  color: #333333;
-  background-color: #f5f5f5;
+  color: var(--textColor, #333333);
+  background-color: var(--borderColor, #f5f5f5);
   border-radius: 8px;
   margin-bottom: 16px;
   display: flex;
@@ -87,12 +88,12 @@ page {
 }
 
 .picker-item .picker-label {
-  color: #666666;
+  color: var(--secondaryTextColor, #666666);
   flex-shrink: 0;
 }
 
 .picker-item .highlight {
-  color: #8b4513;
+  color: var(--highlightColor, #8b4513);
   font-weight: 600;
   flex-shrink: 0;
   margin-left: 4px;
@@ -100,20 +101,20 @@ page {
 
 .picker-item .picker-arrow {
   font-size: 12px;
-  color: #999999;
+  color: var(--secondaryTextColor, #999999);
   margin-left: 8px;
   transition: transform 0.2s ease;
 }
 
 .picker-item .picker-hint {
   font-size: 12px;
-  color: #999999;
+  color: var(--secondaryTextColor, #999999);
   margin-left: 8px;
 }
 
 .mood-title {
   font-size: 14px;
-  color: #666666;
+  color: var(--secondaryTextColor, #666666);
   font-weight: 600;
   margin-bottom: 8px;
   margin-top: 12px;
@@ -127,23 +128,23 @@ page {
 
 .mood-tag {
   padding: 8px 16px;
-  background-color: #f5f5f5;
-  border: 1px solid #eeeeee;
+  background-color: var(--borderColor, #f5f5f5);
+  border: 1px solid var(--borderColor, #eeeeee);
   border-radius: 20px;
-  color: #666666;
+  color: var(--secondaryTextColor, #666666);
   font-size: 13px;
 }
 
 .mood-tag.active {
-  background-color: #8b4513;
+  background-color: var(--highlightColor, #8b4513);
   color: #ffffff;
-  border-color: #8b4513;
+  border-color: var(--highlightColor, #8b4513);
   font-weight: 600;
 }
 
 .letter-paper {
-  background-color: #fdfaf2;
-  border: 1px solid #e0d5b1;
+  background-color: var(--cardBackgroundColor, #fdfaf2);
+  border: 1px solid var(--cardBorderColor, #e0d5b1);
   padding: 20px;
   line-height: 1.8;
   min-height: 300px;
@@ -161,25 +162,25 @@ page {
   align-items: center;
   margin-bottom: 16px;
   padding-bottom: 12px;
-  border-bottom: 1px solid #e0d5b1;
+  border-bottom: 1px solid var(--cardBorderColor, #e0d5b1);
 }
 
 .letter-paper .to {
   font-size: 14px;
-  color: #8b4513;
+  color: var(--highlightColor, #8b4513);
   font-weight: 600;
 }
 
 .letter-paper .date {
   font-size: 12px;
-  color: #999999;
+  color: var(--secondaryTextColor, #999999);
 }
 
 .content-area {
   flex: 1;
   font-size: 14px;
   line-height: 1.8;
-  color: #333333;
+  color: var(--textColor, #333333);
   border: none;
   padding: 0;
   outline: none;
@@ -190,27 +191,26 @@ page {
 .letter-paper .footer {
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid #e0d5b1;
+  border-top: 1px solid var(--cardBorderColor, #e0d5b1);
   text-align: right;
 }
 
 .word-count {
   font-size: 12px;
-  color: #999999;
+  color: var(--secondaryTextColor, #999999);
 }
 
-/* 邮票选择区域 */
 .stamp-section {
   margin-bottom: 20px;
   padding: 16px;
-  background-color: #fafafa;
+  background-color: var(--borderColor, #fafafa);
   border-radius: 8px;
 }
 
 .stamp-title {
   font-size: 14px;
   font-weight: 600;
-  color: #333333;
+  color: var(--textColor, #333333);
   margin-bottom: 12px;
 }
 
@@ -223,8 +223,8 @@ page {
 .stamp-option {
   flex: 1;
   padding: 12px;
-  background-color: #ffffff;
-  border: 2px solid #e0d5b1;
+  background-color: var(--backgroundColor, #ffffff);
+  border: 2px solid var(--cardBorderColor, #e0d5b1);
   border-radius: 8px;
   text-align: center;
   cursor: pointer;
@@ -236,7 +236,7 @@ page {
 }
 
 .stamp-option.selected {
-  border-color: #8b4513;
+  border-color: var(--highlightColor, #8b4513);
   background-color: rgba(139, 69, 19, 0.05);
 }
 
@@ -244,32 +244,32 @@ page {
   display: block;
   font-size: 14px;
   font-weight: 600;
-  color: #333333;
+  color: var(--textColor, #333333);
   margin-bottom: 4px;
 }
 
 .stamp-option .option-desc {
   display: block;
   font-size: 12px;
-  color: #999999;
+  color: var(--secondaryTextColor, #999999);
 }
 
 .stamp-option.selected .option-desc {
-  color: #8b4513;
+  color: var(--highlightColor, #8b4513);
 }
 
 .warn-section {
-  background-color: #fff3cd;
+  background-color: var(--warningBackgroundColor, #fff3cd);
   padding: 12px;
   border-radius: 6px;
   margin-bottom: 12px;
-  border-left: 4px solid #ffc107;
+  border-left: 4px solid var(--warningBorderColor, #ffc107);
 }
 
 .warn-text {
   display: block;
   font-size: 12px;
-  color: #856404;
+  color: var(--warningTextColor, #856404);
   margin-bottom: 8px;
 }
 
@@ -329,3 +329,4 @@ page {
   background-color: #cccccc;
   cursor: not-allowed;
 }
+

@@ -1,6 +1,6 @@
 /* pages/index/index.wxss */
 page {
-  background-color: #f5f5f5;
+  background-color: var(--borderColor, #f5f5f5);
 }
 
 .container {
@@ -8,7 +8,7 @@ page {
   flex-direction: column;
   align-items: flex-start;
   height: 100vh;
-  background-color: #f5f5f5;
+  background-color: var(--borderColor, #f5f5f5);
 }
 
 /* 自定义导航栏 */
@@ -18,8 +18,8 @@ page {
   align-items: center;
   padding: 12px 16px;
   padding-top: calc(50px + env(safe-area-inset-top));
-  background-color: #ffffff;
-  border-bottom: 1px solid #f0f0f0;
+  background-color: var(--backgroundColor, #ffffff);
+  border-bottom: 1px solid var(--borderColor, #f0f0f0);
 }
 
 .menu-toggle {
@@ -27,13 +27,13 @@ page {
   padding: 0;
   line-height: 1;
   cursor: pointer;
-  color: #333333;
+  color: var(--textColor, #333333);
 }
 
 .navbar-title {
   font-size: 17px;
   font-weight: 600;
-  color: #333333;
+  color: var(--textColor, #333333);
 }
 
 .search-icon {
@@ -41,7 +41,7 @@ page {
   padding: 0;
   line-height: 1;
   cursor: pointer;
-  color: #333333;
+  color: var(--textColor, #333333);
 }
 
 /* 搜索容器 */
@@ -49,24 +49,24 @@ page {
   display: flex;
   align-items: center;
   padding: 10px 16px;
-  background-color: #ffffff;
-  border-bottom: 1px solid #f0f0f0;
+  background-color: var(--backgroundColor, #ffffff);
+  border-bottom: 1px solid var(--borderColor, #f0f0f0);
 }
 
 .search-input {
   flex: 1;
   height: 36px;
-  background-color: #f5f5f5;
+  background-color: var(--borderColor, #f5f5f5);
   border-radius: 18px;
   padding: 0 16px;
   font-size: 14px;
-  color: #333333;
+  color: var(--textColor, #333333);
 }
 
 .search-close {
   font-size: 18px;
   padding: 0 12px;
-  color: #999999;
+  color: var(--secondaryTextColor, #999999);
   cursor: pointer;
 }
 
@@ -75,7 +75,7 @@ page {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background-color: #333333;
+  background-color: var(--textColor, #333333);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -94,7 +94,7 @@ page {
 
 .float-add-icon {
   font-size: 32px;
-  color: #ffffff;
+  color: var(--backgroundColor, #ffffff);
   line-height: 1;
 }
 
@@ -113,7 +113,7 @@ page {
   align-items: center;
   justify-content: center;
   padding: 80px 20px;
-  color: #999999;
+  color: var(--secondaryTextColor, #999999);
 }
 
 .empty-icon {
@@ -126,17 +126,17 @@ page {
   font-size: 16px;
   font-weight: 500;
   margin-bottom: 8px;
-  color: #666666;
+  color: var(--secondaryTextColor, #666666);
 }
 
 .empty-subtext {
   font-size: 14px;
-  color: #999999;
+  color: var(--secondaryTextColor, #999999);
 }
 
 /* 笔记卡片 */
 .note-card {
-  background-color: #ffffff;
+  background-color: var(--backgroundColor, #ffffff);
   padding: 16px;
   margin-bottom: 12px;
   border-radius: 12px;
@@ -153,7 +153,7 @@ page {
 .note-content-preview {
   font-size: 15px;
   line-height: 1.6;
-  color: #333333;
+  color: var(--textColor, #333333);
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 4;
@@ -170,5 +170,5 @@ page {
 
 .note-date {
   font-size: 12px;
-  color: #999999;
+  color: var(--secondaryTextColor, #999999);
 }
