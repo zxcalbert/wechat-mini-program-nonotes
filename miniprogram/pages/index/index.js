@@ -1,4 +1,7 @@
+
 const cloudbaseUtil = require('../../utils/cloudbaseUtil');
+
+const app = getApp();
 
 Page({
   data: {
@@ -13,7 +16,8 @@ Page({
     showSearch: false,
     searchKeyword: '',
     searchFocus: false,
-    statusBarHeight: 0
+    statusBarHeight: 0,
+    themeIcon: '🌓'
   },
 
   onLoad: function() {
@@ -21,6 +25,7 @@ Page({
     this.setData({ statusBarHeight: systemInfo.statusBarHeight });
     this.checkAuth();
     this.generateHeatmapData();
+    this.updateThemeIcon();
   },
 
   onShow: function() {
@@ -30,9 +35,6 @@ Page({
     }
   },
 
-  /**
-   * 检查登录状态
-   */
   checkAuth: function() {
     const openid = wx.getStorageSync('openid');
     const userInfo = wx.getStorageSync('userInfo');
@@ -49,9 +51,6 @@ Page({
     this.fetchUserStamps();
   },
 
-  /**
-   * 获取用户邮票数
-   */
   async fetchUserStamps() {
     try {
       const result = await cloudbaseUtil.query('users', {
@@ -61,7 +60,6 @@ Page({
 
       if (result.success && result.data.length > 0) {
         const userStamps = result.data[0].stamps;
-        // 只有当 stamps 字段不存在时才使用默认值 3
         const stamps = userStamps !== undefined ? userStamps : 3;
         this.setData({ userStamps: stamps });
       } else {
@@ -73,9 +71,6 @@ Page({
     }
   },
 
-  /**
-   * 获取笔记列表
-   */
   async fetchLetters() {
     this.setData({ loading: true });
 
@@ -88,7 +83,6 @@ Page({
       });
 
       if (result.success) {
-        // 在客户端过滤已删除的笔记（兼容旧数据没有 deleted 字段）
         const letters = result.data
           .filter(item => !item.deleted)
           .map(item => ({
@@ -108,9 +102,6 @@ Page({
     }
   },
 
-  /**
-   * 生成热力图数据（过去一年的日期）
-   */
   generateHeatmapData() {
     const today = new Date();
     const oneYearAgo = new Date(today.getTime() - 365 * 24 * 60 * 60 * 1000);
@@ -118,8 +109,6 @@ Page({
 
     for (let d = new Date(oneYearAgo); d <= today; d.setDate(d.getDate() + 1)) {
       const dateStr = d.toISOString().split('T')[0];
-      // 这里可以从数据库查询该日期有多少笔记
-      // 暂时随机生成用于演示
       const count = Math.floor(Math.random() * 4);
       data.push({
         date: dateStr,
@@ -130,9 +119,6 @@ Page({
     this.setData({ heatmapData: data });
   },
 
-  /**
-   * 获取状态标签
-   */
   getStatusLabel(status) {
     const statusMap = {
       'pending': '待回复',
@@ -143,9 +129,6 @@ Page({
     return statusMap[status] || '未知';
   },
 
-  /**
-   * 点击笔记进入详情页
-   */
   goToDetail: function(event) {
     const letterId = event.currentTarget.dataset.id;
     wx.navigateTo({
@@ -153,9 +136,6 @@ Page({
     });
   },
 
-  /**
-   * 长按删除笔记到回收站
-   */
   deleteLetter: function(event) {
     const letterId = event.currentTarget.dataset.id;
     
@@ -186,45 +166,30 @@ Page({
     });
   },
 
-  /**
-   * 切换侧边菜单
-   */
   toggleSideMenu() {
     this.setData({
       showMenu: !this.data.showMenu
     });
   },
 
-  /**
-   * 关闭侧边菜单
-   */
   closeSideMenu() {
     this.setData({
       showMenu: false
     });
   },
 
-  /**
-   * 下拉刷新
-   */
   onPullDownRefresh: function() {
     this.fetchLetters().then(() => {
       wx.stopPullDownRefresh();
     });
   },
 
-  /**
-   * 跳转到写笔记页面
-   */
   goToWrite: function() {
     wx.navigateTo({
       url: '../write/write'
     });
   },
 
-  /**
-   * 显示搜索框
-   */
   showSearchInput: function() {
     this.setData({
       showSearch: true,
@@ -232,9 +197,6 @@ Page({
     });
   },
 
-  /**
-   * 隐藏搜索框
-   */
   hideSearchInput: function() {
     this.setData({
       showSearch: false,
@@ -244,9 +206,6 @@ Page({
     });
   },
 
-  /**
-   * 搜索输入处理
-   */
   onSearchInput: function(e) {
     const keyword = e.detail.value.trim();
     this.setData({ searchKeyword: keyword });
@@ -259,15 +218,46 @@ Page({
     this.filterLetters(keyword);
   },
 
-  /**
-   * 过滤笔记
-   */
   filterLetters: function(keyword) {
     const letters = this.data.letters;
     const filtered = letters.filter(letter => {
       return letter.content && letter.content.toLowerCase().includes(keyword.toLowerCase());
     });
     this.setData({ displayLetters: filtered });
+  },
+
+  updateThemeIcon: function() {
+    const theme = app.getTheme();
+    let icon;
+    if (theme === 'system') {
+      icon = '🌓';
+    } else if (theme === 'light') {
+      icon = '☀️';
+    } else {
+      icon = '🌙';
+    }
+    this.setData({ themeIcon: icon });
+  },
+
+  toggleTheme: function() {
+    app.toggleTheme();
+    this.updateThemeIcon();
+    
+    const theme = app.getTheme();
+    let tip;
+    if (theme === 'system') {
+      tip = '跟随系统';
+    } else if (theme === 'light') {
+      tip = '亮色模式';
+    } else {
+      tip = '暗色模式';
+    }
+    
+    wx.showToast({
+      title: tip,
+      icon: 'none',
+      duration: 1500
+    });
   }
 });
 

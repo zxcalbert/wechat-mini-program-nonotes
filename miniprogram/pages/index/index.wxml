@@ -10,7 +10,10 @@
   <view class="custom-navbar">
     <text class="menu-toggle" bindtap="toggleSideMenu">☰</text>
     <text class="navbar-title">我的笔记</text>
-    <text class="search-icon" bindtap="showSearchInput">🔍</text>
+    <view class="navbar-actions">
+      <text class="theme-toggle" bindtap="toggleTheme">{{themeIcon}}</text>
+      <text class="search-icon" bindtap="showSearchInput">🔍</text>
+    </view>
   </view>
 
   <!-- 搜索框 -->

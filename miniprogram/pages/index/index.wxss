@@ -36,6 +36,20 @@ page {
   color: var(--textColor, #333333);
 }
 
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.theme-toggle {
+  font-size: 20px;
+  padding: 0;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--textColor, #333333);
+}
+
 .search-icon {
   font-size: 20px;
   padding: 0;
