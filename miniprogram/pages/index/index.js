@@ -18,14 +18,34 @@ Page({
     searchFocus: false,
     statusBarHeight: 0,
     themeIcon: '🌓',
-    themeClass: ''
+    themeClass: '',
+    menuButtonRight: 0,
+    navbarPaddingRight: 16
   },
 
   onLoad: function() {
     const systemInfo = wx.getSystemInfoSync();
+    
+    let menuButtonRight = 0;
+    let navbarPaddingRight = 16;
+    
+    try {
+      const menuButton = wx.getMenuButtonBoundingClientRect();
+      if (menuButton && menuButton.right) {
+        const screenWidth = systemInfo.screenWidth;
+        menuButtonRight = screenWidth - menuButton.right;
+        navbarPaddingRight = menuButton.width + menuButtonRight + 8;
+        console.log('胶囊按钮位置:', menuButton, '屏幕宽度:', screenWidth, 'padding-right:', navbarPaddingRight);
+      }
+    } catch (e) {
+      console.warn('获取胶囊按钮位置失败:', e);
+    }
+    
     this.setData({ 
       statusBarHeight: systemInfo.statusBarHeight,
-      themeClass: app.getThemeClass()
+      themeClass: app.getThemeClass(),
+      menuButtonRight,
+      navbarPaddingRight
     });
     this.checkAuth();
     this.generateHeatmapData();

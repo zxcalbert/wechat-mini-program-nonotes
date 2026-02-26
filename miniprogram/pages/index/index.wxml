@@ -8,7 +8,7 @@
 
 <view class="container {{themeClass}}">
   <!-- 自定义导航栏 -->
-  <view class="custom-navbar">
+  <view class="custom-navbar" style="padding-right: {{navbarPaddingRight}}px;">
     <text class="menu-toggle" bindtap="toggleSideMenu">☰</text>
     <text class="navbar-title">我的笔记</text>
     <view class="navbar-actions">
