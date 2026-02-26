@@ -38,6 +38,8 @@ Component({
         icon: 'none',
         duration: 1500
       });
+      
+      this.triggerEvent('themeChanged');
     },
 
     viewTrash() {

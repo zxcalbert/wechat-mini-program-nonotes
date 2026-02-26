@@ -3,6 +3,7 @@
   user-stamps="{{userStamps}}"
   heatmap-data="{{heatmapData}}"
   bind:close="closeSideMenu"
+  bind:themeChanged="onThemeChanged"
 />
 
 <view class="container {{themeClass}}">

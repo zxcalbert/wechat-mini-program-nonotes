@@ -209,6 +209,10 @@ Page({
     });
   },
 
+  onThemeChanged() {
+    this.setData({ themeClass: app.getThemeClass() });
+  },
+
   onPullDownRefresh: function() {
     this.fetchLetters().then(() => {
       wx.stopPullDownRefresh();
