@@ -1,0 +1,57 @@
+{
+  "version": "1.0.0",
+  "description": "项目规则检查清单配置",
+  "checks": {
+    "sensitive_info": {
+      "enabled": true,
+      "patterns": [
+        "appid",
+        "secret",
+        "password",
+        "token",
+        "api_key",
+        "private_key"
+      ],
+      "exclude_patterns": [
+        "//.*",
+        "/\\*.*\\*/"
+      ]
+    },
+    "console_log": {
+      "enabled": true,
+      "max_count": 50,
+      "patterns": [
+        "console.log",
+        "console.error",
+        "console.warn"
+      ]
+    },
+    "deprecated_api": {
+      "enabled": true,
+      "patterns": [
+        "wx.getUserProfile",
+        "wx.getUserInfo"
+      ]
+    },
+    "file_size": {
+      "enabled": true,
+      "max_image_size": 10485760,
+      "max_js_size": 524288
+    },
+    "code_style": {
+      "enabled": true,
+      "indent": 2,
+      "require_semicolon": true,
+      "prefer_single_quote": true
+    }
+  },
+  "paths": {
+    "miniprogram": "miniprogram",
+    "cloudfunctions": "cloudfunctions",
+    "exclude_dirs": [
+      "node_modules",
+      ".git",
+      ".DS_Store"
+    ]
+  }
+}

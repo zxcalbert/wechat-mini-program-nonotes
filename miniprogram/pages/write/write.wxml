@@ -1,4 +1,4 @@
-<view class="container">
+<view class="container {{themeClass}}">
   <scroll-view scroll-y="true" class="write-content">
     <view class="selector-group">
       <picker bindchange="onMentorChange" value="{{mentorIndex}}" range="{{mentors}}">

@@ -1,10 +1,57 @@
 /**app.wxss**/
+
+/* 亮色主题变量（默认） */
+page, .theme-light {
+  --backgroundColor: #ffffff;
+  --textColor: #333333;
+  --secondaryTextColor: #666666;
+  --highlightColor: #8b4513;
+  --borderColor: #f0f0f0;
+  --cardBackgroundColor: #fdfaf2;
+  --cardBorderColor: #e0d5b1;
+  --warningBackgroundColor: #fff3cd;
+  --warningBorderColor: #ffc107;
+  --warningTextColor: #856404;
+}
+
+/* 强制暗色主题 */
+.theme-dark {
+  --backgroundColor: #121212 !important;
+  --textColor: #e0e0e0 !important;
+  --secondaryTextColor: #999999 !important;
+  --highlightColor: #d4a574 !important;
+  --borderColor: #333333 !important;
+  --cardBackgroundColor: #1e1e1e !important;
+  --cardBorderColor: #444444 !important;
+  --warningBackgroundColor: #3d3d00 !important;
+  --warningBorderColor: #666600 !important;
+  --warningTextColor: #e0e000 !important;
+}
+
+/* 系统主题跟随 - 媒体查询 */
+@media (prefers-color-scheme: dark) {
+  page:not(.theme-light):not(.theme-dark) {
+    --backgroundColor: #121212;
+    --textColor: #e0e0e0;
+    --secondaryTextColor: #999999;
+    --highlightColor: #d4a574;
+    --borderColor: #333333;
+    --cardBackgroundColor: #1e1e1e;
+    --cardBorderColor: #444444;
+    --warningBackgroundColor: #3d3d00;
+    --warningBorderColor: #666600;
+    --warningTextColor: #e0e000;
+  }
+}
+
+/* 基础页面样式 */
 page {
   background-color: var(--backgroundColor, #f6f6f6);
   color: var(--textColor, #333333);
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .container {
@@ -25,3 +72,4 @@ button:focus{
 button::after{
   border: none;
 }
+

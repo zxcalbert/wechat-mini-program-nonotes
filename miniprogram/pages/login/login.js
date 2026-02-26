@@ -1,26 +1,38 @@
 const cloudbaseUtil = require('../../utils/cloudbaseUtil');
+const app = getApp();
 
 Page({
   data: {
-    userInfo: null,
+    avatarUrl: '',
+    nickname: '',
     hasUserInfo: false,
-    loading: false
+    loading: false,
+    themeClass: '',
+    canLogin: false
   },
 
   onLoad: function() {
+    this.setData({ themeClass: app.getThemeClass() });
     this.checkLoginStatus();
+    this.checkCanLogin();
+  },
+
+  onShow: function() {
+    this.setData({ themeClass: app.getThemeClass() });
   },
 
   async checkLoginStatus() {
     const userInfo = wx.getStorageSync('userInfo');
     const openid = wx.getStorageSync('openid');
-    // 关键：检查是否是刚完成登录动作
     const isFirstLogin = wx.getStorageSync('isFirstLogin');
     
     if (userInfo && openid) {
-      this.setData({ userInfo, hasUserInfo: true });
+      this.setData({ 
+        hasUserInfo: true,
+        avatarUrl: userInfo.avatarUrl || '',
+        nickname: userInfo.nickName || userInfo.nickname || ''
+      });
       
-      // 如果不是刚登录完（即：老用户重新打开页面），则直接自动跳转
       if (!isFirstLogin) {
         console.log('检测到老用户回访，自动跳转首页');
         this.goToIndex();
@@ -30,34 +42,60 @@ Page({
     }
   },
 
-  /**
-   * 登录处理
-   */
+  checkCanLogin() {
+    const canLogin = this.data.avatarUrl && this.data.avatarUrl.trim() !== '' && 
+                   this.data.nickname && this.data.nickname.trim() !== '';
+    this.setData({ canLogin });
+  },
+
+  onChooseAvatar(e) {
+    const { avatarUrl } = e.detail;
+    this.setData({ avatarUrl });
+    this.checkCanLogin();
+  },
+
+  onNicknameInput(e) {
+    let nickname = e.detail.value.trim();
+    // 限制昵称长度为20个字符，优化用户输入体验
+    if (nickname.length > 20) {
+      nickname = nickname.substring(0, 20);
+    }
+    this.setData({ nickname });
+    this.checkCanLogin();
+  },
+
   async handleLogin() {
     if (this.data.loading) return;
+    if (!this.data.canLogin) {
+      wx.showToast({ title: '请先设置头像和昵称', icon: 'none' });
+      return;
+    }
+
     this.setData({ loading: true });
 
     try {
-      const profileRes = await wx.getUserProfile({
-        desc: '展示个人头像昵称', 
-      });
-
-      const userInfo = profileRes.userInfo;
       const { result } = await wx.cloud.callFunction({ name: 'login' });
       let openid = (result.code === 0 && result.data) ? result.data.openid : result.openid;
       
       if (!openid) throw new Error('未能获取到用户唯一标识');
 
-      // 存储信息
+      const userInfo = {
+        nickName: this.data.nickname,
+        nickname: this.data.nickname,
+        avatarUrl: this.data.avatarUrl,
+        gender: 0,
+        city: '',
+        province: '',
+        country: ''
+      };
+
       wx.setStorageSync('userInfo', userInfo);
       wx.setStorageSync('openid', openid);
-      // 关键：标记当前为“刚登录”，防止 onLoad 自动跳转
       wx.setStorageSync('isFirstLogin', true);
 
       await this.syncUserToDatabase(openid, userInfo);
 
       this.setData({ 
-        userInfo,
         hasUserInfo: true,
         loading: false 
       });
@@ -71,13 +109,8 @@ Page({
     }
   },
 
-  /**
-   * 手动点击"开始使用"按钮触发
-   */
   goToIndex: function() {
-    // 跳转前清除首次登录标记，确保下次打开小程序时能自动跳转
     wx.removeStorageSync('isFirstLogin');
-
     wx.reLaunch({
       url: '/pages/index/index',
       success: () => {
@@ -111,7 +144,12 @@ Page({
       success: (res) => {
         if (res.confirm) {
           wx.clearStorageSync();
-          this.setData({ userInfo: null, hasUserInfo: false });
+          this.setData({ 
+            avatarUrl: '',
+            nickname: '',
+            hasUserInfo: false,
+            canLogin: false
+          });
         }
       }
     });

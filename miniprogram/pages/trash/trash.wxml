@@ -1,4 +1,4 @@
-<view class="container">
+<view class="container {{themeClass}}">
   <!-- 空状态 -->
   <view wx:if="{{empty && !loading}}" class="empty-state">
     <text class="empty-icon">🗑️</text>

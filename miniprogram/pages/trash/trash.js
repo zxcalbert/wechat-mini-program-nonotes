@@ -1,4 +1,5 @@
 const cloudbaseUtil = require('../../utils/cloudbaseUtil');
+const app = getApp();
 
 Page({
   data: {
@@ -6,16 +7,21 @@ Page({
     loading: false,
     openid: null,
     empty: false,
-    statusBarHeight: 0
+    statusBarHeight: 0,
+    themeClass: ''
   },
 
   onLoad: function() {
     const systemInfo = wx.getSystemInfoSync();
-    this.setData({ statusBarHeight: systemInfo.statusBarHeight });
+    this.setData({ 
+      statusBarHeight: systemInfo.statusBarHeight,
+      themeClass: app.getThemeClass()
+    });
     this.checkAuth();
   },
 
   onShow: function() {
+    this.setData({ themeClass: app.getThemeClass() });
     if (this.data.openid) {
       this.fetchDeletedLetters();
     }

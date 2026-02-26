@@ -1,4 +1,4 @@
-<view class="container">
+<view class="container {{themeClass}}">
   <scroll-view scroll-y="true" class="content">
     <!-- 邮票余额卡片 -->
     <view class="stamp-card">

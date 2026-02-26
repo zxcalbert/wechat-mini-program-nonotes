@@ -1,0 +1,89 @@
+.privacy-container {
+  min-height: 100vh;
+  padding: 40rpx 30rpx;
+  background-color: var(--backgroundColor, #ffffff);
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 50rpx;
+}
+
+.title {
+  display: block;
+  font-size: 40rpx;
+  font-weight: 700;
+  color: var(--textColor, #333);
+  margin-bottom: 15rpx;
+}
+
+.subtitle {
+  display: block;
+  font-size: 28rpx;
+  color: var(--secondaryTextColor, #999);
+}
+
+.content {
+  margin-bottom: 60rpx;
+}
+
+.section {
+  margin-bottom: 40rpx;
+}
+
+.section-title {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--textColor, #333);
+  margin-bottom: 15rpx;
+}
+
+.section-text {
+  display: block;
+  font-size: 26rpx;
+  color: var(--secondaryTextColor, #666);
+  line-height: 1.8;
+}
+
+.footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 30rpx;
+  background-color: var(--backgroundColor, #ffffff);
+  border-top: 1rpx solid var(--borderColor, #f0f0f0);
+}
+
+.btn {
+  width: 100%;
+  padding: 24rpx;
+  border-radius: 8rpx;
+  font-size: 30rpx;
+  font-weight: 500;
+  border: none;
+  margin-bottom: 20rpx;
+}
+
+.btn:last-child {
+  margin-bottom: 0;
+}
+
+.btn-agree {
+  background-color: var(--highlightColor, #8b4513);
+  color: #ffffff;
+}
+
+.btn-agree:active {
+  background-color: #6b3410;
+}
+
+.btn-disagree {
+  background-color: var(--borderColor, #f0f0f0);
+  color: var(--textColor, #333);
+}
+
+.btn-disagree:active {
+  background-color: #e0e0e0;
+}

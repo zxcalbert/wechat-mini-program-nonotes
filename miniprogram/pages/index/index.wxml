@@ -5,7 +5,7 @@
   bind:close="closeSideMenu"
 />
 
-<view class="container">
+<view class="container {{themeClass}}">
   <!-- 自定义导航栏 -->
   <view class="custom-navbar">
     <text class="menu-toggle" bindtap="toggleSideMenu">☰</text>

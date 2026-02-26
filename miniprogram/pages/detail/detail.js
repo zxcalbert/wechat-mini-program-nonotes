@@ -1,4 +1,5 @@
 const cloudbaseUtil = require('../../utils/cloudbaseUtil');
+const app = getApp();
 
 const mentorLocations = {
   '查理·芒格': '帕萨迪纳',
@@ -15,7 +16,8 @@ Page({
     loading: true,
     replyContent: '',
     openid: null,
-    mentorLocation: ''
+    mentorLocation: '',
+    themeClass: ''
   },
 
   onLoad: function(options) {
@@ -28,12 +30,19 @@ Page({
       return;
     }
 
-    this.setData({ openid });
+    this.setData({ 
+      openid,
+      themeClass: app.getThemeClass()
+    });
 
     const letterId = options.id;
     if (letterId) {
       this.loadLetterDetail(letterId);
     }
+  },
+
+  onShow: function() {
+    this.setData({ themeClass: app.getThemeClass() });
   },
 
   /**

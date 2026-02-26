@@ -1,7 +1,7 @@
-
 {
     "pages":[
         "pages/login/login",
+        "pages/privacy/privacy",
         "pages/index/index",
         "pages/write/write",
         "pages/detail/detail",
@@ -15,7 +15,13 @@
     },
     "requiredBackgroundModes": [],
     "lazyCodeLoading": "requiredComponents",
-    "darkmode": true,
-    "themeLocation": "theme.json"
+    "permission": {
+        "scope.writePhotosAlbum": {
+            "desc": "用于保存邮票图片到相册"
+        }
+    },
+    "privacySheet": {
+        "open": true,
+        "url": "/pages/privacy/privacy"
+    }
 }
-

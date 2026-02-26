@@ -1,4 +1,4 @@
-<view class="container">
+<view class="container {{themeClass}}">
   <view class="letter-paper full-view">
     <view class="letter-header">
       <text class="mentor-name">致：{{letter.mentor || '查理·芒格'}}</text>

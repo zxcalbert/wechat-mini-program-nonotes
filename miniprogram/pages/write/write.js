@@ -1,6 +1,7 @@
 const db = wx.cloud.database();
 const cloudbaseUtil = require('../../utils/cloudbaseUtil');
 const sensitiveWordUtil = require('../../utils/sensitiveWordUtil');
+const app = getApp();
 
 Page({
   data: {
@@ -17,12 +18,16 @@ Page({
     canSend: false,
     statusBarHeight: 0,
     hasSensitiveWarning: false,
-    sensitiveWarning: ''
+    sensitiveWarning: '',
+    themeClass: ''
   },
 
   onLoad() {
     const systemInfo = wx.getSystemInfoSync();
-    this.setData({ statusBarHeight: systemInfo.statusBarHeight });
+    this.setData({ 
+      statusBarHeight: systemInfo.statusBarHeight,
+      themeClass: app.getThemeClass()
+    });
     this.checkAuth();
     
     const date = new Date();

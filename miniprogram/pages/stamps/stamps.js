@@ -1,20 +1,26 @@
 const cloudbaseUtil = require('../../utils/cloudbaseUtil');
+const app = getApp();
 
 Page({
   data: {
     userStamps: 3,
     history: [],
     openid: null,
-    statusBarHeight: 0
+    statusBarHeight: 0,
+    themeClass: ''
   },
 
   onLoad() {
     const systemInfo = wx.getSystemInfoSync();
-    this.setData({ statusBarHeight: systemInfo.statusBarHeight });
+    this.setData({ 
+      statusBarHeight: systemInfo.statusBarHeight,
+      themeClass: app.getThemeClass()
+    });
     this.checkAuth();
   },
 
   onShow() {
+    this.setData({ themeClass: app.getThemeClass() });
     if (this.data.openid) {
       this.fetchUserStamps();
       this.fetchHistory();

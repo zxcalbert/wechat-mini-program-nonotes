@@ -17,12 +17,16 @@ Page({
     searchKeyword: '',
     searchFocus: false,
     statusBarHeight: 0,
-    themeIcon: '🌓'
+    themeIcon: '🌓',
+    themeClass: ''
   },
 
   onLoad: function() {
     const systemInfo = wx.getSystemInfoSync();
-    this.setData({ statusBarHeight: systemInfo.statusBarHeight });
+    this.setData({ 
+      statusBarHeight: systemInfo.statusBarHeight,
+      themeClass: app.getThemeClass()
+    });
     this.checkAuth();
     this.generateHeatmapData();
     this.updateThemeIcon();
@@ -75,28 +79,55 @@ Page({
     this.setData({ loading: true });
 
     try {
-      const result = await cloudbaseUtil.query('letters', {
-        where: { _openid: this.data.openid },
-        orderBy: 'createTime',
-        orderDirection: 'desc',
-        limit: 50
-      });
-
-      if (result.success) {
-        const letters = result.data
-          .filter(item => !item.deleted)
-          .map(item => ({
-            ...item,
-            displayDate: cloudbaseUtil.formatDate(item.createTime),
-            statusLabel: this.getStatusLabel(item.status)
-          }));
-
-        this.setData({ letters, displayLetters: letters });
-        console.log('加载成功，共', letters.length, '篇笔记');
-      } else {
-        wx.showToast({ title: '加载失败', icon: 'error' });
-        console.error('查询失败:', result.error);
+      console.log('🔍 [调试] 开始查询数据库...');
+      
+      const db = wx.cloud.database();
+      
+      const countRes = await db.collection('letters')
+        .where({ _openid: this.data.openid })
+        .count();
+      
+      console.log('🔍 [调试] 数据库总记录数 (count):', countRes.total);
+      
+      const totalRecords = countRes.total;
+      const pageSize = 20;
+      const pageCount = Math.ceil(totalRecords / pageSize);
+      const allData = [];
+      
+      console.log('🔍 [调试] 需要分页查询:', pageCount, '页');
+      
+      for (let i = 0; i < pageCount; i++) {
+        const skip = i * pageSize;
+        console.log('🔍 [调试] 查询第', i+1, '页, skip:', skip);
+        
+        const pageResult = await cloudbaseUtil.query('letters', {
+          where: { _openid: this.data.openid },
+          orderBy: 'createTime',
+          orderDirection: 'desc',
+          skip: skip,
+          limit: pageSize
+        });
+        
+        if (pageResult.success) {
+          allData.push(...pageResult.data);
+        }
       }
+      
+      console.log('🔍 [调试] 分页查询完成，共获取:', allData.length, '条记录');
+      
+      const letters = allData
+        .filter(item => !item.deleted)
+        .map(item => ({
+          ...item,
+          displayDate: cloudbaseUtil.formatDate(item.createTime),
+          statusLabel: this.getStatusLabel(item.status)
+        }));
+
+      this.setData({ letters, displayLetters: letters });
+      console.log('加载成功，共', letters.length, '篇笔记');
+    } catch (err) {
+      wx.showToast({ title: '加载失败', icon: 'error' });
+      console.error('查询失败:', err);
     } finally {
       this.setData({ loading: false });
     }
@@ -242,6 +273,7 @@ Page({
   toggleTheme: function() {
     app.toggleTheme();
     this.updateThemeIcon();
+    this.setData({ themeClass: app.getThemeClass() });
     
     const theme = app.getTheme();
     let tip;

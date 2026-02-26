@@ -1,0 +1,33 @@
+<view class="privacy-container {{themeClass}}">
+  <view class="header">
+    <text class="title">隐私政策</text>
+    <text class="subtitle">投资笔记</text>
+  </view>
+
+  <view class="content">
+    <view class="section">
+      <text class="section-title">一、信息收集</text>
+      <text class="section-text">我们非常重视您的隐私保护。本小程序仅收集您主动提供的昵称和头像信息，用于识别您的身份。</text>
+    </view>
+
+    <view class="section">
+      <text class="section-title">二、数据存储</text>
+      <text class="section-text">您的所有笔记内容和AI回复将严格保密，仅存储在您的个人云端数据库中，仅您本人可以访问。</text>
+    </view>
+
+    <view class="section">
+      <text class="section-title">三、数据使用</text>
+      <text class="section-text">您提供的信息仅用于改善用户体验和AI回复的个性化，我们不会将其用于任何其他目的。</text>
+    </view>
+
+    <view class="section">
+      <text class="section-title">四、联系我们</text>
+      <text class="section-text">如您对隐私政策有任何疑问，请通过小程序内反馈功能联系我们。</text>
+    </view>
+  </view>
+
+  <view class="footer">
+    <button class="btn btn-agree" bindtap="handleAgree">同意</button>
+    <button class="btn btn-disagree" bindtap="handleDisagree">不同意</button>
+  </view>
+</view>
