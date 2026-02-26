@@ -11,51 +11,49 @@ page {
   background-color: var(--borderColor, #f5f5f5);
 }
 
-/* 自定义导航栏 */
+/* 自定义导航栏 - 方案三：Grid布局 */
 .custom-navbar {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 56px 1fr auto;
   align-items: center;
+  width: 100%;
+  box-sizing: border-box;
   padding: 12px 16px;
-  padding-top: calc(50px + env(safe-area-inset-top));
+  padding-top: calc(8px + env(safe-area-inset-top));
   background-color: var(--backgroundColor, #ffffff);
   border-bottom: 1px solid var(--borderColor, #f0f0f0);
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .menu-toggle {
-  font-size: 24px;
-  padding: 0;
-  line-height: 1;
-  cursor: pointer;
+  font-size: 28px;
+  padding: 12px;
+  justify-self: start;
   color: var(--textColor, #333333);
+  cursor: pointer;
+  line-height: 1;
 }
 
 .navbar-title {
-  font-size: 17px;
+  justify-self: center;
+  font-size: 18px;
   font-weight: 600;
   color: var(--textColor, #333333);
+  white-space: nowrap;
 }
 
 .navbar-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.theme-toggle {
-  font-size: 20px;
-  padding: 0;
-  line-height: 1;
-  cursor: pointer;
-  color: var(--textColor, #333333);
+  justify-self: end;
 }
 
 .search-icon {
-  font-size: 20px;
-  padding: 0;
-  line-height: 1;
-  cursor: pointer;
+  font-size: 24px;
+  padding: 12px;
   color: var(--textColor, #333333);
+  cursor: pointer;
+  line-height: 1;
 }
 
 /* 搜索容器 */

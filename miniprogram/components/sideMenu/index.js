@@ -19,6 +19,27 @@ Component({
       this.triggerEvent('close');
     },
 
+    toggleTheme() {
+      const app = getApp();
+      app.toggleTheme();
+      
+      const theme = app.getTheme();
+      let tip;
+      if (theme === 'system') {
+        tip = '跟随系统';
+      } else if (theme === 'light') {
+        tip = '亮色模式';
+      } else {
+        tip = '暗色模式';
+      }
+      
+      wx.showToast({
+        title: tip,
+        icon: 'none',
+        duration: 1500
+      });
+    },
+
     viewTrash() {
       wx.navigateTo({
         url: '/pages/trash/trash'
