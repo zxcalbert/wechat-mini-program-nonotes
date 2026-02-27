@@ -9,6 +9,10 @@
           <text class="picker-hint">点击选择</text>
         </view>
       </picker>
+      <view class="guide-btn" bindtap="showMentorGuideHandler">
+        <text class="guide-icon">ℹ️</text>
+        <text class="guide-text">查看说明</text>
+      </view>
       
       <view class="mood-title">当前心境：</view>
       <view class="mood-tags">
@@ -17,6 +21,36 @@
               bindtap="selectMood" data-mood="{{item}}">
           {{item}}
         </view>
+      </view>
+      <view class="guide-btn" bindtap="showMoodGuideHandler">
+        <text class="guide-icon">ℹ️</text>
+        <text class="guide-text">查看说明</text>
+      </view>
+    </view>
+
+    <!-- AI助手说明弹窗 -->
+    <view wx:if="{{showMentorGuide}}" class="guide-modal" catchtap="closeMentorGuide">
+      <view class="guide-content" catchtap="">
+        <view class="guide-header">
+          <text class="guide-title">{{mentors[mentorIndex]}} - 核心原则</text>
+          <text class="guide-close" bindtap="closeMentorGuide">✕</text>
+        </view>
+        <scroll-view scroll-y="true" class="guide-body">
+          <text class="guide-text">{{currentMentorGuide}}</text>
+        </scroll-view>
+      </view>
+    </view>
+
+    <!-- 心境说明弹窗 -->
+    <view wx:if="{{showMoodGuide}}" class="guide-modal" catchtap="closeMoodGuide">
+      <view class="guide-content" catchtap="">
+        <view class="guide-header">
+          <text class="guide-title">{{selectedMood}} - 心境说明</text>
+          <text class="guide-close" bindtap="closeMoodGuide">✕</text>
+        </view>
+        <scroll-view scroll-y="true" class="guide-body">
+          <text class="guide-text">{{currentMoodGuide}}</text>
+        </scroll-view>
       </view>
     </view>
 
