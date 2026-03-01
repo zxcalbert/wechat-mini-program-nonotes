@@ -1,5 +1,6 @@
 const cloud = require('wx-server-sdk');
 const axios = require('axios');
+const mentorRules = require('./mentorRules.json');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
 const sensitiveWords = {
@@ -81,90 +82,121 @@ function processReply(replyContent) {
   return replyContent;
 }
 
+// ==================== 字数自适应引擎 ====================
+
+const wordCountConfig = {
+  simple: { min: 200, max: 200, maxTokens: 280, label: '简单' },
+  medium: { min: 200, max: 300, maxTokens: 400, label: '中等' },
+  complex: { min: 400, max: 500, maxTokens: 650, label: '复杂' }
+};
+
+function estimateComplexity(userContent) {
+  const length = userContent.length;
+  if (length < 100) return 'simple';
+  if (length > 300) return 'complex';
+  return 'medium';
+}
+
+function getWordCountConfig(userContent) {
+  const complexity = estimateComplexity(userContent);
+  return wordCountConfig[complexity];
+}
+
+function countChineseWords(text) {
+  const chineseChars = text.match(/[\u4e00-\u9fa5]/g) || [];
+  const englishWords = text.match(/[a-zA-Z]+/g) || [];
+  return chineseChars.length + Math.round(englishWords.length * 1.5);
+}
+
+function truncateByChineseWords(text, maxWords) {
+  const currentCount = countChineseWords(text);
+  if (currentCount <= maxWords) return text;
+  
+  let low = 0, high = text.length;
+  let best = text.substring(0, Math.floor(text.length * 0.7));
+  
+  while (low <= high) {
+    const mid = Math.floor((low + high) / 2);
+    const candidate = text.substring(0, mid);
+    const count = countChineseWords(candidate);
+    
+    if (count <= maxWords) {
+      best = candidate;
+      low = mid + 1;
+    } else {
+      high = mid - 1;
+    }
+  }
+  
+  const lastPunc = Math.max(
+    best.lastIndexOf('。'),
+    best.lastIndexOf('！'),
+    best.lastIndexOf('？')
+  );
+  
+  return lastPunc > 0 ? best.substring(0, lastPunc + 1) : best;
+}
+
+// ==================== 超详细提示词组装器 ====================
 
 // 为不同投资大师生成个性化的系统提示词
 function getMentorPrompt(mentor, mood, content) {
-  const mentorProfiles = {
-    '查理·芒格': {
-      style: '思维模型、逆向思考、多学科思维',
-      tone: '睿智、深刻、喜欢用比喻和格言',
-      focus: '强调思维模型的重要性，用跨学科知识分析问题，避免常见的人类误判心理',
-      examples: '常引用"在手里拿着锤子的人看来，世界就像一颗钉子"、"反过来想，总是反过来想"等',
-      location: '帕萨迪纳'
-    },
-    '巴菲特': {
-      style: '价值投资、长期持有、护城河',
-      tone: '温和、耐心、用简单语言解释复杂概念',
-      focus: '强调企业内在价值、长期复利、只投资自己理解的生意',
-      examples: '常提到"时间是优秀企业的朋友，平庸企业的敌人"、"投资的第一条原则是永远不要亏损"',
-      location: '奥马哈'
-    },
-    '段永平': {
-      style: '本分、做对的事情、把事情做对',
-      tone: '朴实、直接、不绕弯子',
-      focus: '强调本分文化、企业文化的重要性、做对的事情比把事情做对更重要',
-      examples: '常说"本分"、"做对的事情，把事情做对"、"企业文化是最重要的护城河"',
-      location: '帕洛阿托'
-    },
-    '张小龙': {
-      style: '用户体验、极简设计、产品思维',
-      tone: '低调、理性、注重细节',
-      focus: '强调以用户为中心，追求极简设计，注重产品的本质和用户体验',
-      examples: '常提到"用户体验是第一位的"、"好的产品是用完即走"、"让创造发挥价值"',
-      location: '广州'
-    },
-    '乔布斯': {
-      style: '创新设计、用户体验、完美主义',
-      tone: '激情、追求完美、富有远见',
-      focus: '强调产品设计的重要性，追求完美的用户体验，将科技与艺术结合',
-      examples: '常提到"Stay hungry, Stay foolish"、"设计不仅仅是外观和感觉，设计是如何工作的"',
-      location: '库比蒂诺'
-    },
-    '马斯克': {
-      style: '创新思维、长期愿景、技术驱动',
-      tone: '激进、乐观、充满激情',
-      focus: '强调科技创新的力量，勇于挑战传统，追求人类未来的宏大目标',
-      examples: '常提到"殖民火星"、"加速可持续能源转型"、"第一性原理思考"',
-      location: '奥斯汀'
-    }
-  };
+  const mentorData = mentorRules.mentors[mentor] || mentorRules.mentors['查理·芒格'];
+  const moodData = mentorRules.moods[mood] || mentorRules.moods['平和'];
+  const config = getWordCountConfig(content);
 
-  const profile = mentorProfiles[mentor] || mentorProfiles['查理·芒格'];
-  
-  // 根据用户心境调整回复风格
-  const moodGuidance = {
-    '焦虑': '用户当前处于焦虑状态，需要给予理性分析和心理安抚，帮助他看清长期价值',
-    '贪婪': '用户可能被市场情绪冲昏头脑，需要提醒风险，强调安全边际和理性决策',
-    '平和': '用户心态平和，可以深入探讨投资理念和长期思考',
-    '困惑': '用户对投资方向感到困惑，需要帮助他理清思路，找到核心问题'
-  };
+  let prompt = `【规则约束部分（不可变，来自规则库）】
+你必须以${mentor}的身份回复，遵循以下核心原则：
+`;
 
-  const moodGuide = moodGuidance[mood] || '';
+  mentorData.corePrinciples.forEach((principle, idx) => {
+    prompt += `${principle}\n`;
+  });
 
-  // 分析用户内容的关键点（简单提取前200字作为上下文）
-  const contentPreview = content.substring(0, 200).replace(/\n/g, ' ');
+  prompt += `
+用户当前心境：${mood}
+- 语气必须：${moodData.tone}
+- 重点必须：${moodData.focus}
+- 必须涵盖这5个关键点：
+`;
 
-  return `你是投资大师${mentor}，正在回复一位投资者的来信。
+  moodData.keyPoints.forEach((point, idx) => {
+    prompt += `${point}\n`;
+  });
 
-**你的风格特点：**
-- ${profile.style}
-- 语言风格：${profile.tone}
-- 核心关注：${profile.focus}
-- 典型表达：${profile.examples}
+  prompt += `
+【超详细自由发挥部分（方案二优势）】
+你的完整人设：
+${mentorData.persona}
 
-**当前情况：**
-- 用户心境：${mood}。${moodGuide}
-- 用户来信的核心内容：${contentPreview}...
+你的思考框架（5个）：
+`;
 
-**回复要求：**
-1. 深入分析用户来信中提到的投资思考、困惑或决策
-2. 结合你的投资理念，给出具体、有针对性的建议
-3. 不要使用模板化的回复，要根据用户的具体内容给出独特见解
-4. 保持${profile.tone}的语言风格，但要让回复充满智慧和洞察力
-5. 如果用户提到了具体的公司、行业或投资决策，要针对性地分析
-6. 回复长度控制在300-500字，要言之有物，避免空泛
+  mentorData.thinkingFrameworks.forEach((framework, idx) => {
+    prompt += `${framework}\n`;
+  });
 
-现在，请以${mentor}的身份，针对用户的来信给出你的回响：`;
+  prompt += `
+你的常用问题（6个）：
+`;
+
+  mentorData.commonQuestions.forEach((question, idx) => {
+    prompt += `${question}\n`;
+  });
+
+  prompt += `
+基于以上约束，针对用户的问题：
+${content}
+
+【字数自适应要求】
+- 先评估内容复杂度：${config.label}
+- ${config.label}问题：${config.min}-${config.max}字
+- 上限：严格${config.max}字，不得超过
+
+给出直接、具体、有针对性的回复，${config.min}-${config.max}字。
+`;
+
+  return prompt;
 }
 
 // 调用 DeepSeek API
@@ -175,10 +207,10 @@ async function callDeepSeekAPI(systemPrompt, userContent) {
     throw new Error('未配置 DeepSeek API Key，请在云函数环境变量中设置 DEEPSEEK_API_KEY');
   }
 
-  // DeepSeek API 端点
+  const config = getWordCountConfig(userContent);
+
   const apiUrl = 'https://api.deepseek.com/chat/completions';
   
-  // 构建请求参数（DeepSeek API 格式）
   const payload = {
     model: 'deepseek-chat',
     messages: [
@@ -192,31 +224,36 @@ async function callDeepSeekAPI(systemPrompt, userContent) {
       }
     ],
     temperature: 0.7,
-    max_tokens: 500
+    max_tokens: config.maxTokens
   };
 
   try {
     console.log('开始调用 DeepSeek API...');
+    console.log('字数配置:', config.label, config.max, '字, max_tokens:', config.maxTokens);
+    
     const response = await axios.post(apiUrl, payload, {
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json'
       },
-      timeout: 30000 // 30秒超时
+      timeout: 30000
     });
 
-    // 解析响应（DeepSeek 格式）
     if (response.data && response.data.choices && response.data.choices.length > 0) {
       const choice = response.data.choices[0];
-      const reply = choice.message?.content;
+      let reply = choice.message?.content;
       
       if (reply) {
-        console.log('DeepSeek API 调用成功，生成了', reply.length, '字符');
-        return reply.trim();
+        reply = reply.trim();
+        console.log('DeepSeek API 调用成功，原始长度:', reply.length, '字符');
+        
+        reply = truncateByChineseWords(reply, config.max);
+        console.log('截断后长度:', countChineseWords(reply), '字');
+        
+        return reply;
       }
     }
 
-    // 如果响应中有 error 信息
     if (response.data?.error) {
       throw new Error('DeepSeek API 错误: ' + JSON.stringify(response.data.error));
     }

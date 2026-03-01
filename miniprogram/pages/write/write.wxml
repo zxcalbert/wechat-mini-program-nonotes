@@ -67,7 +67,7 @@
       
       <textarea 
         class="content-area" 
-        placeholder="亲爱的{{mentors[mentorIndex]}}，关于最近的市场波动，我有些思考想与你分享..." 
+        placeholder="{{mentors[mentorIndex]}}先生，您好！我有些思考想与你分享..." 
         maxlength="5000"
         bindinput="onInput"
         value="{{content}}"

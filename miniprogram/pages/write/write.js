@@ -1,6 +1,7 @@
 const db = wx.cloud.database();
 const cloudbaseUtil = require('../../utils/cloudbaseUtil');
 const sensitiveWordUtil = require('../../utils/sensitiveWordUtil');
+const { saveMentorRulesCache, getMentorRulesCache } = require('../../utils/cacheUtil.js');
 const app = getApp();
 
 Page({
@@ -20,6 +21,9 @@ Page({
     hasSensitiveWarning: false,
     sensitiveWarning: '',
     themeClass: '',
+    mentorRules: null,
+    fallbackMentorGuides: null,
+    fallbackMoodGuides: null,
     showMentorGuide: false,
     showMoodGuide: false,
     currentMentorGuide: '',
@@ -33,10 +37,55 @@ Page({
       themeClass: app.getThemeClass()
     });
     this.checkAuth();
+    this.loadMentorRules();
     
     const date = new Date();
     this.setData({
       currentDate: `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`
+    });
+  },
+
+  loadMentorRules() {
+    const cached = getMentorRulesCache();
+    if (cached) {
+      this.setData({ mentorRules: cached });
+      return;
+    }
+
+    wx.cloud.callFunction({
+      name: 'getMentorRules',
+      success: (res) => {
+        if (res.result.success) {
+          const rules = res.result.data;
+          this.setData({ mentorRules: rules });
+          saveMentorRulesCache(rules);
+        }
+      },
+      fail: (err) => {
+        console.error('加载规则库失败:', err);
+        this.fallbackToHardcoded();
+      }
+    });
+  },
+
+  fallbackToHardcoded() {
+    const mentorGuides = {
+      '查理·芒格': '核心原则：1. 反过来想，总是反过来想\n2. 多学科思维模型\n3. 在手里拿着锤子的人看来，世界就像一颗钉子\n4. 避免人类误判心理学中的常见陷阱\n5. 投资最重要的是避免错误，而不是追求完美\n6. 耐心是投资的美德\n7. 安全边际是投资的生命线\n8. 长期主义，时间是优秀企业的朋友',
+      '巴菲特': '核心原则：1. 时间是优秀企业的朋友，平庸企业的敌人\n2. 投资的第一条原则是永远不要亏损，第二条原则是永远不要忘记第一条\n3. 只投资自己理解的生意\n4. 企业的护城河比增长速度更重要\n5. 市场短期是投票机，长期是称重机\n6. 安全边际是投资的基石\n7. 买股票就是买公司\n8. 长期持有，忽略短期波动',
+      '段永平': '核心原则：1. 做对的事情，把事情做对\n2. 本分是最重要的企业文化\n3. 企业文化是最重要的护城河\n4. 不要做不对的事情，即使能赚钱\n5. 慢就是快\n6. 买股票就是买公司\n7. 长期持有，忽略短期波动\n8. 回归本分，保持平常心',
+      '张小龙': '核心原则：1. 好的产品是用完即走\n2. 用户体验是第一位的\n3. 让创造发挥价值\n4. 简单就是美，复杂的东西往往不可靠\n5. 以用户为中心，而非以功能为中心\n6. 追求极致的细节\n7. 让产品说话，而非营销\n8. 保持对产品的敬畏之心',
+      '乔布斯': '核心原则：1. Stay hungry, Stay foolish\n2. 设计不仅仅是外观和感觉，设计是如何工作的\n3. 创新是把不同的事物连接起来\n4. 追求完美，即使别人认为不可能\n5. 产品要简洁到极致\n6. 敢于挑战现状\n7. 把科技与艺术完美结合\n8. 对产品要有宗教般的热情',
+      '马斯克': '核心原则：1. 第一性原理思考是解决问题的关键\n2. 要勇于挑战不可能，才能实现伟大目标\n3. 创新不是线性的，需要跳跃式思维\n4. 失败是成功的一部分，重要的是快速迭代\n5. 从物理定律出发，而非从现状出发\n6. 要有宏大的愿景，改变世界\n7. 用工程思维解决问题\n8. 长期思考，以10年、20年为单位'
+    };
+    const moodGuides = {
+      '焦虑': '当前心境：焦虑\n\n建议：保持理性，关注长期价值\n\n关键点：1. 市场波动是常态，保持理性\n2. 关注企业内在价值，而非短期价格\n3. 安全边际是投资的生命线\n4. 不要被恐慌情绪影响决策\n5. 时间会平滑短期波动',
+      '贪婪': '当前心境：贪婪\n\n建议：注意安全边际，避免冲动决策\n\n关键点：1. 贪婪时更要谨慎，安全边际不可忽视\n2. 不要被短期利益冲昏头脑\n3. 理性决策比快速收益更重要\n4. 市场狂热时往往是风险最高时\n5. 保持安全边际，避免冲动决策',
+      '平和': '当前心境：平和\n\n建议：可以深入探讨投资理念和长期思考\n\n关键点：1. 平和的心态是长期投资的基础\n2. 可以深入探讨投资理念和长期思考\n3. 保持原则，不被短期情绪影响\n4. 持续学习和反思，形成自己的投资之道\n5. 投资是一场马拉松，不是短跑',
+      '困惑': '当前心境：困惑\n\n建议：回到基本原则思考\n\n关键点：1. 困惑时不妨回到基本原则思考\n2. 帮助用户理清思路，找到核心问题\n3. 简化问题，从第一性原理出发\n4. 不要试图同时解决所有问题\n5. 保持耐心，逐步梳理'
+    };
+    this.setData({
+      fallbackMentorGuides: mentorGuides,
+      fallbackMoodGuides: moodGuides
     });
   },
 
@@ -348,32 +397,48 @@ Page({
     wx.navigateBack();
   },
 
+  formatMentorGuide(mentorName) {
+    const rules = this.data.mentorRules;
+    if (!rules || !rules.mentors[mentorName]) {
+      return this.data.fallbackMentorGuides[mentorName] || '';
+    }
+
+    const mentor = rules.mentors[mentorName];
+    let guide = `核心原则：\n`;
+    mentor.corePrinciples.forEach((principle) => {
+      guide += `${principle}\n`;
+    });
+    return guide;
+  },
+
+  formatMoodGuide(moodName) {
+    const rules = this.data.mentorRules;
+    if (!rules || !rules.moods[moodName]) {
+      return this.data.fallbackMoodGuides[moodName] || '';
+    }
+
+    const mood = rules.moods[moodName];
+    let guide = `当前心境：${moodName}\n\n建议：${mood.tone}\n\n关键点：\n`;
+    mood.keyPoints.forEach((point) => {
+      guide += `${point}\n`;
+    });
+    return guide;
+  },
+
   showMentorGuideHandler() {
-    const mentorGuides = {
-      '查理·芒格': '核心原则：1. 反过来想，总是反过来想\n2. 多学科思维模型\n3. 在手里拿着锤子的人看来，世界就像一颗钉子\n4. 避免人类误判心理学中的常见陷阱\n5. 投资最重要的是避免错误，而不是追求完美\n6. 耐心是投资的美德\n7. 安全边际是投资的生命线\n8. 长期主义，时间是优秀企业的朋友',
-      '巴菲特': '核心原则：1. 时间是优秀企业的朋友，平庸企业的敌人\n2. 投资的第一条原则是永远不要亏损，第二条原则是永远不要忘记第一条\n3. 只投资自己理解的生意\n4. 企业的护城河比增长速度更重要\n5. 市场短期是投票机，长期是称重机\n6. 安全边际是投资的基石\n7. 买股票就是买公司\n8. 长期持有，忽略短期波动',
-      '段永平': '核心原则：1. 做对的事情，把事情做对\n2. 本分是最重要的企业文化\n3. 企业文化是最重要的护城河\n4. 不要做不对的事情，即使能赚钱\n5. 慢就是快\n6. 买股票就是买公司\n7. 长期持有，忽略短期波动\n8. 回归本分，保持平常心',
-      '张小龙': '核心原则：1. 好的产品是用完即走\n2. 用户体验是第一位的\n3. 让创造发挥价值\n4. 简单就是美，复杂的东西往往不可靠\n5. 以用户为中心，而非以功能为中心\n6. 追求极致的细节\n7. 让产品说话，而非营销\n8. 保持对产品的敬畏之心',
-      '乔布斯': '核心原则：1. Stay hungry, Stay foolish\n2. 设计不仅仅是外观和感觉，设计是如何工作的\n3. 创新是把不同的事物连接起来\n4. 追求完美，即使别人认为不可能\n5. 产品要简洁到极致\n6. 敢于挑战现状\n7. 把科技与艺术完美结合\n8. 对产品要有宗教般的热情',
-      '马斯克': '核心原则：1. 第一性原理思考是解决问题的关键\n2. 要勇于挑战不可能，才能实现伟大目标\n3. 创新不是线性的，需要跳跃式思维\n4. 失败是成功的一部分，重要的是快速迭代\n5. 从物理定律出发，而非从现状出发\n6. 要有宏大的愿景，改变世界\n7. 用工程思维解决问题\n8. 长期思考，以10年、20年为单位'
-    };
     const selectedMentor = this.data.mentors[this.data.mentorIndex];
+    const guide = this.formatMentorGuide(selectedMentor);
     this.setData({
       showMentorGuide: true,
-      currentMentorGuide: mentorGuides[selectedMentor]
+      currentMentorGuide: guide
     });
   },
 
   showMoodGuideHandler() {
-    const moodGuides = {
-      '焦虑': '当前心境：焦虑\n\n建议：保持理性，关注长期价值\n\n关键点：1. 市场波动是常态，保持理性\n2. 关注企业内在价值，而非短期价格\n3. 安全边际是投资的生命线\n4. 不要被恐慌情绪影响决策\n5. 时间会平滑短期波动',
-      '贪婪': '当前心境：贪婪\n\n建议：注意安全边际，避免冲动决策\n\n关键点：1. 贪婪时更要谨慎，安全边际不可忽视\n2. 不要被短期利益冲昏头脑\n3. 理性决策比快速收益更重要\n4. 市场狂热时往往是风险最高时\n5. 保持安全边际，避免冲动决策',
-      '平和': '当前心境：平和\n\n建议：可以深入探讨投资理念和长期思考\n\n关键点：1. 平和的心态是长期投资的基础\n2. 可以深入探讨投资理念和长期思考\n3. 保持原则，不被短期情绪影响\n4. 持续学习和反思，形成自己的投资之道\n5. 投资是一场马拉松，不是短跑',
-      '困惑': '当前心境：困惑\n\n建议：回到基本原则思考\n\n关键点：1. 困惑时不妨回到基本原则思考\n2. 帮助用户理清思路，找到核心问题\n3. 简化问题，从第一性原理出发\n4. 不要试图同时解决所有问题\n5. 保持耐心，逐步梳理'
-    };
+    const guide = this.formatMoodGuide(this.data.selectedMood);
     this.setData({
       showMoodGuide: true,
-      currentMoodGuide: moodGuides[this.data.selectedMood]
+      currentMoodGuide: guide
     });
   },
 
