@@ -82,8 +82,6 @@ function processReply(replyContent) {
   return replyContent;
 }
 
-// ==================== 字数自适应引擎 ====================
-
 const wordCountConfig = {
   simple: { min: 200, max: 200, maxTokens: 280, label: '简单' },
   medium: { min: 200, max: 300, maxTokens: 400, label: '中等' },
@@ -92,8 +90,8 @@ const wordCountConfig = {
 
 function estimateComplexity(userContent) {
   const length = userContent.length;
-  if (length < 100) return 'simple';
-  if (length > 300) return 'complex';
+  if (length &lt; 100) return 'simple';
+  if (length &gt; 300) return 'complex';
   return 'medium';
 }
 
@@ -110,17 +108,17 @@ function countChineseWords(text) {
 
 function truncateByChineseWords(text, maxWords) {
   const currentCount = countChineseWords(text);
-  if (currentCount <= maxWords) return text;
+  if (currentCount &lt;= maxWords) return text;
   
   let low = 0, high = text.length;
   let best = text.substring(0, Math.floor(text.length * 0.7));
   
-  while (low <= high) {
+  while (low &lt;= high) {
     const mid = Math.floor((low + high) / 2);
     const candidate = text.substring(0, mid);
     const count = countChineseWords(candidate);
     
-    if (count <= maxWords) {
+    if (count &lt;= maxWords) {
       best = candidate;
       low = mid + 1;
     } else {
@@ -134,45 +132,31 @@ function truncateByChineseWords(text, maxWords) {
     best.lastIndexOf('？')
   );
   
-  return lastPunc > 0 ? best.substring(0, lastPunc + 1) : best;
+  return lastPunc &gt; 0 ? best.substring(0, lastPunc + 1) : best;
 }
 
-// ==================== 超详细提示词组装器 ====================
-
-// 为不同投资大师生成个性化的系统提示词
-function getMentorPrompt(mentor, mood, content) {
-  const mentorData = mentorRules.mentors[mentor] || mentorRules.mentors['查理·芒格'];
-  const moodData = mentorRules.moods[mood] || mentorRules.moods['平和'];
+function getAIDeducedPrompt(mentorData, content) {
   const config = getWordCountConfig(content);
 
   let prompt = `【规则约束部分（不可变，来自规则库）】
-你必须以${mentor}的身份回复，遵循以下核心原则：
+你必须以${mentorData.persona}的身份回复，遵循以下核心原则：
 `;
 
-  mentorData.corePrinciples.forEach((principle, idx) => {
+  mentorData.corePrinciples.forEach((principle, idx) =&gt; {
     prompt += `${principle}\n`;
   });
 
   prompt += `
-用户当前心境：${mood}
-- 语气必须：${moodData.tone}
-- 重点必须：${moodData.focus}
-- 必须涵盖这5个关键点：
-`;
+【重要】请根据用户的内容自动判断其情绪状态，并给予相应的回应。
 
-  moodData.keyPoints.forEach((point, idx) => {
-    prompt += `${point}\n`;
-  });
-
-  prompt += `
-【超详细自由发挥部分（方案二优势）】
+【超详细自由发挥部分】
 你的完整人设：
 ${mentorData.persona}
 
 你的思考框架（5个）：
 `;
 
-  mentorData.thinkingFrameworks.forEach((framework, idx) => {
+  mentorData.thinkingFrameworks.forEach((framework, idx) =&gt; {
     prompt += `${framework}\n`;
   });
 
@@ -180,7 +164,7 @@ ${mentorData.persona}
 你的常用问题（6个）：
 `;
 
-  mentorData.commonQuestions.forEach((question, idx) => {
+  mentorData.commonQuestions.forEach((question, idx) =&gt; {
     prompt += `${question}\n`;
   });
 
@@ -199,7 +183,74 @@ ${content}
   return prompt;
 }
 
-// 调用 DeepSeek API
+function getOriginalPrompt(mentor, mentorData, moodData, content) {
+  const config = getWordCountConfig(content);
+
+  let prompt = `【规则约束部分（不可变，来自规则库）】
+你必须以${mentor}的身份回复，遵循以下核心原则：
+`;
+
+  mentorData.corePrinciples.forEach((principle, idx) =&gt; {
+    prompt += `${principle}\n`;
+  });
+
+  prompt += `
+用户当前心境：${moodData.label}
+- 语气必须：${moodData.tone}
+- 重点必须：${moodData.focus}
+- 必须涵盖这5个关键点：
+`;
+
+  moodData.keyPoints.forEach((point, idx) =&gt; {
+    prompt += `${point}\n`;
+  });
+
+  prompt += `
+【超详细自由发挥部分】
+你的完整人设：
+${mentorData.persona}
+
+你的思考框架（5个）：
+`;
+
+  mentorData.thinkingFrameworks.forEach((framework, idx) =&gt; {
+    prompt += `${framework}\n`;
+  });
+
+  prompt += `
+你的常用问题（6个）：
+`;
+
+  mentorData.commonQuestions.forEach((question, idx) =&gt; {
+    prompt += `${question}\n`;
+  });
+
+  prompt += `
+基于以上约束，针对用户的问题：
+${content}
+
+【字数自适应要求】
+- 先评估内容复杂度：${config.label}
+- ${config.label}问题：${config.min}-${config.max}字
+- 上限：严格${config.max}字，不得超过
+
+给出直接、具体、有针对性的回复，${config.min}-${config.max}字。
+`;
+
+  return prompt;
+}
+
+function getMentorPrompt(mentor, mood, content) {
+  const mentorData = mentorRules.mentors[mentor] || mentorRules.mentors['查理·芒格'];
+  
+  if (mood === null || mood === '由AI推断' || !mood) {
+    return getAIDeducedPrompt(mentorData, content);
+  } else {
+    const moodData = mentorRules.moods[mood] || mentorRules.moods['平和'];
+    return getOriginalPrompt(mentor, mentorData, moodData, content);
+  }
+}
+
 async function callDeepSeekAPI(systemPrompt, userContent) {
   const apiKey = process.env.DEEPSEEK_API_KEY;
   
@@ -239,7 +290,7 @@ async function callDeepSeekAPI(systemPrompt, userContent) {
       timeout: 30000
     });
 
-    if (response.data && response.data.choices && response.data.choices.length > 0) {
+    if (response.data &amp;&amp; response.data.choices &amp;&amp; response.data.choices.length &gt; 0) {
       const choice = response.data.choices[0];
       let reply = choice.message?.content;
       
@@ -269,7 +320,6 @@ async function callDeepSeekAPI(systemPrompt, userContent) {
   }
 }
 
-// 基于规则的智能回复生成器（临时方案，等AI能力开通后可替换）
 function generateSmartReply(mentor, mood, content) {
   const mentorProfiles = {
     '查理·芒格': {
@@ -360,7 +410,6 @@ function generateSmartReply(mentor, mood, content) {
 
   const profile = mentorProfiles[mentor] || mentorProfiles['查理·芒格'];
   
-  // 根据心境调整语气
   const moodAdjustments = {
     '焦虑': '市场波动是常态，保持理性是关键。',
     '贪婪': '贪婪时更要谨慎，安全边际不可忽视。',
@@ -368,16 +417,14 @@ function generateSmartReply(mentor, mood, content) {
     '困惑': '困惑时不妨回到基本原则思考。'
   };
 
-  // 分析用户内容的关键词
   const keywords = extractKeywords(content);
   
-  // 生成回复
   const opening = profile.opening[Math.floor(Math.random() * profile.opening.length)];
   const principle = profile.principles[Math.floor(Math.random() * profile.principles.length)];
   const advice = profile.advice[Math.floor(Math.random() * profile.advice.length)];
   const moodAdvice = moodAdjustments[mood] || '';
 
-  let reply = `${opening}${keywords.length > 0 ? '，特别是关于' + keywords.slice(0, 2).join('和') + '的部分' : ''}。\n\n`;
+  let reply = `${opening}${keywords.length &gt; 0 ? '，特别是关于' + keywords.slice(0, 2).join('和') + '的部分' : ''}。\n\n`;
   reply += `${principle}\n\n`;
   if (moodAdvice) {
     reply += `${moodAdvice}\n\n`;
@@ -391,7 +438,6 @@ function generateSmartReply(mentor, mood, content) {
   return reply;
 }
 
-// 简单提取关键词
 function extractKeywords(text) {
   const investmentKeywords = ['投资', '股票', '基金', '公司', '行业', '市场', '价值', '价格', '风险', '机会', '决策', '策略'];
   const found = [];
@@ -403,12 +449,11 @@ function extractKeywords(text) {
   return found.slice(0, 3);
 }
 
-exports.main = async (event, context) => {
+exports.main = async (event, context) =&gt; {
   const { letterId, replyContent, mentor, mood, content } = event;
   const db = cloud.database();
 
   try {
-    // 如果传入了 replyContent，说明是从小程序端生成的回复，直接保存
     if (replyContent) {
       const processedReply = processReply(replyContent.trim());
       
@@ -426,7 +471,7 @@ exports.main = async (event, context) => {
       };
     }
 
-    if (mentor && content) {
+    if (mentor &amp;&amp; content) {
       const systemPrompt = getMentorPrompt(mentor, mood || '平和', content);
       
       let replyContent;
@@ -452,7 +497,6 @@ exports.main = async (event, context) => {
       };
     }
 
-    // 如果没有传入必要参数，返回错误
     return {
       success: false,
       error: '缺少必要参数',
@@ -463,7 +507,6 @@ exports.main = async (event, context) => {
     console.error("保存回复失败：", err);
     console.error("错误详情：", JSON.stringify(err, null, 2));
     
-    // 记录错误到数据库（可选）
     try {
       await db.collection('letters').doc(letterId).update({
         data: {

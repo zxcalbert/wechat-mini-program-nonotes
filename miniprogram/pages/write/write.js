@@ -8,8 +8,6 @@ Page({
   data: {
     mentors: ['查理·芒格', '巴菲特', '段永平', '张小龙', '乔布斯', '马斯克'],
     mentorIndex: 0,
-    moodOptions: ['焦虑', '贪婪', '平和', '困惑'],
-    selectedMood: '平和',
     content: '',
     wordCount: 0,
     currentDate: '',
@@ -23,11 +21,8 @@ Page({
     themeClass: '',
     mentorRules: null,
     fallbackMentorGuides: null,
-    fallbackMoodGuides: null,
     showMentorGuide: false,
-    showMoodGuide: false,
-    currentMentorGuide: '',
-    currentMoodGuide: ''
+    currentMentorGuide: ''
   },
 
   onLoad() {
@@ -77,15 +72,8 @@ Page({
       '乔布斯': '核心原则：1. Stay hungry, Stay foolish\n2. 设计不仅仅是外观和感觉，设计是如何工作的\n3. 创新是把不同的事物连接起来\n4. 追求完美，即使别人认为不可能\n5. 产品要简洁到极致\n6. 敢于挑战现状\n7. 把科技与艺术完美结合\n8. 对产品要有宗教般的热情',
       '马斯克': '核心原则：1. 第一性原理思考是解决问题的关键\n2. 要勇于挑战不可能，才能实现伟大目标\n3. 创新不是线性的，需要跳跃式思维\n4. 失败是成功的一部分，重要的是快速迭代\n5. 从物理定律出发，而非从现状出发\n6. 要有宏大的愿景，改变世界\n7. 用工程思维解决问题\n8. 长期思考，以10年、20年为单位'
     };
-    const moodGuides = {
-      '焦虑': '当前心境：焦虑\n\n建议：保持理性，关注长期价值\n\n关键点：1. 市场波动是常态，保持理性\n2. 关注企业内在价值，而非短期价格\n3. 安全边际是投资的生命线\n4. 不要被恐慌情绪影响决策\n5. 时间会平滑短期波动',
-      '贪婪': '当前心境：贪婪\n\n建议：注意安全边际，避免冲动决策\n\n关键点：1. 贪婪时更要谨慎，安全边际不可忽视\n2. 不要被短期利益冲昏头脑\n3. 理性决策比快速收益更重要\n4. 市场狂热时往往是风险最高时\n5. 保持安全边际，避免冲动决策',
-      '平和': '当前心境：平和\n\n建议：可以深入探讨投资理念和长期思考\n\n关键点：1. 平和的心态是长期投资的基础\n2. 可以深入探讨投资理念和长期思考\n3. 保持原则，不被短期情绪影响\n4. 持续学习和反思，形成自己的投资之道\n5. 投资是一场马拉松，不是短跑',
-      '困惑': '当前心境：困惑\n\n建议：回到基本原则思考\n\n关键点：1. 困惑时不妨回到基本原则思考\n2. 帮助用户理清思路，找到核心问题\n3. 简化问题，从第一性原理出发\n4. 不要试图同时解决所有问题\n5. 保持耐心，逐步梳理'
-    };
     this.setData({
-      fallbackMentorGuides: mentorGuides,
-      fallbackMoodGuides: moodGuides
+      fallbackMentorGuides: mentorGuides
     });
   },
 
@@ -140,7 +128,7 @@ Page({
         limit: 1
       });
 
-      if (result.success && result.data.length > 0) {
+      if (result.success &amp;&amp; result.data.length &gt; 0) {
         const userStamps = result.data[0].stamps;
         const stamps = userStamps !== undefined ? userStamps : 2;
         this.setData({ userStamps: stamps });
@@ -157,19 +145,12 @@ Page({
     this.setData({ mentorIndex: e.detail.value });
   },
 
-  selectMood(e) {
-    const mood = e.currentTarget.dataset.mood;
-    if (mood) {
-      this.setData({ selectedMood: mood });
-    }
-  },
-
   onInput(e) {
     const wordCount = e.detail.value.length;
     this.setData({
       content: e.detail.value,
       wordCount: wordCount,
-      canSend: wordCount >= 100
+      canSend: wordCount &gt;= 100
     });
   },
 
@@ -209,7 +190,7 @@ Page({
         });
         return;
       }
-      if (limit.remaining > 1) {
+      if (limit.remaining &gt; 1) {
         wx.showToast({
           title: `今天还可以寄信${limit.remaining}次`,
           icon: 'none',
@@ -228,7 +209,7 @@ Page({
   },
 
   async submitLetter() {
-    if (this.data.wordCount < 100) {
+    if (this.data.wordCount &lt; 100) {
       wx.showModal({
         title: '思考还不够深',
         content: '再多写一点吧，至少100个字',
@@ -237,11 +218,11 @@ Page({
       return;
     }
 
-    if (this.data.needReply && this.data.userStamps === 0) {
+    if (this.data.needReply &amp;&amp; this.data.userStamps === 0) {
       wx.showModal({
         title: '邮票不足',
         content: '需要购买邮票才能请求大师回信',
-        success: (res) => {
+        success: (res) =&gt; {
           if (res.confirm) {
             wx.navigateTo({
               url: '/pages/stamps/stamps'
@@ -282,7 +263,7 @@ Page({
         content: sensitiveCheck.message + '\n\n是否继续提交？',
         confirmText: '继续提交',
         cancelText: '修改内容',
-        success: (res) => {
+        success: (res) =&gt; {
           if (res.confirm) {
             this.doSubmit();
           } else {
@@ -296,8 +277,8 @@ Page({
   },
 
   async doSubmit() {
-    const mentor = this.data.mentors[this.data.mentorIndex];
-    const mood = this.data.selectedMood;
+    const mentor = this.data.needReply ? this.data.mentors[this.data.mentorIndex] : null;
+    const mood = '由AI推断';
     const content = this.data.content;
     const needReply = this.data.needReply;
 
@@ -354,7 +335,7 @@ Page({
 
         console.log('云函数响应:', cloudReplyRes);
 
-        if (cloudReplyRes.result && cloudReplyRes.result.success) {
+        if (cloudReplyRes.result &amp;&amp; cloudReplyRes.result.success) {
           wx.hideLoading();
           wx.showToast({
             title: '笔记已寄出',
@@ -364,7 +345,7 @@ Page({
           
           this.setData({ userStamps: Math.max(0, this.data.userStamps - 1) });
           
-          setTimeout(() => {
+          setTimeout(() =&gt; {
             wx.navigateBack();
           }, 3000);
         } else {
@@ -378,7 +359,7 @@ Page({
           duration: 2000
         });
         
-        setTimeout(() => {
+        setTimeout(() =&gt; {
           wx.navigateBack();
         }, 2000);
       }
@@ -405,22 +386,8 @@ Page({
 
     const mentor = rules.mentors[mentorName];
     let guide = `核心原则：\n`;
-    mentor.corePrinciples.forEach((principle) => {
+    mentor.corePrinciples.forEach((principle) =&gt; {
       guide += `${principle}\n`;
-    });
-    return guide;
-  },
-
-  formatMoodGuide(moodName) {
-    const rules = this.data.mentorRules;
-    if (!rules || !rules.moods[moodName]) {
-      return this.data.fallbackMoodGuides[moodName] || '';
-    }
-
-    const mood = rules.moods[moodName];
-    let guide = `当前心境：${moodName}\n\n建议：${mood.tone}\n\n关键点：\n`;
-    mood.keyPoints.forEach((point) => {
-      guide += `${point}\n`;
     });
     return guide;
   },
@@ -434,23 +401,9 @@ Page({
     });
   },
 
-  showMoodGuideHandler() {
-    const guide = this.formatMoodGuide(this.data.selectedMood);
-    this.setData({
-      showMoodGuide: true,
-      currentMoodGuide: guide
-    });
-  },
-
   closeMentorGuide() {
     this.setData({
       showMentorGuide: false
-    });
-  },
-
-  closeMoodGuide() {
-    this.setData({
-      showMoodGuide: false
     });
   }
 });
