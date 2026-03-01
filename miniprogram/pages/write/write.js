@@ -15,7 +15,7 @@ Page({
     currentDate: '',
     openid: null,
     needReply: false,
-    userStamps: 3,
+    userStamps: 2,
     canSend: false,
     statusBarHeight: 0,
     hasSensitiveWarning: false,
@@ -142,14 +142,14 @@ Page({
 
       if (result.success && result.data.length > 0) {
         const userStamps = result.data[0].stamps;
-        const stamps = userStamps !== undefined ? userStamps : 3;
+        const stamps = userStamps !== undefined ? userStamps : 2;
         this.setData({ userStamps: stamps });
       } else {
-        this.setData({ userStamps: 3 });
+        this.setData({ userStamps: 2 });
       }
     } catch (err) {
       console.error('获取邮票失败:', err);
-      this.setData({ userStamps: 3 });
+      this.setData({ userStamps: 2 });
     }
   },
 
@@ -338,7 +338,7 @@ Page({
           });
         } else {
           await cloudbaseUtil.update('users', userDoc._id, {
-            stamps: Math.max(0, (userDoc.stamps !== undefined ? userDoc.stamps : 3) - 1)
+            stamps: Math.max(0, (userDoc.stamps !== undefined ? userDoc.stamps : 2) - 1)
           });
         }
 

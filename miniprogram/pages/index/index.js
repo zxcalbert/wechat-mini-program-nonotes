@@ -1,4 +1,3 @@
-
 const cloudbaseUtil = require('../../utils/cloudbaseUtil');
 
 const app = getApp();
@@ -10,7 +9,7 @@ Page({
     loading: false,
     openid: null,
     showMenu: false,
-    userStamps: 3,
+    userStamps: 2,
     heatmapData: [],
     userInfo: null,
     showSearch: false,
@@ -84,14 +83,14 @@ Page({
 
       if (result.success && result.data.length > 0) {
         const userStamps = result.data[0].stamps;
-        const stamps = userStamps !== undefined ? userStamps : 3;
+        const stamps = userStamps !== undefined ? userStamps : 2;
         this.setData({ userStamps: stamps });
       } else {
-        this.setData({ userStamps: 3 });
+        this.setData({ userStamps: 2 });
       }
     } catch (err) {
       console.error('获取邮票失败:', err);
-      this.setData({ userStamps: 3 });
+      this.setData({ userStamps: 2 });
     }
   },
 
@@ -316,4 +315,3 @@ Page({
     });
   }
 });
-

@@ -73,10 +73,13 @@ Page({
           ...result.data,
           displayDate: cloudbaseUtil.formatDateTime(result.data.createTime),
           statusLabel: this.getStatusLabel(result.data.status),
-          canShowReply: canShowReply
+          canShowReply: canShowReply,
+          showMentor: !!result.data.mentor
         };
         
-        const mentorLocation = mentorLocations[result.data.mentor] || '奥马哈';
+        const mentorLocation = result.data.mentor 
+          ? mentorLocations[result.data.mentor] || '奥马哈' 
+          : '';
         
         this.setData({ letter, mentorLocation });
         console.log('加载详情成功:', letter);
