@@ -128,7 +128,7 @@ Page({
         limit: 1
       });
 
-      if (result.success &amp;&amp; result.data.length &gt; 0) {
+      if (result.success && result.data.length > 0) {
         const userStamps = result.data[0].stamps;
         const stamps = userStamps !== undefined ? userStamps : 2;
         this.setData({ userStamps: stamps });
@@ -150,7 +150,7 @@ Page({
     this.setData({
       content: e.detail.value,
       wordCount: wordCount,
-      canSend: wordCount &gt;= 100
+      canSend: wordCount >= 100
     });
   },
 
@@ -190,7 +190,7 @@ Page({
         });
         return;
       }
-      if (limit.remaining &gt; 1) {
+      if (limit.remaining > 1) {
         wx.showToast({
           title: `今天还可以寄信${limit.remaining}次`,
           icon: 'none',
@@ -209,7 +209,7 @@ Page({
   },
 
   async submitLetter() {
-    if (this.data.wordCount &lt; 100) {
+    if (this.data.wordCount < 100) {
       wx.showModal({
         title: '思考还不够深',
         content: '再多写一点吧，至少100个字',
@@ -218,11 +218,11 @@ Page({
       return;
     }
 
-    if (this.data.needReply &amp;&amp; this.data.userStamps === 0) {
+    if (this.data.needReply && this.data.userStamps === 0) {
       wx.showModal({
         title: '邮票不足',
         content: '需要购买邮票才能请求大师回信',
-        success: (res) =&gt; {
+        success: (res) => {
           if (res.confirm) {
             wx.navigateTo({
               url: '/pages/stamps/stamps'
@@ -263,7 +263,7 @@ Page({
         content: sensitiveCheck.message + '\n\n是否继续提交？',
         confirmText: '继续提交',
         cancelText: '修改内容',
-        success: (res) =&gt; {
+        success: (res) => {
           if (res.confirm) {
             this.doSubmit();
           } else {
@@ -335,7 +335,7 @@ Page({
 
         console.log('云函数响应:', cloudReplyRes);
 
-        if (cloudReplyRes.result &amp;&amp; cloudReplyRes.result.success) {
+        if (cloudReplyRes.result && cloudReplyRes.result.success) {
           wx.hideLoading();
           wx.showToast({
             title: '笔记已寄出',
@@ -345,7 +345,7 @@ Page({
           
           this.setData({ userStamps: Math.max(0, this.data.userStamps - 1) });
           
-          setTimeout(() =&gt; {
+          setTimeout(() => {
             wx.navigateBack();
           }, 3000);
         } else {
@@ -359,7 +359,7 @@ Page({
           duration: 2000
         });
         
-        setTimeout(() =&gt; {
+        setTimeout(() => {
           wx.navigateBack();
         }, 2000);
       }
@@ -386,7 +386,7 @@ Page({
 
     const mentor = rules.mentors[mentorName];
     let guide = `核心原则：\n`;
-    mentor.corePrinciples.forEach((principle) =&gt; {
+    mentor.corePrinciples.forEach((principle) => {
       guide += `${principle}\n`;
     });
     return guide;
