@@ -3,7 +3,7 @@ const app = getApp();
 
 Page({
   data: {
-    userStamps: 3,
+    userStamps: 2,
     history: [],
     openid: null,
     statusBarHeight: 0,

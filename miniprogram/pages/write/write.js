@@ -14,7 +14,7 @@ Page({
     openid: null,
     needReply: false,
     userStamps: 2,
-    canSend: false,
+    canSend: true,
     statusBarHeight: 0,
     hasSensitiveWarning: false,
     sensitiveWarning: '',
@@ -149,8 +149,7 @@ Page({
     const wordCount = e.detail.value.length;
     this.setData({
       content: e.detail.value,
-      wordCount: wordCount,
-      canSend: wordCount >= 100
+      wordCount: wordCount
     });
   },
 
@@ -209,11 +208,19 @@ Page({
   },
 
   async submitLetter() {
-    if (this.data.wordCount < 100) {
+    const content = this.data.content.trim();
+    
+    if (content.length < 10) {
       wx.showModal({
-        title: '思考还不够深',
-        content: '再多写一点吧，至少100个字',
-        showCancel: false
+        title: '内容较短',
+        content: '您的内容较短，确定要保存吗？',
+        confirmText: '继续保存',
+        cancelText: '返回修改',
+        success: (res) => {
+          if (res.confirm) {
+            this.doSubmit();
+          }
+        }
       });
       return;
     }

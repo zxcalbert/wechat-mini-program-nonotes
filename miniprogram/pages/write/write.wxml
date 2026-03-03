@@ -65,14 +65,16 @@
         </view>
       </view>
       
-      <view wx:if="{{needReply && userStamps === 0}}" class="warn-section">
-        <text class="warn-text">⚠️ 免费邮票已用完，需购买邮票才能获得大师回信</text>
-        <button class="buy-stamps-btn" bindtap="buyStamps">购买邮票</button>
-      </view>
+      <view wx:if="{{needReply && userStamps <= 1}}">
+        <view wx:if="{{userStamps === 0}}" class="warn-section">
+          <text class="warn-text">⚠️ 免费邮票已用完，需购买邮票才能获得大师回信</text>
+          <button class="buy-stamps-btn" bindtap="buyStamps">购买邮票</button>
+        </view>
 
-      <view wx:if="{{needReply && userStamps === 1}}" class="warn-section tip-section">
-        <text class="warn-text">💡 邮票即将用完（剩余1张），建议提前购买</text>
-        <button class="buy-stamps-btn" bindtap="buyStamps">购买邮票</button>
+        <view wx:if="{{userStamps === 1}}" class="warn-section tip-section">
+          <text class="warn-text">💡 邮票即将用完（剩余1张），建议提前购买</text>
+          <button class="buy-stamps-btn" bindtap="buyStamps">购买邮票</button>
+        </view>
       </view>
 
       <view wx:if="{{needReply}}" class="reply-info">
@@ -86,7 +88,7 @@
 
   <view class="send-buttons">
     <button class="send-btn {{!canSend ? 'disabled' : ''}}" bindtap="submitLetter" disabled="{{!canSend}}">
-      {{needReply ? '📮 寄出并请求回信' : '📝 寄出笔记'}}
+      {{needReply ? '📮 寄出并请求回信' : '📝 保存笔记'}}
     </button>
   </view>
 </view>

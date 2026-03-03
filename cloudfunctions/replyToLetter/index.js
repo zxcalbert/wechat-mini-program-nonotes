@@ -82,6 +82,12 @@ function processReply(replyContent) {
   return replyContent;
 }
 
+// 添加AI免责声明
+function addAIDisclaimer(replyContent, mentorName) {
+  const aiDisclaimer = `\n\n---\n*以上内容为AI模拟${mentorName}的回复，仅供参考和启发，不代表该人物的真实观点或建议。*`;
+  return replyContent + aiDisclaimer;
+}
+
 // ==================== 字数自适应引擎 ====================
 
 const wordCountConfig = {
@@ -139,40 +145,41 @@ function truncateByChineseWords(text, maxWords) {
 
 // ==================== 超详细提示词组装器 ====================
 
-// 为不同投资大师生成个性化的系统提示词
-function getMentorPrompt(mentor, mood, content) {
-  const mentorData = mentorRules.mentors[mentor] || mentorRules.mentors['查理·芒格'];
-  const moodData = mentorRules.moods[mood] || mentorRules.moods['平和'];
+// AI自主推断情绪的提示词生成器
+function getAIDeducedPrompt(mentorData, content, mentorName) {
   const config = getWordCountConfig(content);
 
   let prompt = `【规则约束部分（不可变，来自规则库）】
-你必须以${mentor}的身份回复，遵循以下核心原则：
+你必须以${mentorData.persona}的身份回复，遵循以下核心原则：
 `;
 
-  mentorData.corePrinciples.forEach((principle, idx) => {
+  mentorData.corePrinciples.forEach((principle) => {
     prompt += `${principle}\n`;
   });
 
   prompt += `
-用户当前心境：${mood}
-- 语气必须：${moodData.tone}
-- 重点必须：${moodData.focus}
-- 必须涵盖这5个关键点：
-`;
+【重要约束 - 防止幻觉】
+1. 只基于${mentorName}的公开言论和已知观点进行回复
+2. 不要编造${mentorName}没说过的话或没做过的事
+3. 如不确定某个具体观点，使用更通用的投资原则表述
+4. 不要引用不存在的书籍、演讲或事件
+5. 回复必须直接、具体、有针对性，避免空泛
 
-  moodData.keyPoints.forEach((point, idx) => {
-    prompt += `${point}\n`;
-  });
+【情绪推断指令】
+请根据用户的以下内容，自主判断其情绪状态（可能是焦虑、贪婪、平和、困惑等），并据此调整你的回复语气和重点：
+- 如果用户表现出焦虑：请温和安抚，强调风险管控和长期价值
+- 如果用户表现出贪婪：请警示提醒，强调安全边际和理性决策
+- 如果用户表现出平和：请理性深入，探讨投资理念和长期思考
+- 如果用户表现出困惑：请耐心引导，帮助理清思路和方向
 
-  prompt += `
-【超详细自由发挥部分（方案二优势）】
+【超详细自由发挥部分】
 你的完整人设：
 ${mentorData.persona}
 
 你的思考框架（5个）：
 `;
 
-  mentorData.thinkingFrameworks.forEach((framework, idx) => {
+  mentorData.thinkingFrameworks.forEach((framework) => {
     prompt += `${framework}\n`;
   });
 
@@ -180,7 +187,72 @@ ${mentorData.persona}
 你的常用问题（6个）：
 `;
 
-  mentorData.commonQuestions.forEach((question, idx) => {
+  mentorData.commonQuestions.forEach((question) => {
+    prompt += `${question}\n`;
+  });
+
+  prompt += `
+基于以上约束，针对用户的问题：
+${content}
+
+【字数自适应要求】
+- 先评估内容复杂度：${config.label}
+- ${config.label}问题：${config.min}-${config.max}字
+- 上限：严格${config.max}字，不得超过
+
+请直接、具体、有针对性地回复，${config.min}-${config.max}字。无需重复约束条件。
+`;
+
+  return prompt;
+}
+
+// 历史数据兼容的提示词生成器
+function getOriginalPrompt(mentorData, moodData, content, mentorName) {
+  const config = getWordCountConfig(content);
+
+  let prompt = `【规则约束部分（不可变，来自规则库）】
+你必须以${mentorData.persona}的身份回复，遵循以下核心原则：
+`;
+
+  mentorData.corePrinciples.forEach((principle) => {
+    prompt += `${principle}\n`;
+  });
+
+  prompt += `
+【重要约束 - 防止幻觉】
+1. 只基于${mentorName}的公开言论和已知观点进行回复
+2. 不要编造${mentorName}没说过的话或没做过的事
+3. 如不确定某个具体观点，使用更通用的投资原则表述
+4. 不要引用不存在的书籍、演讲或事件
+5. 回复必须直接、具体、有针对性，避免空泛
+
+用户当前心境：${moodData.name || '平和'}
+- 语气必须：${moodData.tone}
+- 重点必须：${moodData.focus}
+- 必须涵盖这5个关键点：
+`;
+
+  moodData.keyPoints.forEach((point) => {
+    prompt += `${point}\n`;
+  });
+
+  prompt += `
+【超详细自由发挥部分】
+你的完整人设：
+${mentorData.persona}
+
+你的思考框架（5个）：
+`;
+
+  mentorData.thinkingFrameworks.forEach((framework) => {
+    prompt += `${framework}\n`;
+  });
+
+  prompt += `
+你的常用问题（6个）：
+`;
+
+  mentorData.commonQuestions.forEach((question) => {
     prompt += `${question}\n`;
   });
 
@@ -197,6 +269,21 @@ ${content}
 `;
 
   return prompt;
+}
+
+// 为不同投资大师生成个性化的系统提示词
+function getMentorPrompt(mentor, mood, content) {
+  const mentorData = mentorRules.mentors[mentor] || mentorRules.mentors['查理·芒格'];
+  
+  // mood兼容处理：AI推断 vs 历史数据
+  if (mood === null || mood === '由AI推断' || !mood) {
+    // AI从内容推断情绪
+    return getAIDeducedPrompt(mentorData, content, mentor);
+  } else {
+    // 历史数据 - 使用原mood逻辑
+    const moodData = mentorRules.moods[mood] || mentorRules.moods['平和'];
+    return getOriginalPrompt(mentorData, moodData, content, mentor);
+  }
 }
 
 // 调用 DeepSeek API
@@ -410,7 +497,10 @@ exports.main = async (event, context) => {
   try {
     // 如果传入了 replyContent，说明是从小程序端生成的回复，直接保存
     if (replyContent) {
-      const processedReply = processReply(replyContent.trim());
+      let processedReply = processReply(replyContent.trim());
+      if (mentor) {
+        processedReply = addAIDisclaimer(processedReply, mentor);
+      }
       
       await db.collection('letters').doc(letterId).update({
         data: {
@@ -437,7 +527,8 @@ exports.main = async (event, context) => {
         replyContent = generateSmartReply(mentor, mood || '平和', content);
       }
       
-      const processedReply = processReply(replyContent);
+      let processedReply = processReply(replyContent);
+      processedReply = addAIDisclaimer(processedReply, mentor);
       
       await db.collection('letters').doc(letterId).update({
         data: {
