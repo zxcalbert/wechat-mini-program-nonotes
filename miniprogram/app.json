@@ -6,7 +6,8 @@
         "pages/write/write",
         "pages/detail/detail",
         "pages/stamps/stamps",
-        "pages/trash/trash"
+        "pages/trash/trash",
+        "pages/profile/profile"
     ],
     "window":{
         "navigationBarBackgroundColor": "#000000",

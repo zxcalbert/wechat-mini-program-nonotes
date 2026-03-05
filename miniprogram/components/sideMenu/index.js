@@ -19,6 +19,13 @@ Component({
       this.triggerEvent('close');
     },
 
+    viewProfile() {
+      wx.navigateTo({
+        url: '/pages/profile/profile'
+      });
+      this.closeSideMenu();
+    },
+
     toggleTheme() {
       const app = getApp();
       app.toggleTheme();

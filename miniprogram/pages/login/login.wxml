@@ -42,11 +42,11 @@
       </view>
 
       <view class="profile-section">
-        <text class="profile-title">设置个人信息</text>
+        <text class="profile-title">设置个人信息（可选）</text>
         
         <view class="avatar-upload-section">
           <button class="avatar-button" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
-            <image class="avatar-preview" src="{{avatarUrl || '/images/avatar.png'}}" mode="aspectFill"></image>
+            <image class="avatar-preview" src="{{avatarUrl}}" mode="aspectFill"></image>
           </button>
           <text class="avatar-hint">点击选择头像</text>
         </view>
@@ -64,6 +64,10 @@
         </view>
       </view>
 
+      <view class="optional-profile-hint">
+        <text class="hint-text">完善头像和昵称可获得更好的体验（可选）</text>
+      </view>
+
       <view class="privacy-notice">
         <text class="notice-title">隐私说明</text>
         <text class="notice-text">我们需要获取你的昵称和头像用于识别身份。你的所有信件和回复内容将被严格保护，仅限你本人可以查看。</text>
@@ -74,9 +78,8 @@
       class="btn btn-login"
       bindtap="handleLogin"
       loading="{{loading}}"
-      disabled="{{!canLogin}}"
     >
-      <text>{{canLogin ? '进入应用' : '请先设置头像和昵称'}}</text>
+      <text>进入应用</text>
     </button>
   </block>
 </view>

@@ -3,12 +3,12 @@ const app = getApp();
 
 Page({
   data: {
-    avatarUrl: '',
-    nickname: '',
+    avatarUrl: '/images/avatar.png',
+    nickname: '投资爱好者',
     hasUserInfo: false,
     loading: false,
     themeClass: '',
-    canLogin: false
+    canLogin: true
   },
 
   onLoad: function() {
@@ -29,8 +29,8 @@ Page({
     if (userInfo && openid) {
       this.setData({ 
         hasUserInfo: true,
-        avatarUrl: userInfo.avatarUrl || '',
-        nickname: userInfo.nickName || userInfo.nickname || ''
+        avatarUrl: userInfo.avatarUrl || '/images/avatar.png',
+        nickname: userInfo.nickName || userInfo.nickname || '投资爱好者'
       });
       
       if (!isFirstLogin) {
@@ -43,8 +43,7 @@ Page({
   },
 
   checkCanLogin() {
-    const canLogin = this.data.avatarUrl && this.data.avatarUrl.trim() !== '' && 
-                   this.data.nickname && this.data.nickname.trim() !== '';
+    const canLogin = true;
     this.setData({ canLogin });
   },
 
@@ -56,7 +55,6 @@ Page({
 
   onNicknameInput(e) {
     let nickname = e.detail.value.trim();
-    // 限制昵称长度为20个字符，优化用户输入体验
     if (nickname.length > 20) {
       nickname = nickname.substring(0, 20);
     }
@@ -66,10 +64,6 @@ Page({
 
   async handleLogin() {
     if (this.data.loading) return;
-    if (!this.data.canLogin) {
-      wx.showToast({ title: '请先设置头像和昵称', icon: 'none' });
-      return;
-    }
 
     this.setData({ loading: true });
 
@@ -145,10 +139,10 @@ Page({
         if (res.confirm) {
           wx.clearStorageSync();
           this.setData({ 
-            avatarUrl: '',
-            nickname: '',
+            avatarUrl: '/images/avatar.png',
+            nickname: '投资爱好者',
             hasUserInfo: false,
-            canLogin: false
+            canLogin: true
           });
         }
       }

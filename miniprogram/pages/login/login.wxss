@@ -212,6 +212,23 @@ page {
   box-sizing: border-box;
 }
 
+.optional-profile-hint {
+  margin: 0 30rpx 20rpx;
+  padding: 20rpx;
+  background-color: var(--cardBackgroundColor, #fdfaf2);
+  border-radius: 8rpx;
+  border-left: 3rpx solid var(--highlightColor, #8b4513);
+  flex-shrink: 0;
+}
+
+.hint-text {
+  display: block;
+  font-size: 26rpx;
+  color: var(--secondaryTextColor, #666);
+  line-height: 1.6;
+  text-align: center;
+}
+
 .privacy-notice {
   margin: 0 30rpx 20rpx;
   padding: 20rpx;
