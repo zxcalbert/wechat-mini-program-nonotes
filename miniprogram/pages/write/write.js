@@ -165,7 +165,7 @@ Page({
       } else if (result.isInvestment) {
         return {
           canSubmit: true,
-          message: '注意：您的内容包含投资相关词汇，AI回复不会提供具体投资建议。'
+          message: '注意：您的内容包含金融相关词汇，AI回复仅供参考，不构成任何建议。'
         };
       }
     }
@@ -228,7 +228,7 @@ Page({
     if (this.data.needReply && this.data.userStamps === 0) {
       wx.showModal({
         title: '邮票不足',
-        content: '需要购买邮票才能请求大师回信',
+        content: '需要购买邮票才能请求导师回信',
         success: (res) => {
           if (res.confirm) {
             wx.navigateTo({

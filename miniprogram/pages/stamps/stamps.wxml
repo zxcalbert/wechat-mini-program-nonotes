@@ -12,7 +12,7 @@
     <!-- 免费邮票说明 -->
     <view class="info-section">
       <text class="section-title">💝 免费邮票</text>
-      <text class="info-text">每个新用户获得 2 张免费邮票，可用于请求大师回信。</text>
+      <text class="info-text">每个新用户获得 2 张免费邮票，可用于请求导师回信。</text>
       <text class="info-text">每次请求回信消耗 1 张邮票。</text>
       <text class="info-text">用完后需要购买。</text>
     </view>
@@ -22,7 +22,7 @@
       <text class="section-title">⏱️ 回信机制</text>
       <view class="mechanism-item">
         <text class="mechanism-bullet">•</text>
-        <text class="mechanism-text">寄出笔记后，大师将在 18 小时内回复</text>
+        <text class="mechanism-text">寄出笔记后，导师将在 18 小时内回复</text>
       </view>
       <view class="mechanism-item">
         <text class="mechanism-bullet">•</text>

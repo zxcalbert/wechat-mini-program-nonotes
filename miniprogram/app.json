@@ -12,7 +12,7 @@
     "window":{
         "navigationBarBackgroundColor": "#000000",
         "navigationBarTextStyle": "white",
-        "navigationBarTitleText": "投资笔记"
+        "navigationBarTitleText": "智慧笔记"
     },
     "requiredBackgroundModes": [],
     "lazyCodeLoading": "requiredComponents",
