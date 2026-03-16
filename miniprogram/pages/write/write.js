@@ -352,6 +352,16 @@ Page({
           
           this.setData({ userStamps: Math.max(0, this.data.userStamps - 1) });
           
+          // 清除笔记缓存，确保首页加载最新数据
+          const openid = this.data.openid;
+          const cachePrefix = `letters_${openid}_`;
+          const storageInfo = wx.getStorageInfoSync();
+          storageInfo.keys.forEach(key => {
+            if (key.startsWith(cachePrefix)) {
+              wx.removeStorageSync(key);
+            }
+          });
+          
           setTimeout(() => {
             wx.navigateBack();
           }, 3000);
@@ -364,6 +374,16 @@ Page({
           title: '笔记已保存',
           icon: 'success',
           duration: 2000
+        });
+        
+        // 清除笔记缓存，确保首页加载最新数据
+        const openid = this.data.openid;
+        const cachePrefix = `letters_${openid}_`;
+        const storageInfo = wx.getStorageInfoSync();
+        storageInfo.keys.forEach(key => {
+          if (key.startsWith(cachePrefix)) {
+            wx.removeStorageSync(key);
+          }
         });
         
         setTimeout(() => {

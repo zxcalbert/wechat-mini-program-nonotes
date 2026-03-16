@@ -19,7 +19,14 @@ Page({
     themeIcon: '🌓',
     themeClass: '',
     menuButtonRight: 0,
-    navbarPaddingRight: 16
+    navbarPaddingRight: 16,
+    
+    // 分页相关
+    currentPage: 1,
+    pageSize: 10,
+    total: 0,
+    hasMore: true,
+    isLoadingMore: false
   },
 
   onLoad: function() {
@@ -70,8 +77,6 @@ Page({
     }
     
     this.setData({ openid, userInfo });
-    this.fetchLetters();
-    this.fetchUserStamps();
   },
 
   async fetchUserStamps() {
@@ -94,62 +99,161 @@ Page({
     }
   },
 
+  /**
+   * 分页加载笔记
+   * 先读缓存，再后台更新
+   */
   async fetchLetters() {
-    this.setData({ loading: true });
+    if (this.data.isLoadingMore) return;
+    
+    this.setData({ 
+      loading: true,
+      currentPage: 1,
+      hasMore: true,
+      letters: []
+    });
 
     try {
-      console.log('🔍 [调试] 开始查询数据库...');
+      const openid = this.data.openid;
+      const cacheKey = `letters_${openid}_1`;
+      const cache = wx.getStorageSync(cacheKey);
       
-      const db = wx.cloud.database();
-      
-      const countRes = await db.collection('letters')
-        .where({ _openid: this.data.openid })
-        .count();
-      
-      console.log('🔍 [调试] 数据库总记录数 (count):', countRes.total);
-      
-      const totalRecords = countRes.total;
-      const pageSize = 20;
-      const pageCount = Math.ceil(totalRecords / pageSize);
-      const allData = [];
-      
-      console.log('🔍 [调试] 需要分页查询:', pageCount, '页');
-      
-      for (let i = 0; i < pageCount; i++) {
-        const skip = i * pageSize;
-        console.log('🔍 [调试] 查询第', i+1, '页, skip:', skip);
+      // 有有效缓存，先展示缓存
+      if (cache && cache.timestamp + cache.expire * 1000 > Date.now()) {
+        console.log('🔄 [缓存] 使用缓存数据，第一页');
+        const letters = this.formatLetters(cache.data);
+        this.setData({ letters, displayLetters: letters });
         
-        const pageResult = await cloudbaseUtil.query('letters', {
-          where: { _openid: this.data.openid },
-          orderBy: 'createTime',
-          orderDirection: 'desc',
-          skip: skip,
-          limit: pageSize
+        // 后台更新数据，不阻塞UI
+        this.fetchPageFromServer(1, true).catch(err => {
+          console.warn('🔄 [缓存] 后台更新失败:', err);
         });
-        
-        if (pageResult.success) {
-          allData.push(...pageResult.data);
-        }
+      } else {
+        // 无缓存，直接请求
+        await this.fetchPageFromServer(1, false);
       }
-      
-      console.log('🔍 [调试] 分页查询完成，共获取:', allData.length, '条记录');
-      
-      const letters = allData
-        .filter(item => !item.deleted)
-        .map(item => ({
-          ...item,
-          displayDate: cloudbaseUtil.formatDate(item.createTime),
-          statusLabel: this.getStatusLabel(item.status)
-        }));
-
-      this.setData({ letters, displayLetters: letters });
-      console.log('加载成功，共', letters.length, '篇笔记');
     } catch (err) {
+      console.error('加载失败:', err);
       wx.showToast({ title: '加载失败', icon: 'error' });
-      console.error('查询失败:', err);
     } finally {
       this.setData({ loading: false });
     }
+  },
+
+  /**
+   * 加载更多笔记（滚动触发）
+   */
+  async loadMoreLetters() {
+    if (!this.data.hasMore || this.data.isLoadingMore || this.data.loading) {
+      console.log('📜 [滚动] 加载条件不满足', {
+        hasMore: this.data.hasMore,
+        isLoadingMore: this.data.isLoadingMore,
+        loading: this.data.loading
+      });
+      return;
+    }
+    
+    console.log('📜 [滚动] 开始加载更多');
+    this.setData({ isLoadingMore: true });
+    
+    try {
+      const nextPage = this.data.currentPage + 1;
+      await this.fetchPageFromServer(nextPage, false);
+    } catch (err) {
+      console.error('加载更多失败:', err);
+      wx.showToast({ 
+        title: '加载失败，请下拉刷新重试', 
+        icon: 'none',
+        duration: 2000
+      });
+    } finally {
+      this.setData({ isLoadingMore: false });
+    }
+  },
+
+  /**
+   * 从服务器请求单页数据
+   * @param {number} page - 页码
+   * @param {boolean} backgroundUpdate - 是否后台更新
+   */
+  async fetchPageFromServer(page, backgroundUpdate = false) {
+    const skip = (page - 1) * this.data.pageSize;
+    const limit = this.data.pageSize;
+    const openid = this.data.openid;
+    
+    console.log(`� [分页] 请求第${page}页, skip=${skip}, limit=${limit}`);
+    
+    const pageResult = await cloudbaseUtil.query('letters', {
+      where: { _openid: openid },
+      orderBy: 'createTime',
+      orderDirection: 'desc',
+      skip: skip,
+      limit: limit
+    });
+    
+    if (pageResult.success) {
+      const newLetters = this.formatLetters(pageResult.data);
+      const cacheKey = `letters_${openid}_${page}`;
+      
+      // 更新缓存
+      wx.setStorageSync(cacheKey, {
+        data: pageResult.data,
+        timestamp: Date.now(),
+        expire: 3600 // 1小时过期
+      });
+      
+      console.log(`� [分页] 第${page}页加载完成，${newLetters.length}条记录`);
+      
+      // 后台更新时，只更新第一页数据
+      if (backgroundUpdate && page === 1) {
+        const oldLetters = this.data.letters;
+        // 只有数据有变化时才更新页面
+        if (JSON.stringify(oldLetters) !== JSON.stringify(newLetters)) {
+          console.log('🔄 [缓存] 数据有更新，刷新页面');
+          const isLastPage = newLetters.length < this.data.pageSize;
+          this.setData({ 
+            letters: newLetters, 
+            displayLetters: newLetters,
+            hasMore: !isLastPage
+          });
+        } else {
+          console.log('🔄 [缓存] 数据无变化，不更新');
+        }
+      } else {
+        // 前台加载，拼接数据
+        const allLetters = page === 1 ? newLetters : [...this.data.letters, ...newLetters];
+        const isLastPage = newLetters.length < this.data.pageSize;
+        
+        this.setData({
+          letters: allLetters,
+          displayLetters: allLetters,
+          currentPage: page,
+          hasMore: !isLastPage
+        });
+        
+        // 如果是搜索状态，重新过滤
+        if (this.data.showSearch && this.data.searchKeyword) {
+          this.filterLetters(this.data.searchKeyword);
+        }
+      }
+      
+      return newLetters;
+    }
+    
+    throw new Error(pageResult.error || '请求失败');
+  },
+
+  /**
+   * 格式化笔记数据
+   */
+  formatLetters(data) {
+    return data
+      .filter(item => !item.deleted)
+      .map(item => ({
+        ...item,
+        displayDate: cloudbaseUtil.formatDate(item.createTime),
+        statusLabel: this.getStatusLabel(item.status)
+      }));
   },
 
   generateHeatmapData() {
@@ -204,6 +308,18 @@ Page({
               title: '已移入回收站',
               icon: 'success'
             });
+            
+            // 删除缓存
+            const openid = this.data.openid;
+            const cachePrefix = `letters_${openid}_`;
+            const storageInfo = wx.getStorageInfoSync();
+            storageInfo.keys.forEach(key => {
+              if (key.startsWith(cachePrefix)) {
+                wx.removeStorageSync(key);
+              }
+            });
+            
+            // 重新加载
             this.fetchLetters();
           } else {
             wx.showToast({ 
@@ -232,8 +348,47 @@ Page({
     this.setData({ themeClass: app.getThemeClass() });
   },
 
+  /**
+   * 滚动到底部加载更多
+   */
+  onReachBottom: function() {
+    if (this.data.hasMore && !this.data.isLoadingMore && !this.data.loading && !this.data.showSearch) {
+      console.log('📜 [滚动] 到达底部，加载更多');
+      this.loadMoreLetters();
+    }
+  },
+
+  /**
+   * 滚动到底部（scroll-view备选方案）
+   */
+  onScrollToLower: function() {
+    console.log('📜 [滚动] 检测到滚动到底部(scroll-view)');
+    if (this.data.hasMore && !this.data.isLoadingMore && !this.data.loading && !this.data.showSearch) {
+      this.loadMoreLetters();
+    }
+  },
+
+  /**
+   * 下拉刷新
+   */
   onPullDownRefresh: function() {
+    console.log('🔄 [刷新] 下拉刷新，清除缓存');
+    
+    // 清除所有笔记缓存
+    const openid = this.data.openid;
+    const cachePrefix = `letters_${openid}_`;
+    const storageInfo = wx.getStorageInfoSync();
+    storageInfo.keys.forEach(key => {
+      if (key.startsWith(cachePrefix)) {
+        wx.removeStorageSync(key);
+      }
+    });
+    
+    // 重新加载
     this.fetchLetters().then(() => {
+      wx.stopPullDownRefresh();
+      wx.showToast({ title: '刷新成功', icon: 'success' });
+    }).catch(() => {
       wx.stopPullDownRefresh();
     });
   },

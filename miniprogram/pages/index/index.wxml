@@ -34,7 +34,13 @@
   </view>
 
   <!-- 笔记列表 -->
-  <scroll-view scroll-y="true" class="notes-list" scroll-with-animation="{{true}}">
+  <scroll-view 
+    scroll-y="true" 
+    class="notes-list" 
+    scroll-with-animation="{{true}}"
+    lower-threshold="100"
+    bindscrolltolower="onScrollToLower"
+  >
     <view wx:if="{{displayLetters.length === 0}}" class="empty-state">
       <text class="empty-icon">📝</text>
       <text class="empty-text">还没有笔记呢</text>
@@ -53,6 +59,17 @@
 
       <view class="note-footer">
         <text class="note-date">{{item.displayDate || '刚刚'}}</text>
+      </view>
+    </view>
+    
+    <!-- 加载提示 -->
+    <view class="loading-footer">
+      <view wx:if="{{isLoadingMore}}" class="loading-tip">
+        <view class="loading-spinner"></view>
+        <text>加载中...</text>
+      </view>
+      <view wx:elif="{{!hasMore && letters.length > 0}}" class="no-more-tip">
+        <text>已加载全部笔记</text>
       </view>
     </view>
   </scroll-view>
