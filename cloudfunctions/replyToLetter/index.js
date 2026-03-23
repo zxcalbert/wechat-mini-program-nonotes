@@ -11,11 +11,6 @@ const sensitiveWords = {
   porn: [
     '色情', '淫秽', '性交易', '嫖娼', '卖淫', '裸聊',
     '成人', '黄色', '低俗', '下流', '猥琐', '淫秽物品'
-  ],
-  investment: [
-    '买入', '卖出', '推荐', '估值', '收益率', '回报率',
-    '目标价', '股价', '基金净值', '投资建议', '理财规划',
-    '增持', '减持', '抄底', '逃顶', '加仓', '减仓'
   ]
 };
 
@@ -23,14 +18,12 @@ function detectSensitiveWords(text) {
   if (!text) {
     return {
       hasSensitive: false,
-      isHighSensitive: false,
-      isInvestment: false
+      isHighSensitive: false
     };
   }
 
   let hasSensitive = false;
   let isHighSensitive = false;
-  let isInvestment = false;
 
   for (const word of sensitiveWords.violence) {
     if (text.includes(word)) {
@@ -50,20 +43,9 @@ function detectSensitiveWords(text) {
     }
   }
 
-  if (!isHighSensitive) {
-    for (const word of sensitiveWords.investment) {
-      if (text.includes(word)) {
-        hasSensitive = true;
-        isInvestment = true;
-        break;
-      }
-    }
-  }
-
   return {
     hasSensitive,
-    isHighSensitive,
-    isInvestment
+    isHighSensitive
   };
 }
 
@@ -71,12 +53,7 @@ function processReply(replyContent) {
   const detection = detectSensitiveWords(replyContent);
 
   if (detection.isHighSensitive) {
-    return "感谢你的来信。由于内容合规性要求，我无法针对这个话题给出具体回复。建议你从更宏观的角度思考问题，关注原则和方法论，而不是具体的标的或建议。";
-  }
-
-  if (detection.isInvestment) {
-    const disclaimer = "\n\n---\n\n⚠️ 免责声明：以上内容仅供参考，不构成任何建议。请独立思考，理性决策。";
-    return replyContent + disclaimer;
+    return "感谢你的来信。由于内容合规性要求，我无法针对这个话题给出具体回复。建议你从更宏观的角度思考问题，关注原则和方法论，探索人生智慧和成长方向。";
   }
 
   return replyContent;
@@ -377,23 +354,23 @@ function generateSmartReply(mentor, mood, content) {
       opening: ['我理解你的想法', '从长期价值的角度看', '让我分享一些思考'],
       principles: [
         '时间是优秀品质的朋友，平庸品质的敌人。',
-        '决策的第一条原则是永远不要亏损，第二条原则是永远不要忘记第一条。',
+        '决策的第一条原则是不要犯不可挽回的错误。',
         '只做自己理解的事情。',
-        '真正的优势比增长速度更重要。'
+        '真正的优势比短期收益更重要。'
       ],
       advice: [
-        '建议你专注于内在价值，',
+        '建议你专注于长期价值，',
         '保持耐心，让时间发挥作用，',
-        '记住，短期是投票机，长期是称重机。'
+        '记住，短期是情绪的放大器，长期是价值的试金石。'
       ]
     },
     '段永平': {
       opening: ['我明白你的困惑', '从本分的角度看', '让我直接说'],
       principles: [
         '做对的事情，把事情做对。',
-        '本分是最重要的企业文化。',
-        '企业文化是最重要的护城河。',
-        '不要做不对的事情，即使能赚钱。'
+        '本分是最重要的价值观。',
+        '价值观是最重要的核心竞争力。',
+        '不要做不对的事情，即使短期有好处。'
       ],
       advice: [
         '建议你回归本分，',
@@ -449,8 +426,8 @@ function generateSmartReply(mentor, mood, content) {
   
   // 根据心境调整语气
   const moodAdjustments = {
-    '焦虑': '波动是常态，保持理性是关键。',
-    '急躁': '急躁时更要谨慎，安全边际不可忽视。',
+    '焦虑': '情绪波动是常态，保持内心平和是关键。',
+    '急躁': '急躁时更要停下来思考，慢就是快。',
     '平和': '平和的心态是长期成长的基础。',
     '困惑': '困惑时不妨回到基本原则思考。'
   };
@@ -480,9 +457,9 @@ function generateSmartReply(mentor, mood, content) {
 
 // 简单提取关键词
 function extractKeywords(text) {
-  const investmentKeywords = ['思考', '人生', '成长', '公司', '行业', '市场', '价值', '价格', '风险', '机会', '决策', '策略'];
+  const keywords = ['思考', '人生', '成长', '决策', '选择', '焦虑', '困惑', '目标', '行动', '学习', '反思', '原则'];
   const found = [];
-  for (const keyword of investmentKeywords) {
+  for (const keyword of keywords) {
     if (text.includes(keyword)) {
       found.push(keyword);
     }
