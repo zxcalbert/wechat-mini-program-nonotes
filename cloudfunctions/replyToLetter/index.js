@@ -11,11 +11,6 @@ const sensitiveWords = {
   porn: [
     '色情', '淫秽', '性交易', '嫖娼', '卖淫', '裸聊',
     '成人', '黄色', '低俗', '下流', '猥琐', '淫秽物品'
-  ],
-  investment: [
-    '买入', '卖出', '推荐', '估值', '收益率', '回报率',
-    '目标价', '股价', '基金净值', '投资建议', '理财规划',
-    '增持', '减持', '抄底', '逃顶', '加仓', '减仓'
   ]
 };
 
@@ -23,14 +18,12 @@ function detectSensitiveWords(text) {
   if (!text) {
     return {
       hasSensitive: false,
-      isHighSensitive: false,
-      isInvestment: false
+      isHighSensitive: false
     };
   }
 
   let hasSensitive = false;
   let isHighSensitive = false;
-  let isInvestment = false;
 
   for (const word of sensitiveWords.violence) {
     if (text.includes(word)) {
@@ -50,20 +43,9 @@ function detectSensitiveWords(text) {
     }
   }
 
-  if (!isHighSensitive) {
-    for (const word of sensitiveWords.investment) {
-      if (text.includes(word)) {
-        hasSensitive = true;
-        isInvestment = true;
-        break;
-      }
-    }
-  }
-
   return {
     hasSensitive,
-    isHighSensitive,
-    isInvestment
+    isHighSensitive
   };
 }
 
@@ -71,12 +53,7 @@ function processReply(replyContent) {
   const detection = detectSensitiveWords(replyContent);
 
   if (detection.isHighSensitive) {
-    return "感谢你的来信。由于内容合规性要求，我无法针对这个话题给出具体回复。建议你从更宏观的角度思考问题，关注原则和方法论，而不是具体的标的或建议。";
-  }
-
-  if (detection.isInvestment) {
-    const disclaimer = "\n\n---\n\n⚠️ 免责声明：以上内容仅供参考，不构成任何投资建议。投资有风险，决策需谨慎。";
-    return replyContent + disclaimer;
+    return "感谢你的来信。由于内容合规性要求，我无法针对这个话题给出具体回复。建议你从更宏观的角度思考问题，关注原则和方法论，探索人生智慧和成长方向。";
   }
 
   return replyContent;
@@ -161,15 +138,15 @@ function getAIDeducedPrompt(mentorData, content, mentorName) {
 【重要约束 - 防止幻觉】
 1. 只基于${mentorName}的公开言论和已知观点进行回复
 2. 不要编造${mentorName}没说过的话或没做过的事
-3. 如不确定某个具体观点，使用更通用的投资原则表述
+3. 如不确定某个具体观点，使用更通用的人生智慧表述
 4. 不要引用不存在的书籍、演讲或事件
 5. 回复必须直接、具体、有针对性，避免空泛
 
 【情绪推断指令】
-请根据用户的以下内容，自主判断其情绪状态（可能是焦虑、贪婪、平和、困惑等），并据此调整你的回复语气和重点：
-- 如果用户表现出焦虑：请温和安抚，强调风险管控和长期价值
-- 如果用户表现出贪婪：请警示提醒，强调安全边际和理性决策
-- 如果用户表现出平和：请理性深入，探讨投资理念和长期思考
+请根据用户的以下内容，自主判断其情绪状态（可能是焦虑、急躁、平和、困惑等），并据此调整你的回复语气和重点：
+- 如果用户表现出焦虑：请温和安抚，强调冷静思考和长期视角
+- 如果用户表现出急躁：请警示提醒，强调耐心和理性决策
+- 如果用户表现出平和：请理性深入，探讨人生智慧和长期思考
 - 如果用户表现出困惑：请耐心引导，帮助理清思路和方向
 
 【超详细自由发挥部分】
@@ -222,7 +199,7 @@ function getOriginalPrompt(mentorData, moodData, content, mentorName) {
 【重要约束 - 防止幻觉】
 1. 只基于${mentorName}的公开言论和已知观点进行回复
 2. 不要编造${mentorName}没说过的话或没做过的事
-3. 如不确定某个具体观点，使用更通用的投资原则表述
+3. 如不确定某个具体观点，使用更通用的人生智慧表述
 4. 不要引用不存在的书籍、演讲或事件
 5. 回复必须直接、具体、有针对性，避免空泛
 
@@ -271,7 +248,7 @@ ${content}
   return prompt;
 }
 
-// 为不同投资大师生成个性化的系统提示词
+// 为不同导师生成个性化的系统提示词
 function getMentorPrompt(mentor, mood, content) {
   const mentorData = mentorRules.mentors[mentor] || mentorRules.mentors['查理·芒格'];
   
@@ -362,7 +339,7 @@ function generateSmartReply(mentor, mood, content) {
     '查理·芒格': {
       opening: ['我注意到你在思考', '从你的描述来看', '让我从另一个角度分析'],
       principles: [
-        '正如我常说的，投资需要多学科思维模型。',
+        '正如我常说的，思考需要多学科思维模型。',
         '反过来想，总是反过来想。',
         '在手里拿着锤子的人看来，世界就像一颗钉子。',
         '避免人类误判心理学中的常见陷阱至关重要。'
@@ -370,30 +347,30 @@ function generateSmartReply(mentor, mood, content) {
       advice: [
         '建议你建立自己的思维模型框架，',
         '不妨从逆向思考开始，',
-        '记住，投资最重要的是避免错误，而不是追求完美。'
+        '记住，避免错误比追求完美更重要。'
       ]
     },
     '巴菲特': {
       opening: ['我理解你的想法', '从长期价值的角度看', '让我分享一些思考'],
       principles: [
-        '时间是优秀企业的朋友，平庸企业的敌人。',
-        '投资的第一条原则是永远不要亏损，第二条原则是永远不要忘记第一条。',
-        '只投资自己理解的生意。',
-        '企业的护城河比增长速度更重要。'
+        '时间是优秀品质的朋友，平庸品质的敌人。',
+        '决策的第一条原则是不要犯不可挽回的错误。',
+        '只做自己理解的事情。',
+        '真正的优势比短期收益更重要。'
       ],
       advice: [
-        '建议你专注于企业的内在价值，',
-        '保持耐心，让复利发挥作用，',
-        '记住，市场短期是投票机，长期是称重机。'
+        '建议你专注于长期价值，',
+        '保持耐心，让时间发挥作用，',
+        '记住，短期是情绪的放大器，长期是价值的试金石。'
       ]
     },
     '段永平': {
       opening: ['我明白你的困惑', '从本分的角度看', '让我直接说'],
       principles: [
         '做对的事情，把事情做对。',
-        '本分是最重要的企业文化。',
-        '企业文化是最重要的护城河。',
-        '不要做不对的事情，即使能赚钱。'
+        '本分是最重要的价值观。',
+        '价值观是最重要的核心竞争力。',
+        '不要做不对的事情，即使短期有好处。'
       ],
       advice: [
         '建议你回归本分，',
@@ -449,9 +426,9 @@ function generateSmartReply(mentor, mood, content) {
   
   // 根据心境调整语气
   const moodAdjustments = {
-    '焦虑': '市场波动是常态，保持理性是关键。',
-    '贪婪': '贪婪时更要谨慎，安全边际不可忽视。',
-    '平和': '平和的心态是长期投资的基础。',
+    '焦虑': '情绪波动是常态，保持内心平和是关键。',
+    '急躁': '急躁时更要停下来思考，慢就是快。',
+    '平和': '平和的心态是长期成长的基础。',
     '困惑': '困惑时不妨回到基本原则思考。'
   };
 
@@ -471,18 +448,18 @@ function generateSmartReply(mentor, mood, content) {
   }
   reply += `${advice}结合你当前的情况，我建议你：\n`;
   reply += `1. 深入思考你提到的核心问题\n`;
-  reply += `2. 建立自己的投资原则和框架\n`;
+  reply += `2. 建立自己的思考原则和框架\n`;
   reply += `3. 保持长期视角，避免短期情绪干扰\n\n`;
-  reply += `记住，投资是一场马拉松，不是短跑。持续学习和反思，你会找到属于自己的投资之道。`;
+  reply += `记住，成长是一场马拉松，不是短跑。持续学习和反思，你会找到属于自己的人生智慧。`;
 
   return reply;
 }
 
 // 简单提取关键词
 function extractKeywords(text) {
-  const investmentKeywords = ['投资', '股票', '基金', '公司', '行业', '市场', '价值', '价格', '风险', '机会', '决策', '策略'];
+  const keywords = ['思考', '人生', '成长', '决策', '选择', '焦虑', '困惑', '目标', '行动', '学习', '反思', '原则'];
   const found = [];
-  for (const keyword of investmentKeywords) {
+  for (const keyword of keywords) {
     if (text.includes(keyword)) {
       found.push(keyword);
     }

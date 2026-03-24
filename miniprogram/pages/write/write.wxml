@@ -53,7 +53,7 @@
 
     <!-- 邮票选择 -->
     <view class="stamp-section">
-      <view class="stamp-title">📮 需要大师回信吗？</view>
+      <view class="stamp-title">📮 需要导师回信吗？</view>
       <view class="stamp-options">
         <view class="stamp-option {{needReply === false ? 'selected' : ''}}" bindtap="selectNeedReply" data-need="{{false}}">
           <text class="option-text">无需回复</text>
@@ -67,7 +67,7 @@
       
       <view wx:if="{{needReply && userStamps <= 1}}">
         <view wx:if="{{userStamps === 0}}" class="warn-section">
-          <text class="warn-text">⚠️ 免费邮票已用完，需购买邮票才能获得大师回信</text>
+          <text class="warn-text">⚠️ 免费邮票已用完，需购买邮票才能获得导师回信</text>
           <button class="buy-stamps-btn" bindtap="buyStamps">购买邮票</button>
         </view>
 

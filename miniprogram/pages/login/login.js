@@ -4,7 +4,7 @@ const app = getApp();
 Page({
   data: {
     avatarUrl: '/images/avatar.png',
-    nickname: '投资爱好者',
+    nickname: '思考者',
     hasUserInfo: false,
     loading: false,
     themeClass: '',
@@ -30,7 +30,7 @@ Page({
       this.setData({ 
         hasUserInfo: true,
         avatarUrl: userInfo.avatarUrl || '/images/avatar.png',
-        nickname: userInfo.nickName || userInfo.nickname || '投资爱好者'
+        nickname: userInfo.nickName || userInfo.nickname || '思考者'
       });
       
       if (!isFirstLogin) {
@@ -140,7 +140,7 @@ Page({
           wx.clearStorageSync();
           this.setData({ 
             avatarUrl: '/images/avatar.png',
-            nickname: '投资爱好者',
+            nickname: '思考者',
             hasUserInfo: false,
             canLogin: true
           });

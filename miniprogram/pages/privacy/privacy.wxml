@@ -1,7 +1,7 @@
 <view class="privacy-container {{themeClass}}">
   <view class="header">
     <text class="title">隐私政策</text>
-    <text class="subtitle">投资笔记</text>
+    <text class="subtitle">智慧笔记</text>
   </view>
 
   <view class="content">

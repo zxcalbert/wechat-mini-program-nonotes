@@ -46,8 +46,8 @@
     "disableSWC": true
   },
   "appid": "wxbaa7aa9905799960",
-  "projectname": "quickstart-wx-cloud",
-  "libVersion": "3.7.1",
+  "projectname": "智慧笔记",
+  "libVersion": "3.13.1",
   "cloudfunctionTemplateRoot": "cloudfunctionTemplate/",
   "condition": {
     "search": {

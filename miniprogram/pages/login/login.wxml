@@ -10,8 +10,8 @@
     </view>
 
     <view class="info-card">
-      <text class="info-title">欢迎使用投资笔记</text>
-      <text class="info-text">与投资大师对话，获得智慧启蒙。你的所有记录和回复内容完全保密，仅限本人访问。</text>
+      <text class="info-title">欢迎使用智慧笔记</text>
+      <text class="info-text">与人生导师对话，获得智慧启发。你的所有记录和回复内容完全保密，仅限本人访问。</text>
     </view>
 
     <button class="btn btn-primary" bindtap="goToIndex">开始使用</button>
@@ -22,8 +22,8 @@
     <scroll-view class="scroll-content" scroll-y="true">
       <view class="logo-section">
         <text class="logo">📮</text>
-        <text class="app-name">投资笔记</text>
-        <text class="slogan">与大师对话，获得启蒙</text>
+        <text class="app-name">智慧笔记</text>
+        <text class="slogan">与导师对话，获得启发</text>
       </view>
 
       <view class="intro-section">
