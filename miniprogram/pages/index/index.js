@@ -1,4 +1,5 @@
 const cloudbaseUtil = require('../../utils/cloudbaseUtil');
+const _ = wx.cloud.database().command;
 
 const app = getApp();
 
@@ -30,6 +31,7 @@ Page({
   },
 
   onLoad: function() {
+    console.log('🟢 [index] onLoad 开始');
     const systemInfo = wx.getSystemInfoSync();
     
     let menuButtonRight = 0;
@@ -53,29 +55,44 @@ Page({
       menuButtonRight,
       navbarPaddingRight
     });
+    console.log('🟢 [index] 开始调用 checkAuth()');
     this.checkAuth();
     this.generateHeatmapData();
     this.updateThemeIcon();
+    console.log('🟢 [index] onLoad 结束');
   },
 
   onShow: function() {
+    console.log('👁️ [onShow] 页面显示');
+    console.log('👁️ [onShow] 当前openid:', this.data.openid ? '存在' : '不存在');
+    console.log('👁️ [onShow] 当前letters数量:', this.data.letters.length);
+    console.log('👁️ [onShow] 当前displayLetters数量:', this.data.displayLetters.length);
+
     if (this.data.openid) {
+      console.log('👁️ [onShow] 开始调用fetchLetters');
       this.fetchLetters();
       this.fetchUserStamps();
+    } else {
+      console.log('👁️ [onShow] openid不存在，不调用fetchLetters');
     }
   },
 
   checkAuth: function() {
+    console.log('🔐 [checkAuth] 开始检查');
     const openid = wx.getStorageSync('openid');
     const userInfo = wx.getStorageSync('userInfo');
     
+    console.log('🔐 [checkAuth] openid:', !!openid ? '存在' : '不存在', 'userInfo:', !!userInfo ? '存在' : '不存在');
+    
     if (!openid || !userInfo) {
+      console.log('🔐 [checkAuth] 未登录，跳转到登录页');
       wx.redirectTo({
         url: '../login/login'
       });
       return;
     }
     
+    console.log('🔐 [checkAuth] 已登录，openid:', openid.substring(0, 10) + '...');
     this.setData({ openid, userInfo });
   },
 
@@ -105,8 +122,11 @@ Page({
    */
   async fetchLetters() {
     if (this.data.isLoadingMore) return;
-    
-    this.setData({ 
+
+    console.log('📥 [fetchLetters] 开始加载');
+    console.log('📥 [fetchLetters] 当前openid:', this.data.openid ? this.data.openid.substring(0, 10) + '...' : 'null');
+
+    this.setData({
       loading: true,
       currentPage: 1,
       hasMore: true,
@@ -117,21 +137,37 @@ Page({
       const openid = this.data.openid;
       const cacheKey = `letters_${openid}_1`;
       const cache = wx.getStorageSync(cacheKey);
-      
+
+      console.log('📥 [fetchLetters] cacheKey:', cacheKey);
+      console.log('📥 [fetchLetters] 缓存状态:', cache ? '存在' : '不存在');
+
       // 有有效缓存，先展示缓存
       if (cache && cache.timestamp + cache.expire * 1000 > Date.now()) {
         console.log('🔄 [缓存] 使用缓存数据，第一页');
+        console.log('🔄 [缓存] 缓存原始数据量:', cache.data.length, '条');
+        console.log('🔄 [缓存] 缓存时间:', new Date(cache.timestamp).toLocaleString());
+        console.log('🔄 [缓存] 过期时间:', cache.expire, '秒');
         const letters = this.formatLetters(cache.data);
+        console.log('🔄 [缓存] 格式化后显示:', letters.length, '条');
         this.setData({ letters, displayLetters: letters });
-        
+
         // 后台更新数据，不阻塞UI
         this.fetchPageFromServer(1, true).catch(err => {
           console.warn('🔄 [缓存] 后台更新失败:', err);
         });
       } else {
         // 无缓存，直接请求
+        console.log('🌐 [网络] 无有效缓存，直接请求服务器');
+        if (cache) {
+          console.log('⚠️ [网络] 缓存已过期或无效');
+          console.log('⚠️ [网络] 缓存时间:', new Date(cache.timestamp).toLocaleString());
+          console.log('⚠️ [网络] 当前时间:', new Date().toLocaleString());
+          console.log('⚠️ [网络] 剩余时间:', ((cache.timestamp + cache.expire * 1000 - Date.now()) / 1000).toFixed(0), '秒');
+        }
         await this.fetchPageFromServer(1, false);
       }
+
+      console.log('📥 [fetchLetters] 加载完成，最终显示:', this.data.displayLetters.length, '条');
     } catch (err) {
       console.error('加载失败:', err);
       wx.showToast({ title: '加载失败', icon: 'error' });
@@ -180,29 +216,47 @@ Page({
     const skip = (page - 1) * this.data.pageSize;
     const limit = this.data.pageSize;
     const openid = this.data.openid;
-    
-    console.log(`� [分页] 请求第${page}页, skip=${skip}, limit=${limit}`);
-    
+
+    console.log(`📡 [分页] ===== 开始请求第${page}页 =====`);
+    console.log(`📡 [分页] openid:`, openid ? openid.substring(0, 10) + '...' : 'null');
+    console.log(`📡 [分页] skip=${skip}, limit=${limit}`);
+    console.log(`📡 [分页] backgroundUpdate=${backgroundUpdate}`);
+
+    console.log(`📡 [分页] 发送数据库查询...`);
+    const startTime = Date.now();
+
     const pageResult = await cloudbaseUtil.query('letters', {
-      where: { _openid: openid },
+      where: {
+        _openid: openid,
+        deleted: _.neq(true)
+      },
       orderBy: 'createTime',
       orderDirection: 'desc',
       skip: skip,
       limit: limit
     });
-    
+
+    const queryTime = Date.now() - startTime;
+    console.log(`📡 [分页] 数据库查询耗时: ${queryTime}ms`);
+
     if (pageResult.success) {
+      console.log(`📡 [分页] 查询成功！原始返回数据量: ${pageResult.data.length} 条`);
+      console.log(`📡 [分页] 调用 formatLetters 格式化...`);
+
       const newLetters = this.formatLetters(pageResult.data);
+
+      console.log(`📡 [分页] 格式化后数据量: ${newLetters.length} 条`);
+
       const cacheKey = `letters_${openid}_${page}`;
-      
+
       // 更新缓存
       wx.setStorageSync(cacheKey, {
         data: pageResult.data,
         timestamp: Date.now(),
         expire: 3600 // 1小时过期
       });
-      
-      console.log(`� [分页] 第${page}页加载完成，${newLetters.length}条记录`);
+
+      console.log(`📡 [分页] 缓存已保存, key=${cacheKey}`);
       
       // 后台更新时，只更新第一页数据
       if (backgroundUpdate && page === 1) {
@@ -210,12 +264,14 @@ Page({
         // 只有数据有变化时才更新页面
         if (JSON.stringify(oldLetters) !== JSON.stringify(newLetters)) {
           console.log('🔄 [缓存] 数据有更新，刷新页面');
+          console.log('🔄 [缓存] 更新前:', oldLetters.length, '条 → 更新后:', newLetters.length, '条');
           const isLastPage = newLetters.length < this.data.pageSize;
-          this.setData({ 
-            letters: newLetters, 
+          this.setData({
+            letters: newLetters,
             displayLetters: newLetters,
             hasMore: !isLastPage
           });
+          console.log('✅ [setData] 后台更新完成，displayLetters:', this.data.displayLetters.length, '条');
         } else {
           console.log('🔄 [缓存] 数据无变化，不更新');
         }
@@ -223,14 +279,19 @@ Page({
         // 前台加载，拼接数据
         const allLetters = page === 1 ? newLetters : [...this.data.letters, ...newLetters];
         const isLastPage = newLetters.length < this.data.pageSize;
-        
+
+        console.log(`📡 [分页] ===== 设置第${page}页数据到页面 =====`);
+        console.log(`📡 [分页] 当前已有: ${this.data.letters.length} 条，新增: ${newLetters.length} 条，总计: ${allLetters.length} 条`);
+
         this.setData({
           letters: allLetters,
           displayLetters: allLetters,
           currentPage: page,
           hasMore: !isLastPage
         });
-        
+
+        console.log(`✅ [setData] 第${page}页数据已设置，displayLetters: ${this.data.displayLetters.length} 条, hasMore: ${this.data.hasMore}`);
+
         // 如果是搜索状态，重新过滤
         if (this.data.showSearch && this.data.searchKeyword) {
           this.filterLetters(this.data.searchKeyword);
@@ -247,13 +308,19 @@ Page({
    * 格式化笔记数据
    */
   formatLetters(data) {
-    return data
-      .filter(item => !item.deleted)
-      .map(item => ({
-        ...item,
-        displayDate: cloudbaseUtil.formatDate(item.createTime),
-        statusLabel: this.getStatusLabel(item.status)
-      }));
+    console.log('📋 [formatLetters] 原始数据:', data.length, '条');
+    data.forEach((item, idx) => {
+      console.log(`  笔记${idx+1}: deleted = ${item.deleted}, type = ${typeof item.deleted}`);
+    });
+    
+    const filtered = data.filter(item => item.deleted !== true);
+    console.log('📋 [formatLetters] 过滤后:', filtered.length, '条');
+    
+    return filtered.map(item => ({
+      ...item,
+      displayDate: cloudbaseUtil.formatDate(item.createTime),
+      statusLabel: this.getStatusLabel(item.status)
+    }));
   },
 
   generateHeatmapData() {
