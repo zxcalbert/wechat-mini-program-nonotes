@@ -1,56 +1,20 @@
 const cloud = require('wx-server-sdk');
 const axios = require('axios');
-const mentorRules = require('./mentorRules.json');
+const sensitiveWordDetector = require('./sensitiveWordDetector');
+// 优先加载扩展版导师规则，如果没有则回退到原版
+let mentorRules;
+try {
+  mentorRules = require('./mentorRules_expanded.json');
+  console.log('已加载扩展版导师规则，共', Object.keys(mentorRules.mentors).length, '位导师');
+  console.log('领域配置:', Object.keys(mentorRules.fields || {}));
+} catch (e) {
+  console.log('未找到扩展版导师规则，使用原版');
+  mentorRules = require('./mentorRules.json');
+}
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
-const sensitiveWords = {
-  violence: [
-    '杀人', '暴力', '恐怖', '袭击', '爆炸', '枪支', '武器',
-    '血腥', '残忍', '虐待', '杀戮', '谋杀', '伤害', '残害'
-  ],
-  porn: [
-    '色情', '淫秽', '性交易', '嫖娼', '卖淫', '裸聊',
-    '成人', '黄色', '低俗', '下流', '猥琐', '淫秽物品'
-  ]
-};
-
-function detectSensitiveWords(text) {
-  if (!text) {
-    return {
-      hasSensitive: false,
-      isHighSensitive: false
-    };
-  }
-
-  let hasSensitive = false;
-  let isHighSensitive = false;
-
-  for (const word of sensitiveWords.violence) {
-    if (text.includes(word)) {
-      hasSensitive = true;
-      isHighSensitive = true;
-      break;
-    }
-  }
-
-  if (!isHighSensitive) {
-    for (const word of sensitiveWords.porn) {
-      if (text.includes(word)) {
-        hasSensitive = true;
-        isHighSensitive = true;
-        break;
-      }
-    }
-  }
-
-  return {
-    hasSensitive,
-    isHighSensitive
-  };
-}
-
 function processReply(replyContent) {
-  const detection = detectSensitiveWords(replyContent);
+  const detection = sensitiveWordDetector.detect(replyContent);
 
   if (detection.isHighSensitive) {
     return "感谢你的来信。由于内容合规性要求，我无法针对这个话题给出具体回复。建议你从更宏观的角度思考问题，关注原则和方法论，探索人生智慧和成长方向。";
