@@ -4,6 +4,7 @@
         "pages/privacy/privacy",
         "pages/index/index",
         "pages/write/write",
+        "pages/roundtable/roundtable",
         "pages/detail/detail",
         "pages/stamps/stamps",
         "pages/trash/trash",

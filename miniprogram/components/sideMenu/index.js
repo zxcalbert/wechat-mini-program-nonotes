@@ -19,6 +19,13 @@ Component({
       this.triggerEvent('close');
     },
 
+    viewRoundtable() {
+      wx.navigateTo({
+        url: '/pages/roundtable/roundtable'
+      });
+      this.closeSideMenu();
+    },
+
     viewProfile() {
       wx.navigateTo({
         url: '/pages/profile/profile'
