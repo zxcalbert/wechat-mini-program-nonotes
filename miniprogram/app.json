@@ -5,6 +5,7 @@
         "pages/index/index",
         "pages/write/write",
         "pages/roundtable/roundtable",
+        "pages/roundtableResult/roundtableResult",
         "pages/detail/detail",
         "pages/stamps/stamps",
         "pages/trash/trash",

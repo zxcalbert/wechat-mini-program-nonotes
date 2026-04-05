@@ -7,6 +7,8 @@ Page({
   data: {
     letters: [],
     displayLetters: [],
+    roundtables: [],
+    displayRoundtables: [],
     loading: false,
     openid: null,
     showMenu: false,
@@ -27,7 +29,10 @@ Page({
     pageSize: 10,
     total: 0,
     hasMore: true,
-    isLoadingMore: false
+    isLoadingMore: false,
+    
+    // 浮动菜单
+    showFloatMenu: false
   },
 
   onLoad: function() {
@@ -72,6 +77,7 @@ Page({
       console.log('👁️ [onShow] 开始调用fetchLetters');
       this.fetchLetters();
       this.fetchUserStamps();
+      this.fetchRoundtables();
     } else {
       console.log('👁️ [onShow] openid不存在，不调用fetchLetters');
     }
@@ -114,6 +120,48 @@ Page({
       console.error('获取邮票失败:', err);
       this.setData({ userStamps: 2 });
     }
+  },
+
+  /**
+   * 获取圆桌会议列表
+   */
+  async fetchRoundtables() {
+    if (!this.data.openid) return;
+    
+    try {
+      console.log('📥 [fetchRoundtables] 开始加载圆桌会议');
+      const result = await cloudbaseUtil.query('roundtable_discussions', {
+        where: { _openid: this.data.openid },
+        orderBy: 'createTime',
+        orderDirection: 'desc',
+        limit: 50
+      });
+
+      if (result.success) {
+        const roundtables = this.formatRoundtables(result.data);
+        this.setData({ 
+          roundtables,
+          displayRoundtables: roundtables
+        });
+        console.log('✅ [fetchRoundtables] 加载完成:', roundtables.length, '条');
+      }
+    } catch (err) {
+      console.error('获取圆桌会议失败:', err);
+    }
+  },
+
+  /**
+   * 格式化圆桌会议数据
+   */
+  formatRoundtables(data) {
+    return data.map(item => ({
+      ...item,
+      displayDate: cloudbaseUtil.formatDate(item.createTime),
+      type: 'roundtable',
+      tagText: '圆桌会议',
+      tagClass: 'tag-green',
+      content: item.content || '圆桌讨论'
+    }));
   },
 
   /**
@@ -460,9 +508,31 @@ Page({
     });
   },
 
-  goToWrite: function() {
+  // 显示/隐藏浮动菜单
+  toggleFloatMenu: function() {
+    this.setData({
+      showFloatMenu: !this.data.showFloatMenu
+    });
+  },
+
+  // 隐藏浮动菜单
+  hideFloatMenu: function() {
+    this.setData({ showFloatMenu: false });
+  },
+
+  // 跳转到写信页面
+  goToWriteLetter: function() {
+    this.hideFloatMenu();
     wx.navigateTo({
       url: '../write/write'
+    });
+  },
+
+  // 跳转到圆桌会议页面
+  goToRoundtable: function() {
+    this.hideFloatMenu();
+    wx.navigateTo({
+      url: '../roundtable/roundtable'
     });
   },
 

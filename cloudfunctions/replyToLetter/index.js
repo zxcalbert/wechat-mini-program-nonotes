@@ -222,7 +222,14 @@ function getMentorPrompt(mentor, mood, content) {
     return getAIDeducedPrompt(mentorData, content, mentor);
   } else {
     // 历史数据 - 使用原mood逻辑
-    const moodData = mentorRules.moods[mood] || mentorRules.moods['平和'];
+    // 安全访问：如果 moods 不存在或 mood 不存在，使用默认的平和配置
+    const defaultMood = {
+      tone: '理性深入',
+      focus: '深度思考、原则探讨',
+      keyPoints: ['平和的心态是长期成长的基础', '深入探讨人生智慧和长期思考']
+    };
+    const moods = mentorRules.moods || {};
+    const moodData = moods[mood] || moods['平和'] || defaultMood;
     return getOriginalPrompt(mentorData, moodData, content, mentor);
   }
 }
@@ -431,8 +438,53 @@ function extractKeywords(text) {
   return found.slice(0, 3);
 }
 
+const fieldOrder = [
+  { key: "价值思维领域", name: "价值思维", color: "#8b4513" },
+  { key: "创业创新领域", name: "创业创新", color: "#2ecc71" },
+  { key: "心理学领域", name: "心理学", color: "#9b59b6" },
+  { key: "哲学领域", name: "哲学", color: "#34495e" }
+];
+
+function sortMentorsByField(mentors, mentorsByDomain) {
+  const result = [];
+  for (const field of fieldOrder) {
+    const domainMentors = mentorsByDomain[field.key] || [];
+    for (const m of mentors) {
+      if (domainMentors.includes(m) && !result.includes(m)) {
+        result.push(m);
+      }
+    }
+  }
+  return result;
+}
+
+function extractContextSummary(userQuestion, discussions) {
+  const summary = {
+    userQuestion: userQuestion.length > 100 ? userQuestion.substring(0, 100) + "..." : userQuestion,
+    discussedMentors: [],
+    consensusPoints: [],
+    disagreementPoints: [],
+    focusForNext: ""
+  };
+
+  for (const d of discussions) {
+    const replyPreview = d.reply.length > 50 ? d.reply.substring(0, 50) + "..." : d.reply;
+    summary.discussedMentors.push({
+      mentor: d.mentor,
+      coreViewpoint: replyPreview,
+      stance: "neutral"
+    });
+  }
+
+  if (discussions.length > 0) {
+    summary.focusForNext = "请基于以上讨论继续发表你的观点。";
+  }
+
+  return summary;
+}
+
 exports.main = async (event, context) => {
-  const { letterId, replyContent, mentor, mood, content } = event;
+  const { letterId, replyContent, mentor, mood, content, type, mentors } = event;
   const db = cloud.database();
 
   try {
@@ -454,6 +506,107 @@ exports.main = async (event, context) => {
       return { 
         success: true,
         replyLength: processedReply.length
+      };
+    }
+
+    if (type === 'roundtable' && mentors && mentors.length > 0 && content) {
+      const mentorsByDomain = {
+        '价值思维领域': ['查理·芒格', '巴菲特', '格雷厄姆'],
+        '创业创新领域': ['段永平', '张小龙', '乔布斯', '马斯克', '贝佐斯', '彼得·蒂尔'],
+        '心理学领域': ['荣格', '弗洛伊德', '弗洛姆', '阿德勒', '马斯洛'],
+        '哲学领域': ['老子', '孔子', '苏格拉底', '柏拉图', '亚里士多德', '尼采', '维特根斯坦']
+      };
+
+      const sortedMentors = sortMentorsByField(mentors, mentorsByDomain);
+      const discussions = [];
+      
+      for (const m of sortedMentors) {
+        try {
+          const systemPrompt = getMentorPrompt(m, '平和', content);
+          let reply;
+          try {
+            reply = await callDeepSeekAPI(systemPrompt, content);
+          } catch (aiErr) {
+            console.log('AI调用失败，使用智能回复生成器:', aiErr.message);
+            reply = generateSmartReply(m, '平和', content);
+          }
+          
+          let processedReply = processReply(reply);
+          processedReply = addAIDisclaimer(processedReply, m);
+          
+          let field = '其他';
+          for (const f of fieldOrder) {
+            if ((mentorsByDomain[f.key] || []).includes(m)) {
+              field = f.name;
+              break;
+            }
+          }
+          
+          discussions.push({
+            mentor: m,
+            field: field,
+            reply: processedReply,
+            timestamp: Date.now(),
+            contextSummary: extractContextSummary(content, discussions)
+          });
+        } catch (err) {
+          console.error(`生成${m}回复失败:`, err);
+        }
+      }
+
+      const roundtableId = `rt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      await db.collection('roundtable_discussions').add({
+        data: {
+          _id: roundtableId,
+          content: content,
+          mentors: sortedMentors,
+          discussions: discussions,
+          totalCost: 3,
+          createTime: db.serverDate(),
+          _openid: context.OPENID
+        }
+      });
+
+      // 安全获取用户OPENID
+      const openid = context.OPENID || (context.userInfo && context.userInfo.openId);
+      
+      let remainingStamps = 2;
+      if (openid) {
+        try {
+          const userResult = await db.collection('users').where({
+            _openid: openid
+          }).get();
+          
+          if (userResult.data.length > 0) {
+            remainingStamps = (userResult.data[0].stamps || 2) - 3;
+            await db.collection('users').where({
+              _openid: openid
+            }).update({
+              data: {
+                stamps: db.command.inc(-3)
+              }
+            });
+          }
+        } catch (userErr) {
+          console.error('更新用户积分失败:', userErr);
+          // 不影响主流程，继续返回结果
+        }
+      } else {
+        console.log('未获取到用户OPENID，跳过积分扣除');
+      }
+
+      return {
+        success: true,
+        data: {
+          roundtableId: roundtableId,
+          content: content,
+          mentors: sortedMentors,
+          discussions: discussions,
+          totalCost: 3,
+          remainingStamps: remainingStamps,
+          createTime: new Date().toISOString()
+        }
       };
     }
 

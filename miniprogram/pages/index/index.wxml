@@ -28,9 +28,23 @@
     <text class="search-close" bindtap="hideSearchInput">✕</text>
   </view>
 
-  <!-- 浮动添加按钮 -->
-  <view class="float-add-button" bindtap="goToWrite">
-    <text class="float-add-icon">+</text>
+  <!-- 浮动添加按钮菜单 -->
+  <view class="float-menu-container">
+    <!-- 菜单选项 -->
+    <view class="float-menu {{showFloatMenu ? 'show' : ''}}">
+      <view class="float-menu-item" bindtap="goToWriteLetter">
+        <text class="menu-icon">✉️</text>
+        <text class="menu-text">写信</text>
+      </view>
+      <view class="float-menu-item" bindtap="goToRoundtable">
+        <text class="menu-icon">👥</text>
+        <text class="menu-text">圆桌会议</text>
+      </view>
+    </view>
+    <!-- 主按钮 -->
+    <view class="float-add-button {{showFloatMenu ? 'active' : ''}}" bindtap="toggleFloatMenu">
+      <text class="float-add-icon">+</text>
+    </view>
   </view>
 
   <!-- 笔记列表 -->
@@ -54,11 +68,20 @@
       bindtap="goToDetail"
       bindlongpress="deleteLetter"
       data-id="{{item._id}}"
+      data-type="{{item.type || 'letter'}}"
     >
-      <view class="note-content-preview">{{item.content}}</view>
+      <view class="note-card-header">
+        <view class="note-tags">
+          <text wx:if="{{item.type === 'roundtable'}}" class="tag tag-green">圆桌会议</text>
+          <text wx:else class="tag tag-blue">导师回信</text>
+        </view>
+        <view class="note-content-preview">{{item.content}}</view>
+      </view>
 
       <view class="note-footer">
         <text class="note-date">{{item.displayDate || '刚刚'}}</text>
+        <text wx:if="{{item.mentor}}" class="note-mentor">{{item.mentor}}</text>
+        <text wx:if="{{item.mentors && item.mentors.length > 0}}" class="note-mentors">{{item.mentors.length}}位导师</text>
       </view>
     </view>
     

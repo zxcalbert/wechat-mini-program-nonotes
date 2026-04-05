@@ -3,7 +3,7 @@
   "description": "获取人生导师的回复",
   "runtime": "nodejs14",
   "memorySize": 256,
-  "timeout": 30,
+  "timeout": 60,
   "permissions": {
     "openapi": [
       "ai.chat"

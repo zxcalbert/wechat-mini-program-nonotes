@@ -281,11 +281,44 @@ Page({
   },
 
   async doSubmit() {
-    wx.showModal({
-      title: '功能开发中',
-      content: '圆桌会议功能正在开发中，敬请期待',
-      showCancel: false
+    wx.showLoading({
+      title: '正在生成回复...',
+      mask: true
     });
+
+    try {
+      const result = await wx.cloud.callFunction({
+        name: 'replyToLetter',
+        data: {
+          type: 'roundtable',
+          mentors: this.data.selectedMentors,
+          content: this.data.content.trim()
+        }
+      });
+
+      wx.hideLoading();
+
+      if (result.result.success) {
+        const data = result.result.data;
+        this.setData({ userStamps: data.remainingStamps });
+        
+        wx.navigateTo({
+          url: `/pages/roundtableResult/roundtableResult?data=${encodeURIComponent(JSON.stringify(data))}`
+        });
+      } else {
+        wx.showToast({
+          title: result.result.error || '生成失败',
+          icon: 'none'
+        });
+      }
+    } catch (err) {
+      wx.hideLoading();
+      console.error('提交失败:', err);
+      wx.showToast({
+        title: '提交失败，请重试',
+        icon: 'none'
+      });
+    }
   },
 
   showFeatureDisabledTip() {

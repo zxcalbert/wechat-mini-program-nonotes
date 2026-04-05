@@ -1,0 +1,139 @@
+page {
+  background-color: var(--backgroundColor, #ffffff);
+}
+
+.container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--backgroundColor, #ffffff);
+  padding-top: env(safe-area-inset-top);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: 10px;
+  padding-right: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--borderColor, #f0f0f0);
+  background-color: var(--backgroundColor, #ffffff);
+}
+
+.back-btn {
+  font-size: 24px;
+  padding: 8px 10px;
+  cursor: pointer;
+  color: var(--textColor, #000000);
+}
+
+.back-icon {
+  font-size: 28px;
+}
+
+.header-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--textColor, #000000);
+  flex: 1;
+  text-align: center;
+}
+
+.header-spacer {
+  width: 40px;
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.user-question {
+  margin-bottom: 24px;
+  padding: 16px;
+  background-color: var(--cardBackgroundColor, #fdfaf2);
+  border: 1px solid var(--cardBorderColor, #e0d5b1);
+  border-radius: 8px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--textColor, #000000);
+  margin-bottom: 12px;
+}
+
+.question-text {
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--textColor, #333333);
+}
+
+.mentor-list {
+  margin-bottom: 24px;
+}
+
+.mentor-card {
+  margin-bottom: 16px;
+  padding: 16px;
+  background-color: var(--cardBackgroundColor, #fefefe);
+  border: 1px solid var(--cardBorderColor, #e8e8e8);
+  border-radius: 8px;
+}
+
+.mentor-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.mentor-name {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--textColor, #000000);
+  margin-right: 12px;
+}
+
+.mentor-field {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  color: #ffffff;
+}
+
+.mentor-reply {
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--textColor, #333333);
+  white-space: pre-wrap;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.action-btn {
+  flex: 1;
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.export-btn {
+  background-color: #3498db;
+  color: #ffffff;
+}
+
+.share-btn {
+  background-color: #2ecc71;
+  color: #ffffff;
+}
