@@ -554,19 +554,17 @@ exports.main = async (event, context) => {
         }
       }
 
-      const roundtableId = `rt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
-      await db.collection('roundtable_discussions').add({
+      const addResult = await db.collection('roundtable_discussions').add({
         data: {
-          _id: roundtableId,
           content: content,
           mentors: sortedMentors,
           discussions: discussions,
           totalCost: 3,
-          createTime: db.serverDate(),
-          _openid: context.OPENID
+          createTime: db.serverDate()
         }
       });
+      
+      const roundtableId = addResult._id;
 
       // 安全获取用户OPENID
       const openid = context.OPENID || (context.userInfo && context.userInfo.openId);

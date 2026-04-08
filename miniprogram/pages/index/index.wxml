@@ -55,20 +55,20 @@
     lower-threshold="100"
     bindscrolltolower="onScrollToLower"
   >
-    <view wx:if="{{displayLetters.length === 0}}" class="empty-state">
+    <view wx:if="{{displayItems.length === 0}}" class="empty-state">
       <text class="empty-icon">📝</text>
       <text class="empty-text">还没有笔记呢</text>
       <text class="empty-subtext">点击右上角 + 开始写第一篇</text>
     </view>
 
     <view
-      wx:for="{{displayLetters}}"
+      wx:for="{{displayItems}}"
       wx:key="_id"
       class="note-card"
       bindtap="goToDetail"
-      bindlongpress="deleteLetter"
+      bindlongpress="{{item.type === 'letter' ? 'deleteLetter' : ''}}"
       data-id="{{item._id}}"
-      data-type="{{item.type || 'letter'}}"
+      data-type="{{item.type}}"
     >
       <view class="note-card-header">
         <view class="note-tags">
