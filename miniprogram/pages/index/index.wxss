@@ -274,6 +274,18 @@ page {
   border: 1px solid #c8e6c9;
 }
 
+.tag-orange {
+  background-color: #fff3e0;
+  color: #f57c00;
+  border: 1px solid #ffe0b2;
+}
+
+.tag-purple {
+  background-color: #f3e5f5;
+  color: #7b1fa2;
+  border: 1px solid #e1bee7;
+}
+
 /* 导师信息 */
 .note-mentor,
 .note-mentors {

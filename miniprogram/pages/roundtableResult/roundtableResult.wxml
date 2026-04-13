@@ -7,14 +7,55 @@
     <view class="header-spacer"></view>
   </view>
 
-  <view class="content">
+  <view wx:if="{{loading}}" class="loading-container">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <view wx:elif="{{data}}" class="content">
     <view class="user-question">
       <view class="section-title">你的问题</view>
       <view class="question-text">{{data.content}}</view>
     </view>
 
+    <view wx:if="{{data.structure}}" class="discussion-structure">
+      <view class="section-title">📋 讨论摘要</view>
+      
+      <view wx:if="{{data.structure.summary}}" class="summary-section">
+        <view class="subsection-title">核心观点</view>
+        <view class="summary-text">{{data.structure.summary}}</view>
+      </view>
+
+      <view wx:if="{{data.structure.keyInsights && data.structure.keyInsights.length > 0}}" class="insights-section">
+        <view class="subsection-title">关键词</view>
+        <view class="keywords-container">
+          <text wx:for="{{data.structure.keyInsights}}" wx:key="*this" class="keyword-tag">{{item}}</text>
+        </view>
+      </view>
+
+      <view wx:if="{{data.structure.consensusPoints && data.structure.consensusPoints.length > 0}}" class="consensus-section">
+        <view class="subsection-title">✅ 共识点</view>
+        <view class="points-list">
+          <view wx:for="{{data.structure.consensusPoints}}" wx:key="*this" class="point-item">
+            <text class="point-icon">✓</text>
+            <text class="point-text">{{item}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{data.structure.disagreementPoints && data.structure.disagreementPoints.length > 0}}" class="disagreement-section">
+        <view class="subsection-title">💡 多元视角</view>
+        <view class="points-list">
+          <view wx:for="{{data.structure.disagreementPoints}}" wx:key="*this" class="point-item">
+            <text class="point-icon">◇</text>
+            <text class="point-text">{{item}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
     <view class="mentor-list">
-      <view class="section-title">导师回复</view>
+      <view class="section-title">💬 导师回复</view>
       <view wx:for="{{data.discussions}}" wx:key="index" class="mentor-card">
         <view class="mentor-header">
           <text class="mentor-name">{{item.mentor}}</text>
@@ -33,4 +74,11 @@
       </button>
     </view>
   </view>
+
+  <view wx:else class="empty-container">
+    <text class="empty-icon">📝</text>
+    <text class="empty-text">数据加载失败</text>
+  </view>
 </view>
+
+<canvas type="2d" id="shareCanvas" style="position: fixed; left: -9999px; top: 0; width: 750px; height: 1200px;"></canvas>

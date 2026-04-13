@@ -1,393 +1,149 @@
-# 智慧笔记 - 微信小程序
+# 智慧笔记
 
-一款帮助用户记录个人思考并模拟AI导师回复的微信小程序。用户可以写下自己的感悟，选择不同的人生导师（查理·芒格、巴菲特、段永平、张小龙、乔布斯、马斯克），获取AI模拟的智慧回复，帮助深入反思和思考。
+基于微信小程序和微信云开发的个人思考记录产品。用户可以写下问题、观察或反思，选择 AI 导师获取延迟回信，也可以发起多导师圆桌讨论。项目当前已经从早期“投资笔记”演进为覆盖价值思维、创业创新、心理学、哲学四大领域的通用思考工具。
 
-## 项目状态
+## 当前状态
 
-| 状态 | 说明 |
-|------|------|
-| 🟢 开发中 | 核心功能已完成，持续迭代优化 |
-| 📅 最后更新 | 2026-04-02 |
-| 🏷️ 当前版本 | v1.3.0 |
+- 项目形态：微信小程序 + 云函数 + 云数据库
+- AI 服务：DeepSeek Chat API
+- 当前代码范围：单导师回信、圆桌会议、邮票机制、缓存分页、主题切换、敏感词检测、隐私页
+- **Phase 3 进展**：思想孵化器 MVP（✅可用）、公司结构分析 MVP（✅验收通过）、产品结构分析 MVP（✅验收通过）
+- 导师规模：21 位导师，4 个领域
+- 文档基准日期：2026-04-12
 
----
+## 项目规则
 
-## 功能特性
+开始改动前建议先看两份规则：
 
-### 已完成功能
+- [项目强制规范](/Users/bill/编程/invest-diary/.trae/rules/project_rules.md)
+- [执行与交付规范](/Users/bill/编程/invest-diary/.trae/rules/AGENTS.md)
 
-| 功能 | 状态 | 说明 |
-|------|------|------|
-| 用户登录 | ✅ 完成 | 支持游客模式，头像昵称可选 |
-| 笔记创建 | ✅ 完成 | 支持选择导师和心境 |
-| AI回复生成 | ✅ 完成 | 调用DeepSeek API模拟导师回复 |
-| 笔记列表 | ✅ 完成 | 分页加载，滚动触发更多 |
-| 本地缓存 | ✅ 完成 | 1小时缓存策略，后台更新 |
-| 笔记搜索 | ✅ 完成 | 关键词搜索功能 |
-| 笔记删除 | ✅ 完成 | 支持删除到回收站 |
-| 笔记恢复 | ✅ 完成 | 从回收站恢复 |
-| 永久删除 | ✅ 完成 | 彻底删除笔记 |
-| 邮票系统 | ✅ 完成 | 邮票余额管理 |
-| 邮票购买 | ✅ 完成 | 支持多种套餐购买 |
-| 邮票历史 | ✅ 完成 | 购买记录查看 |
-| 热力图展示 | ✅ 完成 | 年度笔记创作分布 |
-| 主题切换 | ✅ 完成 | 亮色/暗色/跟随系统 |
-| 响应式布局 | ✅ 完成 | 跨设备适配 |
+这两份文件定义了这个仓库的工作方式，其中 `project_rules.md` 优先级更高。核心约束是保护现有原型、渐进式升级、禁止一次性大重构。
 
-### 核心特性
+## 核心能力
 
-- **个人笔记记录** - 随时记录想法、观察、决策
-- **AI导师回复** - 模拟四大领域19位导师的智慧回复
-- **领域分类** - 价值思维/创业创新/心理学/哲学四大领域
-- **心境感知** - 记录写笔记时的心境，影响回复语气
-- **邮票机制** - 通过邮票控制回复次数
-- **回复延迟** - 18小时后可见回复，鼓励深入思考
-- **数据安全** - 用户数据完全隔离，只能访问自己的笔记
-
----
+- 单导师写信：在 [write.js](/Users/bill/编程/invest-diary/miniprogram/pages/write/write.js) 中选择导师并提交内容，可请求 AI 回信。
+- 延迟回信机制：回信不是即时聊天，项目强调"记录后等待思考结果"的体验。
+- 圆桌会议：在 [roundtable.js](/Users/bill/编程/invest-diary/miniprogram/pages/roundtable/roundtable.js) 中选择 3-5 位导师发起多角色讨论。
+- 首页混合流：在 [index.js](/Users/bill/编程/invest-diary/miniprogram/pages/index/index.js) 中将普通信件和圆桌记录按时间混合展示。
+- 邮票系统：用户默认邮票余额为 2，普通回信和圆桌功能都受邮票约束。
+- 每日限制：单导师寄信每天最多 6 次。
+- 本地缓存与分页：首页信件列表支持分页加载和 1 小时缓存。
+- 主题切换：支持 `light`、`dark`、`system` 三种主题模式。
+- 敏感词治理：前端预检 + 云函数处理，包含检测、过滤和高敏内容兜底。
+- **思想孵化器 MVP**：输入想法，多位导师从不同维度进行深度分析（隐藏验证页）。
+- **公司结构分析 MVP**：输入公司相关内容，生成结构化分析报告，包含 6 个固定章节和 ASCII 结构快照（✅验收通过）。
+- **产品结构分析 MVP**：输入产品相关内容，生成结构化分析报告，包含 6 个固定章节和 ASCII 结构快照（✅验收通过）。
 
 ## 技术架构
 
-### 整体架构
+### 前端
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                      微信小程序前端                        │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌─────────┐ │
-│  │ 登录页面 │  │ 首页列表 │  │ 写笔记   │  │ 详情页  │ │
-│  └──────────┘  └──────────┘  └──────────┘  └─────────┘ │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐             │
-│  │ 邮票购买 │  │ 回收站   │  │ 个人中心 │             │
-│  └──────────┘  └──────────┘  └──────────┘             │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    微信云开发平台                         │
-│  ┌─────────────────────────────────────────────────────┐  │
-│  │                    云函数层                         │  │
-│  │  ┌──────────────┐      ┌──────────────────────┐   │  │
-│  │  │ login        │      │ replyToLetter       │   │  │
-│  │  │ - 获取openid │      │ - AI回复生成        │   │  │
-│  │  │ - 用户认证   │      │ - DeepSeek API调用   │   │  │
-│  │  └──────────────┘      └──────────────────────┘   │  │
-│  └─────────────────────────────────────────────────────┘  │
-│  ┌─────────────────────────────────────────────────────┐  │
-│  │                    云数据库层                       │  │
-│  │  ┌──────────┐  ┌──────────┐  ┌──────────────┐   │  │
-│  │  │ users    │  │ letters  │  │ stampHistory │   │  │
-│  │  └──────────┘  └──────────┘  └──────────────┘   │  │
-│  └─────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│                   外部AI服务                              │
-│  ┌─────────────────────────────────────────────────────┐  │
-│  │              DeepSeek API                          │  │
-│  │  - AI模型调用                                      │  │
-│  │  - 智能回复生成                                    │  │
-│  │  - 多角色模拟                                      │  │
-│  └─────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-```
+- 技术：微信小程序原生框架
+- 目录：`miniprogram/`
+- 页面：
+  - `login` 登录与用户信息初始化
+  - `index` 首页列表、搜索、分页、混合流展示
+  - `write` 单导师写信
+  - `roundtable` 多导师圆桌讨论
+  - `roundtableResult` 圆桌结果展示
+  - `detail` 信件详情
+  - `stamps` 邮票页
+  - `trash` 回收站
+  - `profile` 个人中心与热力图
+  - `privacy` 隐私协议页
+- 组件：侧边菜单、云提示弹窗、热力图日历
 
-### 前端技术栈
+### 后端
 
-| 技术 | 说明 |
-|------|------|
-| 微信小程序原生框架 | 基础框架和API |
-| 自定义组件开发 | 侧边菜单、热力图日历等 |
-| 响应式数据绑定 | WXML + WXSS + JS |
-| 本地存储管理 | wx.storage API |
-| CSS变量主题系统 | 主题切换支持 |
+- 技术：微信云开发云函数 + 云数据库
+- 目录：`cloudfunctions/`
+- 核心云函数：
+  - `login` 获取 `openid`
+  - `replyToLetter` 调用 DeepSeek 生成单导师回信和圆桌结果
+  - `getMentorRules` 获取导师规则库
+  - `getMentors` 获取导师列表
+  - `detectSensitiveWords` / `filterSensitiveWords` / `hasSensitiveWord` 负责内容治理
+  - `diagnoseRoundtable`、`migrateRoundtable`、`migrateRoundtableData` 用于诊断和迁移
 
-### 后端技术栈
+### 数据层
 
-| 技术 | 说明 |
-|------|------|
-| 微信云开发 | Serverless云服务 |
-| 云函数（Node.js） | 业务逻辑处理 |
-| 云数据库（MongoDB） | 数据持久化 |
-| 环境变量管理 | 安全配置管理 |
+从当前代码可确认的主要集合：
 
-### AI服务
+- `users`
+- `letters`
+- `roundtable_discussions`
+- `stampHistory`
 
-| 技术 | 说明 |
-|------|------|
-| DeepSeek API | AI模型调用 |
-| 自定义提示词工程 | 导师角色模拟 |
-| 失败降级机制 | 基于规则的备用回复 |
+所有查询都应带用户身份过滤，仓库规则也明确要求数据隔离是安全红线。
 
----
+## 关键实现说明
 
-## 开发进度
+- [app.js](/Users/bill/编程/invest-diary/miniprogram/app.js) 负责云开发初始化和主题状态管理。
+- [cloudbaseUtil.js](/Users/bill/编程/invest-diary/miniprogram/utils/cloudbaseUtil.js) 封装了前端对云数据库的常用 CRUD、分页和聚合操作。
+- [index.js](/Users/bill/编程/invest-diary/miniprogram/pages/index/index.js) 是首页核心，负责缓存、分页、圆桌数据加载和混合排序。
+- [replyToLetter/index.js](/Users/bill/编程/invest-diary/cloudfunctions/replyToLetter/index.js) 是项目核心后端逻辑，负责提示词组装、字数控制、敏感词处理、DeepSeek 调用和 AI 免责声明追加。
+- `mentorRules_expanded.json` 当前包含 21 位导师和 4 个领域配置，是导师系统的主数据源。
 
-### 时间线
+## 目录概览
 
-| 日期 | 版本 | 更新内容 |
-|------|------|----------|
-| 2026-04-02 | v1.3.0 | 去投资化升级，导师库扩展至四大领域19位 |
-| 2026-03-16 | v1.2.0 | 分页加载优化，本地缓存机制 |
-| 2026-02-26 | v1.1.0 | 导航栏优化，主题切换，热力图 |
-| 2026-02-09 | v1.0.1 | 新增AI导师（张小龙、乔布斯、马斯克） |
-| 2026-02-03 | v1.0.0 | 初始版本发布 |
-
-### 已完成里程碑
-
-- ✅ 核心功能开发完成
-- ✅ 用户认证系统
-- ✅ 笔记CRUD操作
-- ✅ AI回复生成
-- ✅ 邮票购买流程
-- ✅ 数据隔离机制
-- ✅ 响应式布局
-- ✅ 主题切换
-- ✅ 分页加载
-- ✅ 本地缓存
-
-### 后续规划
-
-- [ ] 隐私协议页面
-- [ ] 内容安全审核
-- [ ] 性能优化
-- [ ] 单元测试
-- [ ] 生产环境部署
-
----
-
-## 项目结构
-
-```
+```text
 invest-diary/
-├── cloudfunctions/                    # 云函数目录
-│   ├── login/                         # 登录云函数
-│   │   ├── index.js
-│   │   ├── package.json
-│   │   └── config.json
-│   └── replyToLetter/                 # AI回复生成云函数
-│       ├── index.js
-│       ├── package.json
-│       └── config.json
-├── miniprogram/                       # 小程序前端代码
-│   ├── app.js                        # 小程序入口
-│   ├── app.json                      # 全局配置
-│   ├── app.wxss                      # 全局样式
-│   ├── pages/                         # 页面目录
-│   │   ├── login/                    # 登录页面
-│   │   ├── index/                    # 首页（笔记列表）
-│   │   ├── write/                    # 写笔记页面
-│   │   ├── detail/                   # 笔记详情页
-│   │   ├── stamps/                   # 邮票购买页
-│   │   ├── trash/                    # 回收站页面
-│   │   ├── profile/                  # 个人中心页
-│   │   └── privacy/                  # 隐私协议页
-│   ├── components/                   # 自定义组件
-│   │   ├── sideMenu/                 # 侧边菜单
-│   │   ├── cloudTipModal/            # 云提示模态框
-│   │   └── heatmapCalendar/          # 热力图日历
-│   ├── utils/                        # 工具类
-│   │   └── cloudbaseUtil.js          # 数据库操作工具
-│   └── images/                       # 图片资源
-├── .trae/                            # 开发规范
-│   └── rules/
-│       └── project_rules.md          # 项目开发规范
-├── docs/                             # 技术文档
-├── README.md                         # 项目说明
-└── project.config.json               # 项目配置
+├── miniprogram/                 # 微信小程序前端
+├── cloudfunctions/              # 云函数与云端业务逻辑
+├── scripts/                     # 规则检查、测试、导入脚本
+├── .trae/rules/                 # 项目规则与协作规范
+├── CODE_WIKI.md                 # 更细的代码级说明
+├── TEST_REPORT.md               # 测试记录
+└── README.md                    # 当前项目入口文档
 ```
 
----
+## 本地开发
 
-## 快速开始
+### 前置条件
 
-### 前置要求
+- 微信开发者工具
+- 一个可用的小程序 AppID
+- 已开通的微信云开发环境
+- DeepSeek API Key
 
-1. **微信开发者工具** - 从 [微信公众平台](https://developers.weixin.qq.com/miniprogram/dev/devtools/download.html) 下载
-2. **微信小程序账号** - 注册并登录 [微信公众平台](https://mp.weixin.qq.com/)
-3. **微信云开发服务** - 开通云开发功能
-4. **DeepSeek API Key** - 从 [DeepSeek](https://www.deepseek.com/) 获取
+### 启动步骤
 
-### 环境配置
+1. 使用微信开发者工具导入项目根目录 `/Users/bill/编程/invest-diary`。
+2. 在云开发控制台创建环境，并记录环境 ID。
+3. 按需创建数据库集合：`users`、`letters`、`roundtable_discussions`、`stampHistory`。
+4. 部署 `cloudfunctions/` 下需要使用的云函数。
+5. 为 `replyToLetter` 云函数配置环境变量 `DEEPSEEK_API_KEY`。
+6. 根据你的环境修改 `miniprogram/envList.js`。
+7. 在微信开发者工具中编译并预览小程序。
 
-#### 1. 获取DeepSeek API Key
+## 脚本与检查
 
-1. 访问 [DeepSeek 官网](https://www.deepseek.com/) 注册账号
-2. 进入API Key管理页面创建新的Key
-3. 复制保存API Key
+仓库包含一套本地规则检查脚本，说明见 [scripts/README.md](/Users/bill/编程/invest-diary/scripts/README.md)。
 
-#### 2. 导入项目
+常用命令：
 
-1. 打开微信开发者工具
-2. 选择"导入项目"
-3. 选择项目目录 `/Users/bill/编程/invest-diary`
-4. 输入小程序AppID
-5. 点击"导入"
-
-#### 3. 创建云开发环境
-
-1. 点击微信开发者工具顶部"云开发"按钮
-2. 创建新环境（选择地域和免费套餐）
-3. 记录环境ID（如：`cloud1-xxxxx`）
-
-#### 4. 初始化云数据库
-
-在云开发控制台创建以下集合：
-
-| 集合名 | 说明 | 权限 |
-|--------|------|------|
-| users | 用户信息 | 仅创建者可读写 |
-| letters | 笔记数据 | 仅创建者可读写 |
-| stampHistory | 邮票历史 | 仅创建者可读写 |
-
-#### 5. 部署云函数
-
-1. 右键点击 `cloudfunctions/login` → "上传并部署：云端安装依赖"
-2. 右键点击 `cloudfunctions/replyToLetter` → "上传并部署：云端安装依赖"
-
-#### 6. 配置环境变量
-
-1. 云开发控制台 → 云函数 → replyToLetter
-2. 配置 → 环境变量
-3. 添加 `DEEPSEEK_API_KEY`
-
-#### 7. 更新环境ID
-
-编辑 `miniprogram/envList.js`，替换为你的环境ID：
-
-```javascript
-const envList = [
-  {
-    envId: 'cloud1-xxxxx',  // 替换为你的环境ID
-    name: 'invest-diary-dev'
-  }
-];
+```bash
+cd /Users/bill/编程/invest-diary/scripts
+npm install
+node checks/project-rules-check.js
+npm run test
 ```
 
-### 运行项目
+## 文档导航
 
-1. 点击微信开发者工具"编译"按钮
-2. 在模拟器或真机上预览
+- [项目强制规范](/Users/bill/编程/invest-diary/.trae/rules/project_rules.md)
+- [执行与交付规范](/Users/bill/编程/invest-diary/.trae/rules/AGENTS.md)
+- [代码级 Wiki](/Users/bill/编程/invest-diary/CODE_WIKI.md)
+- [脚本说明](/Users/bill/编程/invest-diary/scripts/README.md)
+- [测试报告](/Users/bill/编程/invest-diary/TEST_REPORT.md)
 
----
+## 当前 README 的定位
 
-## 数据模型
+按照仓库规则，根目录 `README.md` 应该是“用户手册和项目入口”，因此这里重点保留：
 
-### users 集合
+- 这个项目现在是什么
+- 代码里已经实现了什么
+- 从哪里开始看规则、看代码、跑项目
 
-```javascript
-{
-  "_id": String,           // 文档ID
-  "_openid": String,       // 用户openid
-  "nickName": String,      // 昵称
-  "avatarUrl": String,     // 头像
-  "stamps": Number,        // 邮票数量
-  "totalPurchased": Number,// 总购买邮票数
-  "totalLetters": Number,  // 总笔记数
-  "lastLoginTime": Date,   // 最后登录时间
-  "createdAt": Date        // 创建时间
-}
-```
-
-### letters 集合
-
-```javascript
-{
-  "_id": String,           // 文档ID
-  "_openid": String,       // 用户openid
-  "mentor": String,        // 导师名称
-  "mood": String,          // 心境
-  "content": String,      // 笔记内容
-  "status": String,        // 状态
-  "needReply": Boolean,    // 是否需要回复
-  "replyContent": String,  // 回复内容
-  "replyTime": Date,       // 回复时间
-  "createTime": Date,      // 创建时间
-  "deleted": Boolean       // 是否删除
-}
-```
-
-### stampHistory 集合
-
-```javascript
-{
-  "_id": String,
-  "_openid": String,
-  "action": String,        // 购买/使用
-  "change": Number,        // 变化数量
-  "price": Number,         // 价格
-  "time": Date            // 时间
-}
-```
-
----
-
-## 开发规范
-
-项目遵循渐进式开发规范和设计原则：
-- [项目开发规范](./.trae/rules/project_rules.md) - 项目管理、流程约束、安全合规等强制性规范
-- [开发原则规范](./.trae/rules/AGENTS.md) - 代码设计、架构原则、工作方式等技术指导原则
-
-### 核心原则
-
-- 保护现有原型成果
-- 渐进式升级到生产标准
-- 禁止一次性大规模重构
-
-### 技术决策流程
-
-1. 评估风险等级
-2. 制定回滚方案
-3. 小范围试点
-4. 验证后推广
-
----
-
-## 贡献指南
-
-欢迎贡献代码！请遵循以下步骤：
-
-1. Fork 本仓库
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'feat: Add some AmazingFeature'`)
-4. 推送分支 (`git push origin feature/AmazingFeature`)
-5. 开启 Pull Request
-
----
-
-## 版本历史
-
-### v1.2.0 (2026-03-16)
-- 分页加载优化（首屏10条+滚动加载）
-- 本地缓存机制（1小时过期+后台更新）
-- 加载状态提示优化
-- 错误处理优化
-
-### v1.1.0 (2026-02-26)
-- 导航栏Grid布局优化
-- 主题切换功能
-- 热力图展示
-- 跨设备适配
-
-### v1.0.1 (2026-02-09)
-- 新增AI导师：张小龙、乔布斯、马斯克
-- 优化AI回复生成逻辑
-
-### v1.0.0 (2026-02-03)
-- 初始版本发布
-- 核心功能完成
-
----
-
-## 许可证
-
-MIT License
-
----
-
-## 致谢
-
-- 微信小程序开发框架
-- 微信云开发平台
-- DeepSeek AI API
-- flomo 笔记产品灵感
+更细的模块级说明、函数清单和设计细节，请直接看 `CODE_WIKI.md`。

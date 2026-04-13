@@ -1,0 +1,44 @@
+<view class="container">
+  <view class="header" style="padding-top: {{statusBarHeight + 10}}px;">
+    <view class="back-btn" bindtap="goBack">
+      <text class="back-icon">←</text>
+    </view>
+    <view class="header-title">思想孵化报告</view>
+    <view class="header-spacer"></view>
+  </view>
+
+  <view wx:if="{{loading}}" class="loading-container">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <view wx:elif="{{data}}" class="content">
+    <view class="user-question">
+      <view class="section-title">💡 原始想法</view>
+      <view class="question-text">{{data.content}}</view>
+    </view>
+
+    <view wx:if="{{data.mentors && data.mentors.length > 0}}" class="mentors-section">
+      <view class="section-title">👥 参考导师</view>
+      <view class="mentors-container">
+        <text wx:for="{{data.mentors}}" wx:key="*this" class="mentor-tag">{{item}}</text>
+      </view>
+    </view>
+
+    <view class="report-section">
+      <view class="section-title">📋 孵化报告</view>
+      <view class="report-content">{{data.report}}</view>
+    </view>
+
+    <view class="action-buttons">
+      <button class="action-btn export-btn" bindtap="exportText">
+        导出文本
+      </button>
+    </view>
+  </view>
+
+  <view wx:else class="empty-container">
+    <text class="empty-icon">📝</text>
+    <text class="empty-text">数据加载失败</text>
+  </view>
+</view>

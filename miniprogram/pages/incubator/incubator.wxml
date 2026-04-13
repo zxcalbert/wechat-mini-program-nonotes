@@ -1,0 +1,38 @@
+<view class="page {{themeClass}}">
+  <view class="hero">
+    <view class="title">思想孵化器</view>
+    <view class="subtitle">输入一个初始想法，生成结构化孵化报告。</view>
+  </view>
+
+  <view class="panel">
+    <view class="label">初始想法</view>
+    <textarea
+      class="input"
+      placeholder="例如：我想做一个帮助年轻人建立长期思考习惯的产品"
+      maxlength="500"
+      auto-height
+      value="{{idea}}"
+      bindinput="onInput"
+    ></textarea>
+    <button class="submit" loading="{{loading}}" bindtap="generateReport">生成孵化报告</button>
+  </view>
+
+  <view wx:if="{{mentors.length}}" class="panel">
+    <view class="label">导师视角</view>
+    <view class="tags">
+      <view wx:for="{{mentors}}" wx:key="*this" class="tag">{{item}}</view>
+    </view>
+  </view>
+
+  <view wx:if="{{dimensions.length}}" class="panel">
+    <view class="label">固定维度</view>
+    <view class="tags">
+      <view wx:for="{{dimensions}}" wx:key="*this" class="tag tag-soft">{{item}}</view>
+    </view>
+  </view>
+
+  <view wx:if="{{report}}" class="panel report-panel">
+    <view class="label">孵化报告</view>
+    <text selectable class="report">{{report}}</text>
+  </view>
+</view>

@@ -1,0 +1,47 @@
+<view class="container">
+  <view class="header" style="padding-top: {{statusBarHeight + 10}}px;">
+    <view class="back-btn" bindtap="goBack">
+      <text class="back-icon">←</text>
+    </view>
+    <view class="header-title">{{data.analysisType === 'product' ? '产品分析' : '公司分析'}}</view>
+    <view class="header-spacer"></view>
+  </view>
+
+  <view wx:if="{{loading}}" class="loading-container">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <view wx:elif="{{data}}" class="content">
+    <view class="user-question">
+      <view class="section-title">🔬 分析对象</view>
+      <view class="question-text">{{data.content}}</view>
+      <view class="type-tag">
+        <text class="tag-text">{{data.analysisType === 'product' ? '产品分析' : '公司分析'}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{data.dimensions && data.dimensions.length > 0}}" class="dimensions-section">
+      <view class="section-title">📊 分析维度</view>
+      <view class="dimensions-container">
+        <text wx:for="{{data.dimensions}}" wx:key="*this" class="dimension-tag">{{item}}</text>
+      </view>
+    </view>
+
+    <view class="report-section">
+      <view class="section-title">📋 分析报告</view>
+      <view class="report-content">{{data.report}}</view>
+    </view>
+
+    <view class="action-buttons">
+      <button class="action-btn export-btn" bindtap="exportText">
+        导出文本
+      </button>
+    </view>
+  </view>
+
+  <view wx:else class="empty-container">
+    <text class="empty-icon">📝</text>
+    <text class="empty-text">数据加载失败</text>
+  </view>
+</view>

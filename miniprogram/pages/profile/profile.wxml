@@ -28,10 +28,22 @@
         />
       </view>
 
-      <view class="tip-section">
-        <text class="tip-text">完善个人信息可获得更好的体验</text>
-      </view>
+    <view class="tip-section">
+      <text class="tip-text">完善个人信息可获得更好的体验</text>
     </view>
+
+    <view wx:if="{{showRoundtableFixButton}}" class="fix-section">
+      <text class="fix-title">一次性修复</text>
+      <text class="fix-desc">修复 4 条历史圆桌会议缺少用户归属的问题。</text>
+      <button
+        class="btn btn-fix"
+        bindtap="repairRoundtableOwnership"
+        loading="{{fixRoundtableLoading}}"
+      >
+        <text>修复历史圆桌记录</text>
+      </button>
+    </view>
+  </view>
 
     <button 
       class="btn btn-save"

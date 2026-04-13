@@ -1,5 +1,6 @@
 const cloudbaseUtil = require('../../utils/cloudbaseUtil');
 const _ = wx.cloud.database().command;
+const RECENT_ROUNDTABLE_IDS_KEY = 'recentRoundtableIds';
 
 const app = getApp();
 
@@ -9,6 +10,8 @@ Page({
     displayLetters: [],
     roundtables: [],
     displayRoundtables: [],
+    incubators: [],
+    structureAnalyses: [],
     displayItems: [], // 合并后显示的列表
     loading: false,
     openid: null,
@@ -66,10 +69,17 @@ Page({
 
   onShow: function() {
     if (this.data.openid) {
-      this.fetchLetters();
-      this.fetchUserStamps();
-      this.fetchRoundtables();
+      this.refreshHomeData();
     }
+  },
+
+  async refreshHomeData() {
+    await this.repairRecentRoundtables();
+    this.fetchLetters();
+    this.fetchUserStamps();
+    this.fetchRoundtables();
+    this.fetchIncubators();
+    this.fetchStructureAnalyses();
   },
 
   checkAuth: function() {
@@ -103,6 +113,23 @@ Page({
     } catch (err) {
       console.error('获取邮票失败:', err);
       this.setData({ userStamps: 2 });
+    }
+  },
+
+  async repairRecentRoundtables() {
+    const roundtableIds = wx.getStorageSync(RECENT_ROUNDTABLE_IDS_KEY) || [];
+    if (!Array.isArray(roundtableIds) || roundtableIds.length === 0) return;
+
+    try {
+      await wx.cloud.callFunction({
+        name: 'replyToLetter',
+        data: {
+          type: 'repairRoundtableOwnership',
+          roundtableIds
+        }
+      });
+    } catch (err) {
+      console.error('修复圆桌归属失败:', err);
     }
   },
 
@@ -144,6 +171,82 @@ Page({
       tagText: '圆桌会议',
       tagClass: 'tag-green',
       content: item.content || '圆桌讨论'
+    }));
+  },
+
+  /**
+   * 获取思想孵化器报告列表
+   */
+  async fetchIncubators() {
+    if (!this.data.openid) return;
+    
+    try {
+      const result = await cloudbaseUtil.query('incubator_reports', {
+        where: { _openid: this.data.openid },
+        orderBy: 'createTime',
+        orderDirection: 'desc',
+        limit: 50
+      });
+
+      if (result.success) {
+        const incubators = this.formatIncubators(result.data);
+        this.setData({ incubators });
+        this.refreshDisplayItems();
+      }
+    } catch (err) {
+      console.error('获取思想孵化器报告失败:', err);
+    }
+  },
+
+  /**
+   * 格式化思想孵化器数据
+   */
+  formatIncubators(data) {
+    return data.map(item => ({
+      ...item,
+      displayDate: cloudbaseUtil.formatDate(item.createTime),
+      type: 'incubator',
+      tagText: '思想孵化器',
+      tagClass: 'tag-orange',
+      content: item.content || '思想孵化'
+    }));
+  },
+
+  /**
+   * 获取结构分析报告列表
+   */
+  async fetchStructureAnalyses() {
+    if (!this.data.openid) return;
+    
+    try {
+      const result = await cloudbaseUtil.query('structure_analysis_reports', {
+        where: { _openid: this.data.openid },
+        orderBy: 'createTime',
+        orderDirection: 'desc',
+        limit: 50
+      });
+
+      if (result.success) {
+        const structureAnalyses = this.formatStructureAnalyses(result.data);
+        this.setData({ structureAnalyses });
+        this.refreshDisplayItems();
+      }
+    } catch (err) {
+      console.error('获取结构分析报告失败:', err);
+    }
+  },
+
+  /**
+   * 格式化结构分析数据
+   */
+  formatStructureAnalyses(data) {
+    return data.map(item => ({
+      ...item,
+      displayDate: cloudbaseUtil.formatDate(item.createTime),
+      type: 'structure_analysis',
+      tagText: item.analysisType === 'product' ? '产品分析' : '公司分析',
+      tagClass: 'tag-purple',
+      content: item.content || '结构分析'
     }));
   },
 
@@ -299,7 +402,9 @@ Page({
   mergeAndSortItems() {
     const allItems = [
       ...this.data.letters,
-      ...this.data.roundtables
+      ...this.data.roundtables,
+      ...this.data.incubators,
+      ...this.data.structureAnalyses
     ];
     
     // 按createTime降序排序，最新的在前
@@ -358,6 +463,16 @@ Page({
       // 圆桌会议跳转到结果页
       wx.navigateTo({
         url: `../roundtableResult/roundtableResult?id=${id}`
+      });
+    } else if (type === 'incubator') {
+      // 思想孵化器跳转到结果页
+      wx.navigateTo({
+        url: `../incubatorResult/incubatorResult?id=${id}`
+      });
+    } else if (type === 'structure_analysis') {
+      // 结构分析跳转到结果页
+      wx.navigateTo({
+        url: `../structureAnalysisResult/structureAnalysisResult?id=${id}`
       });
     } else {
       // 导师回信跳转到详情页
@@ -483,6 +598,22 @@ Page({
     this.hideFloatMenu();
     wx.navigateTo({
       url: '../roundtable/roundtable'
+    });
+  },
+
+  // 跳转到思想孵化器页面
+  goToIncubator: function() {
+    this.hideFloatMenu();
+    wx.navigateTo({
+      url: '../incubator/incubator'
+    });
+  },
+
+  // 跳转到结构分析页面
+  goToStructureAnalysis: function() {
+    this.hideFloatMenu();
+    wx.navigateTo({
+      url: '../structureAnalysis/structureAnalysis'
     });
   },
 

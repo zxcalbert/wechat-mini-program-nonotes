@@ -3,6 +3,7 @@ const cloudbaseUtil = require('../../utils/cloudbaseUtil');
 const sensitiveWordUtil = require('../../utils/sensitiveWordUtil');
 const { saveMentorRulesCache, getMentorRulesCache } = require('../../utils/cacheUtil.js');
 const app = getApp();
+const RECENT_ROUNDTABLE_IDS_KEY = 'recentRoundtableIds';
 
 Page({
   data: {
@@ -300,6 +301,7 @@ Page({
 
       if (result.result.success) {
         const data = result.result.data;
+        this.saveRecentRoundtableId(data.roundtableId);
         this.setData({ userStamps: data.remainingStamps });
         
         wx.navigateTo({
@@ -339,5 +341,13 @@ Page({
 
   goBack() {
     wx.navigateBack();
+  },
+
+  saveRecentRoundtableId(roundtableId) {
+    if (!roundtableId) return;
+
+    const recentIds = wx.getStorageSync(RECENT_ROUNDTABLE_IDS_KEY) || [];
+    const nextIds = [roundtableId, ...recentIds.filter(id => id !== roundtableId)].slice(0, 10);
+    wx.setStorageSync(RECENT_ROUNDTABLE_IDS_KEY, nextIds);
   }
 });

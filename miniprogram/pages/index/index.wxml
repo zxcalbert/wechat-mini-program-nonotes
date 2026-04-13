@@ -40,6 +40,14 @@
         <text class="menu-icon">👥</text>
         <text class="menu-text">圆桌会议</text>
       </view>
+      <view class="float-menu-item" bindtap="goToIncubator">
+        <text class="menu-icon">💡</text>
+        <text class="menu-text">思想孵化器</text>
+      </view>
+      <view class="float-menu-item" bindtap="goToStructureAnalysis">
+        <text class="menu-icon">🔬</text>
+        <text class="menu-text">结构分析</text>
+      </view>
     </view>
     <!-- 主按钮 -->
     <view class="float-add-button {{showFloatMenu ? 'active' : ''}}" bindtap="toggleFloatMenu">
@@ -73,6 +81,8 @@
       <view class="note-card-header">
         <view class="note-tags">
           <text wx:if="{{item.type === 'roundtable'}}" class="tag tag-green">圆桌会议</text>
+          <text wx:elif="{{item.type === 'incubator'}}" class="tag tag-orange">思想孵化器</text>
+          <text wx:elif="{{item.type === 'structure_analysis'}}" class="tag tag-purple">{{item.analysisType === 'product' ? '产品分析' : '公司分析'}}</text>
           <text wx:else class="tag tag-blue">导师回信</text>
         </view>
         <view class="note-content-preview">{{item.content}}</view>

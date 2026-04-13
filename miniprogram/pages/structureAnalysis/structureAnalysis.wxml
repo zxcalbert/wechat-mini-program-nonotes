@@ -1,0 +1,51 @@
+<view class="page {{themeClass}}">
+  <view class="hero">
+    <view class="title">结构分析</view>
+    <view class="subtitle">输入公司或产品相关内容，生成结构化分析报告。</view>
+  </view>
+
+  <view class="panel">
+    <view class="label">分析类型</view>
+    <view class="type-switch">
+      <view
+        class="type-option {{analysisType === 'company' ? 'active' : ''}}"
+        data-type="company"
+        bindtap="switchType"
+      >
+        公司
+      </view>
+      <view
+        class="type-option {{analysisType === 'product' ? 'active' : ''}}"
+        data-type="product"
+        bindtap="switchType"
+      >
+        产品
+      </view>
+    </view>
+  </view>
+
+  <view class="panel">
+    <view class="label">分析内容</view>
+    <textarea
+      class="input"
+      placeholder="{{analysisType === 'company' ? '输入公司相关笔记、新闻、财报等内容...' : '输入产品需求文档、竞品分析、用户反馈等内容...'}}"
+      maxlength="1000"
+      auto-height
+      value="{{content}}"
+      bindinput="onInput"
+    ></textarea>
+    <button class="submit" loading="{{loading}}" bindtap="generateReport">生成分析报告</button>
+  </view>
+
+  <view wx:if="{{dimensions.length}}" class="panel">
+    <view class="label">分析维度</view>
+    <view class="tags">
+      <view wx:for="{{dimensions}}" wx:key="*this" class="tag tag-soft">{{item}}</view>
+    </view>
+  </view>
+
+  <view wx:if="{{report}}" class="panel report-panel">
+    <view class="label">分析报告</view>
+    <text selectable class="report">{{report}}</text>
+  </view>
+</view>

@@ -57,8 +57,8 @@ page {
 .user-question {
   margin-bottom: 24px;
   padding: 16px;
-  background-color: var(--cardBackgroundColor, #fdfaf2);
-  border: 1px solid var(--cardBorderColor, #e0d5b1);
+  background-color: #fff3e0;
+  border: 1px solid #ffe0b2;
   border-radius: 8px;
 }
 
@@ -75,112 +75,38 @@ page {
   color: var(--textColor, #333333);
 }
 
-.discussion-structure {
+.mentors-section {
   margin-bottom: 24px;
   padding: 16px;
-  background-color: var(--cardBackgroundColor, #f0f7ff);
-  border: 1px solid var(--cardBorderColor, #b8d4f0);
+  background-color: #f0f7ff;
+  border: 1px solid #b8d4f0;
   border-radius: 8px;
 }
 
-.subsection-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--textColor, #000000);
-  margin-bottom: 10px;
-  margin-top: 16px;
-}
-
-.subsection-title:first-child {
-  margin-top: 0;
-}
-
-.summary-section {
-  margin-bottom: 8px;
-}
-
-.summary-text {
-  font-size: 14px;
-  line-height: 1.7;
-  color: var(--textColor, #444444);
-}
-
-.insights-section {
-  margin-bottom: 8px;
-}
-
-.keywords-container {
+.mentors-container {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.keyword-tag {
+.mentor-tag {
   display: inline-block;
   padding: 4px 12px;
-  background-color: #3498db;
+  background-color: #f57c00;
   color: #ffffff;
   font-size: 13px;
   border-radius: 12px;
 }
 
-.points-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.point-item {
-  display: flex;
-  align-items: flex-start;
-}
-
-.point-icon {
-  font-size: 16px;
-  margin-right: 8px;
-  margin-top: 1px;
-}
-
-.point-text {
-  flex: 1;
-  font-size: 14px;
-  line-height: 1.6;
-  color: var(--textColor, #444444);
-}
-
-.mentor-list {
+.report-section {
   margin-bottom: 24px;
-}
-
-.mentor-card {
-  margin-bottom: 16px;
   padding: 16px;
   background-color: var(--cardBackgroundColor, #fefefe);
   border: 1px solid var(--cardBorderColor, #e8e8e8);
   border-radius: 8px;
 }
 
-.mentor-header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.mentor-name {
-  font-size: 17px;
-  font-weight: 600;
-  color: var(--textColor, #000000);
-  margin-right: 12px;
-}
-
-.mentor-field {
-  font-size: 12px;
-  padding: 4px 10px;
-  border-radius: 12px;
-  color: #ffffff;
-}
-
-.mentor-reply {
+.report-content {
   font-size: 15px;
   line-height: 1.8;
   color: var(--textColor, #333333);
@@ -202,12 +128,7 @@ page {
 }
 
 .export-btn {
-  background-color: #3498db;
-  color: #ffffff;
-}
-
-.share-btn {
-  background-color: #2ecc71;
+  background-color: #f57c00;
   color: #ffffff;
 }
 
@@ -224,7 +145,7 @@ page {
   width: 40px;
   height: 40px;
   border: 3px solid var(--borderColor, #e0e0e0);
-  border-top-color: #3498db;
+  border-top-color: #f57c00;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
