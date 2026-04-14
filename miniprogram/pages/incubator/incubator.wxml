@@ -5,6 +5,37 @@
   </view>
 
   <view class="panel">
+    <view class="label">选择导师（1-3位）</view>
+    <view class="mentor-fields">
+      <view wx:for="{{mentorFields}}" wx:key="key" class="mentor-field">
+        <view class="field-header">
+          <text class="field-icon">{{item.icon}}</text>
+          <text class="field-name">{{item.name}}</text>
+        </view>
+        <view class="mentor-tags">
+          <view
+            wx:for="{{item.mentors}}"
+            wx:for-item="mentor"
+            wx:key="*this"
+            class="mentor-tag {{selectedMentorMap[mentor] ? 'selected' : ''}}"
+            data-name="{{mentor}}"
+            bindtap="toggleMentor"
+          >{{mentor}}</view>
+        </view>
+      </view>
+    </view>
+    <view class="selected-info">
+      <view class="selected-count">
+        <text class="count-label">已选导师</text>
+        <text class="count-number">{{selectedMentors.length}}/3</text>
+      </view>
+      <view class="selected-list">
+        <text>{{selectedMentors.length > 0 ? selectedMentors.join('、') : '请点击上方导师标签进行选择'}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="panel">
     <view class="label">初始想法</view>
     <textarea
       class="input"
