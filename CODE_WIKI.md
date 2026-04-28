@@ -3,396 +3,699 @@
 ## 1. 项目概述
 
 ### 1.1 项目定位
-智慧笔记是一款基于微信小程序的个人思考记录工具，用户可以记录自己的感悟，选择不同的AI人生导师（查理·芒格、巴菲特、段永平、张小龙、乔布斯、马斯克），获取模拟的智慧回复，帮助用户深入反思和思考。同时支持圆桌会议功能，可同时邀请多位导师进行跨领域讨论。
+智慧笔记是一款基于微信小程序 + 微信云开发的个人思考记录与 AI 导师对话工具。用户选择 21 位横跨 4 个领域的虚拟导师（查理·芒格、巴菲特、段永平、张小龙、荣格、老子等），以**书信式延迟回信**的方式获得模拟智慧回复。项目提供单导师写信、多导师圆桌会议、思想孵化器、结构分析四种 AI 交互模式。
 
-### 1.2 核心功能
-- ✅ 用户登录（支持游客模式，头像昵称可选）
-- ✅ 笔记创建（支持选择导师和心境）
-- ✅ AI回复生成（调用DeepSeek API模拟导师回复）
-- ✅ 笔记列表（分页加载，滚动触发更多）
-- ✅ 本地缓存（1小时缓存策略，后台更新）
-- ✅ 笔记搜索（关键词搜索功能）
-- ✅ 笔记删除（支持删除到回收站）
-- ✅ 笔记恢复（从回收站恢复）
-- ✅ 永久删除（彻底删除笔记）
-- ✅ 邮票系统（邮票余额管理）
-- ✅ 邮票购买（支持多种套餐购买）
-- ✅ 邮票历史（购买记录查看）
-- ✅ 热力图展示（年度笔记创作分布）
-- ✅ 主题切换（亮色/暗色/跟随系统）
-- ✅ 响应式布局（跨设备适配）
-- ✅ 圆桌会议（同时邀请多位导师讨论，消耗3张邮票）
-- ✅ 首页混合显示（导师回信和圆桌会议按时间混合排列）
-- ✅ 思想孵化器 MVP（输入想法，多位导师多维度深度分析）
-- ✅ 公司结构分析 MVP（输入公司内容，生成结构化分析报告，✅验收通过）
-- ✅ 产品结构分析 MVP（输入产品内容，生成结构化分析报告，✅验收通过）
+### 1.2 核心功能矩阵
+
+| 功能模块 | 状态 | 说明 |
+|---------|------|------|
+| 单导师写信 + AI 回信 | ✅ 生产可用 | 选择 1 位导师，DeepSeek 模拟回信，支持字数自适应 |
+| 圆桌会议 | ✅ 生产可用 | 选择 3-5 位导师并行生成观点，分领域排序展示 |
+| 思想孵化器 | ✅ 隐藏验证 | 输入想法，3 位导师多维度分析（5 个维度 + 行动清单） |
+| 产品/公司结构分析 | ✅ 验收通过 | 输入内容，生成六章结构化报告 + ASCII 结构快照 |
+| 邮票系统 | ✅ 生产可用 | 每次回信消耗 1 张，圆桌 3 张，支持购买套餐 |
+| 每日限制 | ✅ 生产可用 | 单导师每天最多 6 次寄信 |
+| 本地缓存分页 | ✅ 生产可用 | 首頁 10 条/页，1 小时缓存 |
+| 敏感词治理 | ✅ 生产可用 | 前端预检 + 云函数二次检测 + 高敏内容兜底替换 |
+| 主题切换 | ✅ 生产可用 | light / dark / system，CSS 变量驱动 |
+| 专注模式 | ✅ 可用 | 简化的干净界面，隐藏无关元素 |
+| 回收站 | ✅ 可用 | 软删除，可恢复 |
+| 热力图 | ✅ 可用 | 365 天笔记日历（当前为模拟数据） |
 
 ### 1.3 项目状态
-| 状态 | 说明 |
-|------|------|
-| 🟢 开发中 | 核心功能已完成，持续迭代优化 |
-| 📅 最后更新 | 2026-04-08 |
-| 🏷️ 当前版本 | v1.3.0 |
+- 项目形态：微信小程序 + 云函数 + 云数据库
+- AI 服务：DeepSeek Chat API（deepseek-chat 模型）
+- 导师规模：21 位导师，4 个领域
+- 代码行数：约 6,048 行代码 + 22,000 行文档
+- 核心文档：README.md（项目入口）、CODE_WIKI.md（代码级说明）、.trae/rules/（项目规范）
+- 最后更新：2026-04-12
 
 ---
 
-## 2. 整体架构
+## 2. 架构概览
 
-### 2.1 三层架构设计
+### 2.1 三层架构
+
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                      微信小程序前端                        │
-│  页面层 + 组件层 + 工具层，负责用户交互和界面渲染            │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    微信云开发平台                         │
-│  ┌─────────────────────────────────────────────────────┐  │
-│  │                    云函数层                         │  │
-│  │  业务逻辑处理、AI API调用、敏感词检测、数据库操作   │  │
-│  └─────────────────────────────────────────────────────┘  │
-│  ┌─────────────────────────────────────────────────────┐  │
-│  │                    云数据库层                       │  │
-│  │  数据持久化存储，用户、笔记、圆桌会议、邮票数据隔离存储  │  │
-│  └─────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│                   外部AI服务                              │
-│  DeepSeek API：AI模型调用、智能回复生成、多角色模拟        │
-└─────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────┐
+│              微信小程序前端                     │
+│      14 页面 + 3 组件 + 3 工具模块              │
+│     WXML + WXSS + JavaScript（原生框架）         │
+└──────────────────┬────────────────────────────┘
+                   │ wx.cloud.callFunction()
+                   ▼
+┌──────────────────────────────────────────────┐
+│             微信云开发平台                      │
+│  ┌────────────────────────────────────────┐   │
+│  │  云函数层（Node.js 14）                │   │
+│  │  login / replyToLetter / getMentorRules│   │
+│  │  detectSensitiveWords / filterSensitive│   │
+│  └────────────────────────────────────────┘   │
+│  ┌────────────────────────────────────────┐   │
+│  │  云数据库层（MongoDB 兼容）             │   │
+│  │  users / letters / roundtable_discussions│  │
+│  │  stampHistory / incubator_reports / ... │  │
+│  └────────────────────────────────────────┘   │
+└──────────────────┬────────────────────────────┘
+                   │ HTTPS POST
+                   ▼
+┌──────────────────────────────────────────────┐
+│           外部 AI 服务                         │
+│    DeepSeek API (api.deepseek.com/v1)         │
+│    模型：deepseek-chat                        │
+│    Temperature: 0.7, max_tokens: 280-1000     │
+│    基于用户内容复杂度的字数自适应策略             │
+└──────────────────────────────────────────────┘
 ```
 
-### 2.2 技术栈
-
-#### 前端技术栈
-| 技术 | 说明 |
-|------|------|
-| 微信小程序原生框架 | 基础框架和API |
-| 自定义组件开发 | 侧边菜单、热力图日历等 |
-| 响应式数据绑定 | WXML + WXSS + JS |
-| 本地存储管理 | wx.storage API |
-| CSS变量主题系统 | 主题切换支持 |
-
-#### 后端技术栈
-| 技术 | 说明 |
-|------|------|
-| 微信云开发 | Serverless云服务 |
-| 云函数（Node.js） | 业务逻辑处理 |
-| 云数据库（MongoDB） | 数据持久化 |
-| 环境变量管理 | 安全配置管理 |
-
-#### AI服务
-| 技术 | 说明 |
-|------|------|
-| DeepSeek API | AI模型调用 |
-| 自定义提示词工程 | 导师角色模拟 |
-| 失败降级机制 | 基于规则的备用回复 |
-
-#### 扩展技能
-| 技能 | 说明 |
-|------|------|
-| web-access | 基于Chrome CDP的浏览器自动化，支持动态内容抓取 |
+### 2.2 数据流向
+```
+用户写笔记 → 前端敏感词预检 → 云函数 replyToLetter
+  → 组装提示词（导师人设 + 核心原则 + 思考框架 + 字数约束）
+  → 调用 DeepSeek API → 后处理（敏感词检测 + AI 免责声明）
+  → 云端入 letters/roundtable_discussions 集合
+  → 前端分页加载（1 小时缓存策略）
+```
 
 ---
 
-## 3. 主要模块职责
+## 3. 前端模块详解
 
-### 3.1 前端模块（miniprogram/）
+### 3.1 页面路由与导航
 
-#### 页面模块 (pages/)
-| 页面 | 路径 | 职责 |
-|------|------|------|
-| 登录页 | `/pages/login/` | 用户登录、头像昵称设置、隐私协议确认 |
-| 首页 | `/pages/index/` | 笔记和圆桌会议混合列表展示、搜索、分页加载、侧边菜单 |
-| 写笔记页 | `/pages/write/` | 创建新笔记、选择导师、设置心境 |
-| 笔记详情页 | `/pages/detail/` | 笔记内容展示、AI回复展示、分享功能 |
-| 圆桌会议页 | `/pages/roundtable/` | 创建圆桌会议、选择3-5位导师、输入讨论内容 |
-| 圆桌会议结果页 | `/pages/roundtableResult/` | 展示多位导师的讨论结果、导出文本 |
-| 邮票页 | `/pages/stamps/` | 邮票余额显示、邮票套餐购买、购买历史 |
-| 回收站页 | `/pages/trash/` | 已删除笔记展示、恢复、永久删除 |
-| 个人中心页 | `/pages/profile/` | 用户信息展示、主题切换、热力图展示 |
-| 隐私协议页 | `/pages/privacy/` | 隐私政策展示、用户协议展示 |
-| 思想孵化器页 | `/pages/incubator/` | 输入想法，获取多导师多维度深度分析（隐藏验证页） |
-| 结构分析页 | `/pages/structureAnalysis/` | 输入公司/产品内容，生成结构化分析报告（隐藏验证页） |
+```json
+// app.json 中注册的页面，按路由顺序排列
+pages/login/login              → 登录页
+pages/privacy/privacy          → 隐私协议页
+pages/index/index              → 首页（笔记+圆桌混合流）
+pages/write/write              → 写笔记/写信页
+pages/incubator/incubator      → 思想孵化器
+pages/incubatorResult/...      → 孵化器结果页
+pages/structureAnalysis/...    → 结构分析输入页
+pages/structureAnalysisResult  → 结构分析结果页
+pages/roundtable/roundtable    → 圆桌会议创建页
+pages/roundtableResult/roundtableResult → 圆桌结果页
+pages/detail/detail            → 笔记详情页
+pages/stamps/stamps            → 邮票购买页
+pages/trash/trash              → 回收站
+pages/profile/profile          → 个人中心
+```
 
-#### 组件模块 (components/)
-| 组件 | 路径 | 职责 |
-|------|------|------|
-| 侧边菜单 | `/components/sideMenu/` | 全局导航菜单、功能入口 |
-| 云提示模态框 | `/components/cloudTipModal/` | 操作提示、通知展示 |
-| 热力图日历 | `/components/heatmapCalendar/` | 年度笔记创作分布热力图展示 |
+**路由特点：**
+- 首次使用（isFirstLogin 标记）→ 登录页
+- 老用户复访 → 自动跳转首页（`wx.reLaunch`）
+- 未登录 → `wx.redirectTo` 强制返回登录页
+- 所有列表跳详情：`wx.navigateTo` 传递 `?id=` 或 `?data=`
 
-#### 工具模块 (utils/)
-| 工具 | 路径 | 职责 |
-|------|------|------|
-| 云数据库工具 | `/utils/cloudbaseUtil.js` | 封装数据库CRUD、分页、聚合等操作 |
-| 缓存工具 | `/utils/cacheUtil.js` | 本地缓存管理、过期策略 |
-| 敏感词工具 | `/utils/sensitiveWordUtil.js` | 前端敏感词预检测 |
+### 3.2 首页核心逻辑
 
-### 3.2 云函数模块（cloudfunctions/）
-| 云函数 | 路径 | 职责 |
-|------|------|------|
-| 登录 | `/cloudfunctions/login/` | 用户认证、获取openid、用户初始化 |
-| AI回复生成 | `/cloudfunctions/replyToLetter/` | 调用DeepSeek API生成导师回复、敏感词检测、圆桌会议处理 |
-| 敏感词检测 | `/cloudfunctions/detectSensitiveWords/` | 敏感词内容检测服务 |
-| 过滤敏感词 | `/cloudfunctions/filterSensitiveWords/` | 敏感词内容替换服务 |
-| 获取导师规则 | `/cloudfunctions/getMentorRules/` | 导师角色配置、规则获取 |
-| 获取导师列表 | `/cloudfunctions/getMentors/` | 可用导师列表查询 |
-| 敏感词存在检测 | `/cloudfunctions/hasSensitiveWord/` | 敏感词快速检测接口 |
-| 结构分析生成 | `/cloudfunctions/structureAnalysis/` | 公司/产品结构分析生成，包含6个固定章节和ASCII快照 |
+**文件：** `miniprogram/pages/index/index.js`（694 行，项目最复杂的前端模块）
 
-### 3.3 工具脚本模块（scripts/）
-| 脚本 | 路径 | 职责 |
-|------|------|------|
-| 项目规则检查 | `/scripts/checks/project-rules-check.js` | 代码提交前规范检查 |
-| 单元测试 | `/scripts/tests/` | 各模块单元测试用例 |
-| 导师数据导入 | `/scripts/import_mentors.js` | 导师规则数据批量导入 |
-
-### 3.4 扩展技能模块（.trae/skills/）
-| 技能 | 路径 | 职责 |
-|------|------|------|
-| web-access | `/.trae/skills/web-access/` | 基于Chrome CDP的浏览器自动化，支持动态内容抓取、交互模拟 |
-
----
-
-## 4. 关键类与函数说明
-
-### 4.1 首页核心逻辑
-**路径**：`/miniprogram/pages/index/index.js`
-
-首页负责混合显示导师回信和圆桌会议记录：
-
-#### 核心方法
-| 方法 | 功能 |
-|------|------|
-| `fetchLetters()` | 获取导师回信列表，支持缓存和分页 |
-| `fetchRoundtables()` | 获取圆桌会议列表，带诊断日志 |
-| `mergeAndSortItems()` | 合并两类数据，按createTime降序排序 |
-| `refreshDisplayItems()` | 刷新合并后的显示列表，支持搜索过滤 |
-| `filterLetters(keyword)` | 同时过滤两类数据的搜索功能 |
-| `goToDetail(event)` | 根据类型跳转到对应详情页（回信跳detail，圆桌跳结果页） |
-
-### 4.2 核心类：CloudbaseUtil
-**路径**：`/miniprogram/utils/cloudbaseUtil.js`
-
-云数据库操作工具类，封装了所有数据库操作：
-
-#### 核心方法
-| 方法 | 参数 | 返回值 | 功能 |
-|------|------|--------|------|
-| `query(collectionName, options)` | 集合名、查询选项（where, orderBy, limit, skip） | Promise&lt;查询结果&gt; | 通用数据查询 |
-| `getById(collectionName, docId)` | 集合名、文档ID | Promise&lt;文档数据&gt; | 根据ID查询单条记录 |
-| `add(collectionName, data)` | 集合名、文档数据 | Promise&lt;添加结果&gt; | 添加新文档，自动添加时间戳 |
-| `update(collectionName, docId, data)` | 集合名、文档ID、更新数据 | Promise&lt;更新结果&gt; | 更新文档，自动更新时间戳 |
-| `delete(collectionName, docId)` | 集合名、文档ID | Promise&lt;删除结果&gt; | 删除文档 |
-| `queryWithPagination(collectionName, options)` | 集合名、分页选项 | Promise&lt;分页结果&gt; | 分页查询，返回总数和总页数 |
-| `aggregate(collectionName, pipeline)` | 集合名、聚合管道 | Promise&lt;聚合结果&gt; | 聚合查询，用于统计分组 |
-
-### 4.3 核心云函数：replyToLetter
-**路径**：`/cloudfunctions/replyToLetter/index.js`
-
-AI回复生成核心云函数，支持单导师回信和多导师圆桌会议：
-
-#### 核心函数
-| 函数 | 功能 |
-|------|------|
-| `processReply(replyContent)` | 回复内容敏感词检测和处理，高敏感内容返回合规提示 |
-| `addAIDisclaimer(replyContent, mentorName)` | 添加AI回复免责声明 |
-| `estimateComplexity(userContent)` | 根据用户输入内容长度估算复杂度（简单/中等/复杂） |
-| `getWordCountConfig(userContent)` | 根据复杂度获取回复字数配置 |
-| `countChineseWords(text)` | 计算中文文本字数 |
-| `truncateByChineseWords(text, maxWords)` | 按中文字数截断文本，保持语句完整 |
-| `getAIDeducedPrompt(mentorData, content, mentorName)` | 生成AI提示词，包含导师角色设定和回复规则 |
-
-### 4.4 全局APP类
-**路径**：`/miniprogram/app.js`
-
-小程序全局入口类：
-
-#### 核心方法
-| 方法 | 功能 |
-|------|------|
-| `onLaunch()` | 小程序启动初始化，云开发初始化，主题初始化 |
-| `initTheme()` | 初始化主题设置，从本地存储读取用户配置 |
-| `setTheme(mode)` | 设置主题模式（light/dark/system） |
-| `getTheme()` | 获取当前主题模式 |
-| `getThemeClass()` | 获取主题对应的CSS类名 |
-| `toggleTheme()` | 切换主题模式 |
-
----
-
-## 5. 依赖关系
-
-### 5.1 前端依赖
-无第三方NPM依赖，全部使用微信小程序原生API和自定义实现。
-
-### 5.2 云函数依赖
-| 云函数 | 依赖包 | 版本 | 用途 |
-|------|--------|------|------|
-| replyToLetter | axios | ^1.6.0 | HTTP请求调用DeepSeek API |
-| 所有云函数 | wx-server-sdk | ^2.6.0 | 微信云服务SDK |
-
-### 5.3 外部服务依赖
-| 服务 | 用途 | 访问方式 |
-|------|------|----------|
-| DeepSeek API | AI回复生成 | HTTPS POST请求，需配置API Key |
-| 微信云开发 | 云函数、数据库、存储 | 内部SDK调用 |
-
-### 5.4 web-access技能依赖
-| 依赖 | 用途 |
-|------|------|
-| Chrome浏览器 | 提供真实浏览器环境，需开启远程调试 |
-| Node.js | CDP代理服务运行环境 |
-
----
-
-## 6. 项目运行方式
-
-### 6.1 前置要求
-1. 微信开发者工具（v1.06+）
-2. 微信小程序账号并开通云开发服务
-3. DeepSeek API Key
-
-### 6.2 环境配置
-1. 导入项目到微信开发者工具，输入小程序AppID
-2. 创建云开发环境，记录环境ID
-3. 在云开发控制台创建集合：`users`、`letters`、`roundtable_discussions`、`stampHistory`，权限均设置为"仅创建者可读写"
-4. 部署所有云函数：右键云函数目录 → "上传并部署：云端安装依赖"
-5. 为`replyToLetter`云函数配置环境变量`DEEPSEEK_API_KEY`
-6. 更新`miniprogram/envList.js`中的环境ID为你的云开发环境ID
-
-### 6.3 运行项目
-1. 点击微信开发者工具"编译"按钮
-2. 在模拟器或真机上预览
-
-### 6.4 部署发布
-1. 测试所有功能正常
-2. 在微信开发者工具点击"上传"
-3. 登录微信公众平台提交审核
-4. 审核通过后发布上线
-
----
-
-## 7. 数据模型
-
-### 7.1 users 集合（用户表）
+**混合流展示机制：**
+首页合并 4 种数据类型按时间降序排列：
 ```javascript
-{
-  "_id": String,           // 文档ID
-  "_openid": String,       // 用户openid（系统自动生成）
-  "nickName": String,      // 用户昵称
-  "avatarUrl": String,     // 用户头像URL
-  "stamps": Number,        // 邮票数量（默认初始10张）
-  "totalPurchased": Number,// 总购买邮票数
-  "totalLetters": Number,  // 总创建笔记数
-  "lastLoginTime": Date,   // 最后登录时间
-  "createdAt": Date        // 用户创建时间
+mergeAndSortItems() {
+  return [...letters, ...roundtables, ...incubators, ...structureAnalyses]
+    .sort((a, b) => b.createTime - a.createTime);
+}
+```
+每种数据类型自动标记标签色：蓝色（导师回信）/ 绿色（圆桌会议）/ 橙色（思想孵化器）/ 紫色（结构分析）
+
+**缓存策略（第 257-291 行）：**
+```javascript
+// 首页先展示缓存，后台静默更新
+if (cache && cache.timestamp + cache.expire * 1000 > Date.now()) {
+  this.setData({ letters: cacheData });
+  this.fetchPageFromServer(1, true); // 后台更新，不阻塞 UI
+}
+```
+- 每页独立缓存键：`letters_{openid}_{page}`
+- 缓存有效期：1 小时
+- 下拉刷新：**清除所有页缓存**后重新加载
+- 删除笔记：清除全部缓存
+
+**分页逻辑（第 296-381 行）：**
+- 每页 10 条
+- 滚动到底部自动触发 `loadMoreLetters()`
+- `onReachBottom` + `onScrollToLower` 双重触发
+- 搜索模式下不分页
+
+**身份验证：**
+- 检查 `wx.getStorageSync('openid')` 和 `userInfo`
+- 缺失则 `redirectTo` 登录页
+- 必须通过 `checkAuth()` 后才能渲染
+
+**热力图（第 431-446 行）：**
+- ⚠️ 当前为**模拟数据**：`Math.floor(Math.random() * 4)`
+- 基于 `component/heatmapCalendar` 组件渲染
+- 数据范围：过去 365 天
+
+### 3.3 写笔记页（核心业务入口）
+
+**文件：** `miniprogram/pages/write/write.js`（461 行）
+
+**导师选择机制：**
+- 硬编码 21 位导师，按 4 个领域分组（见第 9-18 行）
+- `mentorIndex` 通过 `picker` 组件选择
+- 当前默认选中 `mentorIndex=0`（查理·芒格）
+
+**导师指引弹出层：**
+- 从云端 `getMentorRules` 云函数加载
+- 本地缓存（`cacheUtil.js` 中的 `saveMentorRulesCache`）
+- 降级方案：硬编码的 `fallbackMentorGuides`（第 77-99 行）
+- 展示格式：「核心原则：\n1. ...\n2. ...」
+
+**字数自适应 @ 前端侧：**
+- 实时统计：`e.detail.value.length`
+- 长度判定：10 字 min 触发短内容提示
+
+**每日限制检查（第 119-147 行）：**
+```javascript
+// 查询当天 0 点到 24 点间，该用户已寄出的 needReply=true 的记录数
+where: {
+  _openid: this.data.openid,
+  needReply: true,
+  createTime: _.gte(startOfDay).and(_.lt(endOfDay))
+}
+```
+- 上限 6 次/天
+- 前端在用户选择「需要回信」时提前检查
+- 提交时再次检查（双重检查）
+
+**邮票消费逻辑（第 311-417 行）：**
+1. 用户选中「需要回信」→ 消耗 1 张邮票（`stamps - 1`）
+2. 调用 `replyToLetter` 云函数 → DeepSeek 异步生成回复
+3. 成功后清除首页缓存 → 3 秒后返回首页
+4. 不勾选「需要回信」→ 仅保存到数据库，不扣邮票
+
+**提交流程时序：**
+```
+用户点击提交 → 内容 < 10字？ → 短内容确认弹窗
+  → 需要回信且邮票=0？ → 引导购买
+  → 需要回信且超每日限制？ → 拒绝
+  → 敏感词检查（高敏→阻止，金融→提示）
+  → doSubmit() → 写入 letters 集合 → 扣邮票 → 调用云函数 → 跳转
+```
+
+### 3.4 圆桌会议页
+
+**文件：** `miniprogram/pages/roundtable/roundtable.js`（353 行）
+
+**与写笔记页的代码复用：**
+- 导师列表完全复用（同样 21 位 4 领域）
+- 敏感词检测逻辑完全复用
+- `checkAuth()` / `fetchUserStamps()` / `loadMentorRules()` 完全复用
+- `fallbackToHardcoded()` 完全复用（但单独定义，未抽取公共模块）
+
+**差异：**
+- 圆桌会消耗 3 张邮票（`totalCost: 3`）
+- 最少选 3 位，最多选 5 位导师
+- 提交后跳转 `roundtableResult` 结果页
+- 保存最近 10 次圆桌 ID 到本地存储，用于首页修复归属
+
+### 3.5 笔记详情页
+
+**文件：** `miniprogram/pages/detail/detail.js`（170 行）
+
+**权限校验：**
+```javascript
+if (result.data._openid !== this.data.openid) {
+  wx.showToast({ title: '无权限', icon: 'error' });
+  setTimeout(() => wx.navigateBack(), 1500);
+  return;
 }
 ```
 
-### 7.2 letters 集合（笔记表）
+**延迟回信展示逻辑：**
 ```javascript
+const canShowReply = result.data.replyContent &&
+  (!result.data.replyExpectTime || now >= result.data.replyExpectTime);
+```
+- 老数据（无 `replyExpectTime`）: 有回复直接展示
+- 新数据：需等待 18 小时后才显示
+
+**功能：**
+- 查看笔记内容 + AI 回复
+- 手动编辑/保存回复（管理员功能）
+- 导师位置展示（硬编码映射 `mentorLocations`）
+- 删除笔记
+
+### 3.6 组件体系
+
+**侧边菜单** (`components/sideMenu/`)：
+- 全局导航，支持功能入口
+- 通过 `showMenu` 控制显示/隐藏
+
+**热力图日历** (`components/heatmapCalendar/`)：
+- 年度笔记创作分布
+- 颜色深度反映笔记得分
+- 数据源：`365 天 * {date, count}` 数组
+
+**云提示弹窗** (`components/cloudTipModal/`)：
+- 通用操作提示组件
+
+### 3.7 工具模块
+
+**cloudbaseUtil.js**（318 行）：
+完整封装了云数据库 CRUD + 分页 + 聚合操作：
+- `query(collection, options)` — 条件查询，支持 where/orderBy/limit/skip
+- `getById(collection, docId)` — 单条文档查询
+- `add(collection, data)` — 自动添加 createTime/updateTime
+- `update(collection, docId, data)` — 自动更新 updateTime
+- `delete(collection, docId)` — 物理删除
+- `updateBatch(collection, where, data)` — 批量更新
+- `queryWithPagination(collection, options)` — 带总页数的分页查询
+- `aggregate(collection, pipeline)` — 聚合管道
+
+**sensitiveWordUtil.js**：
+前端敏感词预检测工具，和云函数端共享敏感词字典。
+
+**cacheUtil.js**：
+本地缓存管理，封装 `saveXxxCache` / `getXxxCache` 模式。
+
+---
+
+## 4. 后端云函数详解
+
+### 4.1 核心：replyToLetter 云函数（1,306 行）
+
+**位置：** `cloudfunctions/replyToLetter/index.js`
+**运行时：** Node.js 14，256MB 内存，60 秒超时
+**关键依赖：** axios（HTTP 请求）、wx-server-sdk（云 SDK）
+**环境变量：** `DEEPSEEK_API_KEY`
+
+#### 4.1.1 请求类型分发（第 809 行入口）
+
+云函数根据 `event.type` 分发到不同业务逻辑：
+
+| type 值 | 功能 | 消耗 |
+|---------|------|------|
+| `undefined` + `mentor` | 单导师回信 | 1 张邮票 |
+| `roundtable` | 圆桌会议 | 3 张邮票 |
+| `incubator` | 思想孵化器 | 无（隐藏验证） |
+| `structure_analysis` | 结构分析 | 无（隐藏验证） |
+| `repairRoundtableOwnership` | 归属修复 | 无 |
+
+#### 4.1.2 单导师回信流程
+
+```
+1. getMentorPrompt(mentor, mood, content)
+   └── mood === "由AI推断"?
+       ├── YES → getAIDeducedPrompt()（AI自主推断情绪）
+       └── NO  → getOriginalPrompt()（使用历史 mood 数据）
+2. callDeepSeekAPI(systemPrompt, content)
+   └── 字数自适应配置 + 质量评分循环（最多 2 次重试）
+   └── 失败 → generateSmartReply()（规则模板备用）
+3. processReply(replyContent)
+   └── 高敏内容 → 替换为合规提示
+   └── 非高敏 → 保留原文
+4. addAIDisclaimer(replyContent, mentorName)
+   └── 追加 "以上内容为AI模拟{name}的回复"
+5. 写入 letters 集合更新 replyContent/replyTime/qualityScore
+```
+
+**质量评分循环（第 1227-1255 行）：**
+```javascript
+while (retryCount <= maxRetries && (!qualityResult || !qualityResult.passed)) {
+  replyContent = await callDeepSeekAPI(systemPrompt, content);
+  qualityResult = evaluateReplyQuality(mentor, replyContent, content, mentorData, []);
+  if (!qualityResult.passed && retryCount < maxRetries) {
+    retryCount++;
+    await new Promise(resolve => setTimeout(resolve, 1000));
+  }
+}
+// 全部失败 → 降级到 generateSmartReply()
+```
+
+#### 4.1.3 圆桌会议流程
+
+```
+1. sortMentorsByField(mentors, fieldOrder)
+   └── 按领域排序：价值思维 → 创业创新 → 心理学 → 哲学
+2. for each mentor (顺序执行，非并行):
+   a. 获取导师数据 + 构建 systemPrompt
+   b. 传入 previousReplies 用于去重
+   c. callDeepSeekAPI() + 质量评分（最多 2 次重试）
+   d. processReply() + addAIDisclaimer()
+   e. 推入 discussions 数组
+3. analyzeDiscussionStructure() — 分析共识/分歧
+4. 写入 roundtable_discussions 集合
+5. 扣 3 张邮票
+```
+
+**⚠️ 关键问题：** 圆桌不支持 `mood` 参数，所有导师使用 `'平和'` 心境。多导师**串行执行**，每个约 5-10 秒，3-5 位约 15-50 秒（受 DeepSeek API 响应速度影响）。
+
+#### 4.1.4 思想孵化器流程
+
+```
+1. getIncubatorMentors(mentors)
+   └── 默认：[查理·芒格, 张小龙, 荣格]（各领域取代表）
+   └── 用户可自选最多 3 位
+2. buildIncubatorDimensions()
+   └── 5 个维度：想法内核 / 目标对象 / 关键假设 / 阻力与风险 / 最小验证路径
+3. getIncubatorPrompt(content, mentors)
+   └── 组装提示词，要求输出 6 个一级章节（含「未来7天行动清单」）
+4. callDeepSeekAPI() — 超时和 stream abort 自动重试（降 max_tokens）
+5. ensureIncubatorActionPlan(report)
+   └── 检查是否包含「六、未来7天行动清单」
+   └── 缺失 → append 默认 7 天行动计划
+6. 写入 incubator_reports 集合
+```
+
+#### 4.1.5 结构分析流程
+
+```
+1. getStructureAnalysisConfig(analysisType)
+   └── type='product' → 产品分析维度（天/人/地/结构/优化）
+   └── type='company' → 公司分析维度（天/人/地/结构/洞察）
+2. getStructureAnalysisPrompt(content, analysisType)
+   └── 严格的格式要求：6 个固定标题 + ASCII 快照 + 3 条编号要点
+3. callDeepSeekAPI() — 超时/abort 自动重试
+4. ensureStructureAnalysisSummary(report, analysisType)
+   └── 检查第六节完整性（是否有 3 条编号要点）
+   └── 截断或缺失 → 替换为兜底内容
+5. 写入 structure_analysis_reports 集合
+```
+
+#### 4.1.6 提示词架构（核心 AI 工程）
+
+**导师数据来源：**
+- 主数据源：`mentorRules_expanded.json`（21 位导师 + 4 领域 + moods 配置）
+- 降级方案：`mentorRules.json`
+- 每个导师包含：`persona`（人设）、`corePrinciples`（核心原则）、`thinkingFrameworks`（思考框架）、`commonQuestions`（常用问题）
+
+**提示词结构（第 95-153 行）：**
+```
+【规则约束部分】→ 导师人设 + 核心原则
+【重要约束 - 防止幻觉】→ 5 条 hard rule
+【情绪推断指令】→ AI 自主判断用户情绪
+【超详细自由发挥部分】→ 人设 + 5 个思考框架 + 6 个常用问题
+【字数自适应要求】→ 根据 content 长度决定回复篇幅
+```
+
+**字数自适应策略（第 39-90 行）：**
+
+| 用户内容长度 | 复杂度级别 | 回复字数 | max_tokens |
+|------------|-----------|---------|-----------|
+| < 100 字 | simple | 200 字 | 280 |
+| 100-300 字 | medium | 200-300 字 | 400 |
+| > 300 字 | complex | 400-500 字 | 650 |
+
+截断机制：二分查找截断点 + 句号/感叹号/问号保持完整句。
+
+#### 4.1.7 AI 回复质量评分（第 542-605 行）
+
+```javascript
+evaluateReplyQuality(mentorName, replyContent, userQuestion, mentorData, previousReplies)
+```
+评分维度：
+- `personaMatch` (0-0.4)：回复是否匹配导师核心原则关键词
+- `relevance` (0-0.3)：回复是否覆盖用户问题的关键字符
+- `uniqueness` (0-0.2)：与之前导师回复的三元组重叠度（去重）
+- `depth` (0-0.1)：回复长度 + 是否包含问号/叹号
+
+阈值：`score >= 0.7` 才通过，否则重试。
+
+#### 4.1.8 敏感词治理（第 21-29 行）
+
+```
+processReply(replyContent) → AI 回复后处理
+  ├── sensitiveWordDetector.detect(replyContent)
+  ├── isHighSensitive? → 替换为合规提示
+  └── 通过 → 保留原文
+```
+
+敏感词检测三件套：
+- 前端：`sensitiveWordUtil.js`（预检）
+- 云函数端：`sensitiveWordDetector.js`（二次检测 + 回复替换）
+- 独立云函数：`detectSensitiveWords` / `filterSensitiveWords` / `hasSensitiveWord`
+
+**敏感词分级：**
+- **高敏** → 阻止提交，或替换 AI 回复为合规提示
+- **金融敏感** → 允许提交但添加风险提示
+- **低敏** → 仅记录日志
+
+#### 4.1.9 智能回复生成器（第 318-437 行）
+
+当 DeepSeek API 彻底失败时的降级方案：
+```javascript
+generateSmartReply(mentor, mood, content)
+```
+- 硬编码 6 位导师的模板（查理·芒格、巴菲特、段永平、张小龙、乔布斯、马斯克）
+- 其他导师回退到查理·芒格
+- 从 opening/principles/advice 数组中随机选取拼接
+- 简单关键词提取 + mood 语气调整
+
+### 4.2 登录云函数
+
+**文件：** `cloudfunctions/login/index.js`（36 行）
+
+最简单的云函数，仅调用 `cloud.getWXContext()` 获取用户身份：
+```javascript
+return { code: 0, data: { openid, appid, unionid } };
+```
+
+小程序端通过 `wx.setStorageSync('openid', openid)` 持久化。
+
+### 4.3 导师规则云函数
+
+**文件：** `cloudfunctions/getMentorRules/index.js`
+
+从 `mentorRules_expanded.json` 读取导师规则配置并返回。
+前端缓存到本地存储（`saveMentorRulesCache`），减少重复请求。
+
+---
+
+## 5. 数据模型
+
+### 5.1 集合总览
+
+| 集合名称 | 用途 | 状态 |
+|---------|------|------|
+| `users` | 用户基本信息、邮票、统计 | ✅ |
+| `letters` | 笔记/信件 + AI 回复 | ✅ |
+| `roundtable_discussions` | 圆桌会议 + 多导师回复 | ✅ |
+| `stampHistory` | 邮票购买/消费流水 | ✅ |
+| `incubator_reports` | 思想孵化器报告 | ✅ (Phase 3) |
+| `structure_analysis_reports` | 结构分析报告 | ✅ (Phase 3) |
+
+### 5.2 核心文档结构
+
+#### users
+```
 {
-  "_id": String,           // 文档ID
-  "_openid": String,       // 用户openid
-  "mentor": String,        // 导师名称（如："查理·芒格"）
-  "mood": String,          // 心境（如："困惑"、"开心"）
-  "content": String,       // 笔记内容
-  "status": String,        // 状态："pending"/"replied"/"failed"
-  "needReply": Boolean,    // 是否需要AI回复
-  "replyContent": String,  // AI回复内容
-  "replyTime": Date,       // 回复时间
-  "createTime": Date,      // 笔记创建时间
-  "deleted": Boolean       // 是否删除（默认false）
+  _openid: string,        // 用户微信 openid
+  stamps: number,          // 邮票余额（默认 2）
+  totalPurchased: number,  // 累计购买
+  totalLetters: number,    // 累计寄信
+  nickName: string,        // 昵称
+  avatarUrl: string,       // 头像
+  lastLoginTime: date,
+  createdAt: date
 }
 ```
 
-### 7.3 roundtable_discussions 集合（圆桌会议表）
-```javascript
+#### letters
+```
 {
-  "_id": String,           // 文档ID
-  "_openid": String,       // 用户openid
-  "mentors": Array,        // 导师名称数组（如：["查理·芒格", "巴菲特", "段永平"]）
-  "content": String,       // 讨论内容
-  "discussions": Array,    // 讨论结果数组，每个元素包含mentor、field、reply
-  "createTime": Date,      // 创建时间
-  "status": String         // 状态："pending"/"completed"/"failed"
+  _openid: string,
+  mentor: string,           // 导师名称
+  mood: string,             // 用户心境（如"困惑"）
+  content: string,          // 内容
+  status: "pending"|"replied"|"saved"|"error",
+  needReply: boolean,       // true=需回信, false=仅保存
+  replyContent: string,     // AI 回复
+  replyTime: date,
+  replyExpectTime: number,  // 18h 后才可查看
+  createTime: date,
+  deleted: boolean,
+  deleteTime: date,
+  qualityScore: number,     // AI 回复质量评分
+  qualityDetails: object,   // 各维度评分明细
+  retryCount: number        // DeepSeek 重试次数
 }
 ```
 
-### 7.4 stampHistory 集合（邮票历史表）
-```javascript
+#### roundtable_discussions
+```
 {
-  "_id": String,
-  "_openid": String,
-  "action": String,        // 动作："purchase"/"use"
-  "change": Number,        // 邮票变化数量（正数为增加，负数为减少）
-  "price": Number,         // 购买价格（单位：分，使用时为0）
-  "time": Date            // 操作时间
+  _openid: string,
+  content: string,
+  mentors: [string, ...],       // 选中的导师列表
+  discussions: [{
+    mentor: string,
+    field: string,               // 所属领域
+    reply: string,               // 该导师回复
+    qualityScore: number,
+    qualityDetails: object,
+    retryCount: number,
+    timestamp: number,
+    contextSummary: object       // 已讨论上下文摘要
+  }],
+  structure: {                   // 讨论结构分析
+    userQuestion: string,
+    summary: string,
+    consensusPoints: [string],
+    disagreementPoints: [string],
+    keyInsights: [string],
+    mentors: [string]
+  },
+  totalCost: 3,                  // 圆桌固定扣 3 张
+  createTime: date
+}
+```
+
+#### incubator_reports
+```
+{
+  _openid: string,
+  content: string,           // 用户输入的想法
+  mentors: [string],         // 参与分析的导师
+  dimensions: [string],      // 5 个分析维度
+  report: string,            // Markdown 格式报告
+  status: "completed",
+  createTime: date
+}
+```
+
+#### structure_analysis_reports
+```
+{
+  _openid: string,
+  analysisType: "product"|"company",
+  content: string,
+  dimensions: [string],      // 分析维度
+  report: string,            // Markdown 六章格式
+  status: "completed",
+  createTime: date
 }
 ```
 
 ---
 
-## 8. 开发规范
+## 6. 项目规则与约束
 
-### 8.1 核心原则
-- 保护现有原型，渐进式升级，禁止一次性大规模重构
-- 单次修改文件数≤5个，代码行数≤200行，影响模块≤1个
-- 禁止迁移到TypeScript，禁止更换状态管理方案
+### 6.1 开发规范
 
-### 8.2 代码风格
-- 缩进：2空格
-- 分号：必须
-- 引号：单引号
-- 函数必须有完整中文docstring
-- 复杂逻辑必须有中文行内注释
+摘自 `.trae/rules/project_rules.md`：
+- **保护现有原型**：渐进式升级，禁止一次性大规模重构
+- **单次修改**：文件数 ≤ 5 个，代码行数 ≤ 200 行，影响模块 ≤ 1 个
+- **禁止**：迁移 TypeScript、更换状态管理方案
+- **代码风格**：2 空格缩进、分号必须、单引号、完整中文 docstring
+- **Git 分支**：main → develop → feature/fix/docs
 
-### 8.3 Git工作流
-```
-main (生产)
-  └── develop (开发)
-        ├── feature/xxx  # 新功能分支
-        ├── fix/xxx      # 修复分支
-        └── docs/xxx     # 文档分支
-```
-
-提交格式：`&lt;type&gt;(&lt;scope&gt;): &lt;subject&gt;`
-- type: feat/fix/docs/style/refactor/test/chore
-
-### 8.4 安全规范
-- 敏感数据加密存储
-- 所有数据库查询强制用户ID过滤
+### 6.2 安全红线
+- **用户数据隔离是绝对红线**：所有查询必须携带 `_openid` 过滤
+- 云数据库权限：仅创建者可读写
+- 云函数操作前必须校验 openid
+- API Key 使用环境变量存储，禁止硬编码
 - 用户输入必须经过敏感词检测
-- API Key等敏感信息必须使用环境变量存储，禁止硬编码
+
+### 6.3 Git 提交格式
+```
+<type>(<scope>): <subject>
+type: feat/fix/docs/style/refactor/test/chore
+```
 
 ---
 
-## 9. 常见问题
+## 7. 已知问题与技术债务
 
-### Q1: AI回复生成失败怎么办？
-A: 首先检查`replyToLetter`云函数的环境变量`DEEPSEEK_API_KEY`是否正确配置，其次检查API调用额度是否充足，最后查看云函数日志排查具体错误。
+### 7.1 前端
+1. **热力图数据为模拟**：`Math.floor(Math.random() * 4)`，未接入真实笔记统计数据
+2. **导师列表硬编码**：21 位导师出现在 3 个文件（write.js / roundtable.js / replyToLetter/index.js），修改时需同步
+3. **fallbackToHardcoded 重复定义**：write.js 和 roundtable.js 各维护一份完全相同的 fallback 代码（约 30 行），未抽象为公共模块
+4. **圆桌搜索混合过滤**：`filterLetters()` 同时过滤 letters 和 displayItems，函数名有误导性
+5. **无网络请求失败重试**：页面级别的云函数调用没有重试机制（仅在云函数内部有重试）
 
-### Q2: 如何添加新的AI导师？
-A: 编辑`cloudfunctions/replyToLetter/mentorRules_expanded.json`文件，添加新导师的角色设定和核心原则，重新部署云函数即可。
+### 7.2 后端
+1. **圆桌串行执行**：3-5 位导师按顺序调用 DeepSeek API，总耗时 ≈ 位数 × 单次耗时（单次 5-10 秒）
+2. **generateSmartReply 导师覆盖不全**：仅 6/21 位导师有模板，其余回退到芒格
+3. **结构分析/孵化器超时敏感**：DeepSeek API 的 stream abort 错误在 30 秒超时时容易触发
+4. **云函数无数据库事务**：扣邮票和写入讨论记录非原子操作
 
-### Q3: 邮票机制是怎样的？
-A: 新用户默认赠送10张邮票，每生成一次AI导师回信消耗1张邮票，圆桌会议消耗3张邮票。用户可以在邮票页面购买更多邮票套餐。
+### 7.3 产品体验
+1. **延迟回信 18 小时硬编码**：`replyExpectTime` 在 write.js 和 detail.js 中两次出现此常量
+2. **无分页状态恢复**：从详情页返回首页时，滚动位置和搜索状态不保留
+3. **回复质量评分可靠性**：基于字符串匹配的评分（关键词包含率）可能不准确
 
-### Q4: 圆桌会议功能如何使用？
-A: 在首页点击浮动菜单选择"圆桌会议"，选择3-5位导师，输入讨论内容，提交后消耗3张邮票，即可获得多位导师的跨领域讨论结果。
+---
 
-### Q5: 首页为什么看不到圆桌会议记录？
-A: 首先检查`roundtable_discussions`集合是否存在，其次确认数据的`_openid`字段是否匹配当前用户，可查看控制台日志中的诊断信息。
+## 8. 部署与运维
 
-### Q6: 用户数据是如何隔离的？
-A: 云数据库权限设置为"仅创建者可读写"，每个用户只能访问自己创建的笔记、圆桌会议和数据，云函数操作也会自动校验用户openid。
+### 8.1 环境依赖
 
-### Q7: 思想孵化器功能如何使用？
-A: 思想孵化器目前处于隐藏验证阶段，需通过特定入口访问。输入一个想法，系统会自动分解维度，由多位导师从不同角度进行深度分析和评估。
+| 环境 | 配置项 | 位置 |
+|------|--------|------|
+| 云函数 | DEEPSEEK_API_KEY | 云函数环境变量 |
+| 小程序 | envList.js | miniprogram/envList.js |
+| 云函数配置 | runtime/memory/timeout | 各云函数 config.json |
 
-### Q8: 公司结构分析功能如何使用？
-A: 公司结构分析目前处于隐藏验证阶段，需通过特定入口访问。输入公司相关笔记/新闻/财报内容，系统会生成包含6个固定章节的结构化分析报告：分析阶段、结构动力学分析（三才结构）、结构形态判定、涡旋结构快照（ASCII）、关键洞察、行动建议。
+### 8.2 云函数列表
+
+| 云函数名 | 暴露点 | 依赖 |
+|---------|--------|------|
+| login | wx.cloud.callFunction({name:'login'}) | wx-server-sdk |
+| replyToLetter | wx.cloud.callFunction({name:'replyToLetter'}) | axios, wx-server-sdk, mentorRules.json |
+| getMentorRules | wx.cloud.callFunction({name:'getMentorRules'}) | mentorRules_expanded.json |
+| getMentors | wx.cloud.callFunction({name:'getMentors'}) | — |
+| detectSensitiveWords | HTTP / 云函数调用 | sensitiveWords.json |
+
+### 8.3 数据库集合
+
+所有集合权限设置为「仅创建者可读写」，索引建议：
+- `letters`：`_openid` + `createTime`（降序）复合索引
+- `roundtable_discussions`：`_openid` + `createTime`（降序）复合索引
+- `users`：`_openid` 唯一索引
+
+### 8.4 部署步骤
+1. 微信开发者工具导入项目
+2. 创建云开发环境，记录环境 ID
+3. 创建全部数据库集合
+4. 右键云函数 → 「上传并部署：云端安装依赖」
+5. 为 `replyToLetter` 配置 `DEEPSEEK_API_KEY`
+6. 更新 `envList.js` 中的环境 ID
+7. 编译预览
+
+（详见 README.md 第 11-19 行）
+
+---
+
+## 9. 测试体系
+
+### 9.1 测试文件
+
+| 测试文件 | 覆盖内容 |
+|---------|---------|
+| scripts/tests/unit-tests.js | 核心工具函数 |
+| scripts/tests/phase2-unit-tests.js | Phase 2 功能 |
+| scripts/tests/replyToLetter-unit-tests.js | 云函数逻辑 |
+| scripts/tests/integration-tests.js | 集成测试 |
+| test-sensitive-words.js | 敏感词检测 |
+| test_cloud_function.js | 云函数调用测试 |
+
+### 9.2 运行方式
+```bash
+cd scripts && npm install && npm run test
+```
+
+### 9.3 项目规则检查
+```bash
+node scripts/checks/project-rules-check.js
+```
+
+---
+
+## 10. 路线图与演进
+
+### 10.1 已完成的 Phase
+- Phase 1: 基础写信回信、登录、邮票系统 ✅
+- Phase 2: 圆桌会议、缓存分页、敏感词治理、主题切换、夜间模式 ✅
+- Phase 3: 思想孵化器 MVP、结构分析（产品+公司）✅
+
+### 10.2 潜在未来方向
+- 热力图接入真实数据
+- 导师管理后台（增删改导师）
+- 圆桌并行调用优化
+- 回复质量评分算法改进
+- 数据导出 / 分享能力
