@@ -24,7 +24,7 @@
     "lazyCodeLoading": "requiredComponents",
     "permission": {
         "scope.writePhotosAlbum": {
-            "desc": "用于保存邮票图片到相册"
+            "desc": "用于保存分析结果图片到相册"
         }
     },
     "privacySheet": {

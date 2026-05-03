@@ -1,149 +1,190 @@
 # 智慧笔记
 
-基于微信小程序和微信云开发的个人思考记录产品。用户可以写下问题、观察或反思，选择 AI 导师获取延迟回信，也可以发起多导师圆桌讨论。项目当前已经从早期“投资笔记”演进为覆盖价值思维、创业创新、心理学、哲学四大领域的通用思考工具。
+基于微信小程序和微信云开发的个人思考记录产品。用户可以写下问题、观察或反思，选择分析方法获取 AI 分析结果，也可以发起多维度分析讨论。
 
-## 当前状态
+## 功能特点
 
-- 项目形态：微信小程序 + 云函数 + 云数据库
-- AI 服务：DeepSeek Chat API
-- 当前代码范围：单导师回信、圆桌会议、邮票机制、缓存分页、主题切换、敏感词检测、隐私页
-- **Phase 3 进展**：思想孵化器 MVP（✅可用）、公司结构分析 MVP（✅验收通过）、产品结构分析 MVP（✅验收通过）
-- 导师规模：21 位导师，4 个领域
-- 文档基准日期：2026-04-12
+- **单维度分析**：选择一位思维导师，针对特定问题获得深度分析
+- **多维度分析**：选择 3-5 位思维导师，从不同维度交叉分析问题
+- **思想孵化器**：输入初始想法，生成包含行动清单的结构化孵化报告
+- **结构分析**：支持产品/公司结构分析，生成 ASCII 结构快照
+- **延迟分析机制**：分析结果需等待 18 小时查看，促进深度思考
+- **额度管理**：新用户赠送 2 次免费额度，支持额度购买
+- **主题切换**：支持亮色、暗色、跟随系统三种主题模式
+- **敏感词检测**：前端预检 + 云函数二次检测，保障内容安全
+- **隐私合规**：符合微信小程序隐私协议规范
+- **热力图日历**：可视化记录分析提交历史
 
-## 项目规则
+## 技术栈
 
-开始改动前建议先看两份规则：
+| 层级 | 技术 | 说明 |
+|------|------|------|
+| 前端框架 | 微信小程序原生框架 | WXML + WXSS + JS |
+| 后端服务 | 微信云开发 (CloudBase) | 云函数 + 云数据库 |
+| AI 引擎 | DeepSeek API | 文本分析与生成 |
+| 状态管理 | 原生 Storage + Page Data | 无外部状态管理库 |
+| 构建工具 | 微信开发者工具 | 编译、预览、上传 |
 
-- [项目强制规范](/Users/bill/编程/invest-diary/.trae/rules/project_rules.md)
-- [执行与交付规范](/Users/bill/编程/invest-diary/.trae/rules/AGENTS.md)
-
-这两份文件定义了这个仓库的工作方式，其中 `project_rules.md` 优先级更高。核心约束是保护现有原型、渐进式升级、禁止一次性大重构。
-
-## 核心能力
-
-- 单导师写信：在 [write.js](/Users/bill/编程/invest-diary/miniprogram/pages/write/write.js) 中选择导师并提交内容，可请求 AI 回信。
-- 延迟回信机制：回信不是即时聊天，项目强调"记录后等待思考结果"的体验。
-- 圆桌会议：在 [roundtable.js](/Users/bill/编程/invest-diary/miniprogram/pages/roundtable/roundtable.js) 中选择 3-5 位导师发起多角色讨论。
-- 首页混合流：在 [index.js](/Users/bill/编程/invest-diary/miniprogram/pages/index/index.js) 中将普通信件和圆桌记录按时间混合展示。
-- 邮票系统：用户默认邮票余额为 2，普通回信和圆桌功能都受邮票约束。
-- 每日限制：单导师寄信每天最多 6 次。
-- 本地缓存与分页：首页信件列表支持分页加载和 1 小时缓存。
-- 主题切换：支持 `light`、`dark`、`system` 三种主题模式。
-- 敏感词治理：前端预检 + 云函数处理，包含检测、过滤和高敏内容兜底。
-- **思想孵化器 MVP**：输入想法，多位导师从不同维度进行深度分析（隐藏验证页）。
-- **公司结构分析 MVP**：输入公司相关内容，生成结构化分析报告，包含 6 个固定章节和 ASCII 结构快照（✅验收通过）。
-- **产品结构分析 MVP**：输入产品相关内容，生成结构化分析报告，包含 6 个固定章节和 ASCII 结构快照（✅验收通过）。
-
-## 技术架构
-
-### 前端
-
-- 技术：微信小程序原生框架
-- 目录：`miniprogram/`
-- 页面：
-  - `login` 登录与用户信息初始化
-  - `index` 首页列表、搜索、分页、混合流展示
-  - `write` 单导师写信
-  - `roundtable` 多导师圆桌讨论
-  - `roundtableResult` 圆桌结果展示
-  - `detail` 信件详情
-  - `stamps` 邮票页
-  - `trash` 回收站
-  - `profile` 个人中心与热力图
-  - `privacy` 隐私协议页
-- 组件：侧边菜单、云提示弹窗、热力图日历
-
-### 后端
-
-- 技术：微信云开发云函数 + 云数据库
-- 目录：`cloudfunctions/`
-- 核心云函数：
-  - `login` 获取 `openid`
-  - `replyToLetter` 调用 DeepSeek 生成单导师回信和圆桌结果
-  - `getMentorRules` 获取导师规则库
-  - `getMentors` 获取导师列表
-  - `detectSensitiveWords` / `filterSensitiveWords` / `hasSensitiveWord` 负责内容治理
-  - `diagnoseRoundtable`、`migrateRoundtable`、`migrateRoundtableData` 用于诊断和迁移
-
-### 数据层
-
-从当前代码可确认的主要集合：
-
-- `users`
-- `letters`
-- `roundtable_discussions`
-- `stampHistory`
-
-所有查询都应带用户身份过滤，仓库规则也明确要求数据隔离是安全红线。
-
-## 关键实现说明
-
-- [app.js](/Users/bill/编程/invest-diary/miniprogram/app.js) 负责云开发初始化和主题状态管理。
-- [cloudbaseUtil.js](/Users/bill/编程/invest-diary/miniprogram/utils/cloudbaseUtil.js) 封装了前端对云数据库的常用 CRUD、分页和聚合操作。
-- [index.js](/Users/bill/编程/invest-diary/miniprogram/pages/index/index.js) 是首页核心，负责缓存、分页、圆桌数据加载和混合排序。
-- [replyToLetter/index.js](/Users/bill/编程/invest-diary/cloudfunctions/replyToLetter/index.js) 是项目核心后端逻辑，负责提示词组装、字数控制、敏感词处理、DeepSeek 调用和 AI 免责声明追加。
-- `mentorRules_expanded.json` 当前包含 21 位导师和 4 个领域配置，是导师系统的主数据源。
-
-## 目录概览
-
-```text
-invest-diary/
-├── miniprogram/                 # 微信小程序前端
-├── cloudfunctions/              # 云函数与云端业务逻辑
-├── scripts/                     # 规则检查、测试、导入脚本
-├── .trae/rules/                 # 项目规则与协作规范
-├── CODE_WIKI.md                 # 更细的代码级说明
-├── TEST_REPORT.md               # 测试记录
-└── README.md                    # 当前项目入口文档
-```
-
-## 本地开发
+## 安装部署指南
 
 ### 前置条件
 
-- 微信开发者工具
-- 一个可用的小程序 AppID
+- 微信开发者工具（2.2.3+ 基础库）
+- 可用的小程序 AppID
 - 已开通的微信云开发环境
 - DeepSeek API Key
 
 ### 启动步骤
 
-1. 使用微信开发者工具导入项目根目录 `/Users/bill/编程/invest-diary`。
-2. 在云开发控制台创建环境，并记录环境 ID。
-3. 按需创建数据库集合：`users`、`letters`、`roundtable_discussions`、`stampHistory`。
-4. 部署 `cloudfunctions/` 下需要使用的云函数。
-5. 为 `replyToLetter` 云函数配置环境变量 `DEEPSEEK_API_KEY`。
-6. 根据你的环境修改 `miniprogram/envList.js`。
-7. 在微信开发者工具中编译并预览小程序。
+1. 使用微信开发者工具导入项目根目录
+2. 在云开发控制台创建环境，记录环境 ID
+3. 创建数据库集合：`users`、`letters`、`roundtable_discussions`、`incubator_reports`、`structure_analysis_reports`
+4. 部署 `cloudfunctions/` 下所有云函数
+5. 为 `replyToLetter` 云函数配置环境变量 `DEEPSEEK_API_KEY`
+6. 修改 `miniprogram/envList.js` 配置你的环境 ID
+7. 可选：配置 `getMentorRules` 云函数以动态加载导师规则
+8. 编译并预览小程序
 
-## 脚本与检查
+## 使用说明
 
-仓库包含一套本地规则检查脚本，说明见 [scripts/README.md](/Users/bill/编程/invest-diary/scripts/README.md)。
+### 首次使用
 
-常用命令：
+1. 打开小程序，点击微信授权登录
+2. 同意隐私协议
+3. 获得 2 次免费分析额度
 
-```bash
-cd /Users/bill/编程/invest-diary/scripts
-npm install
-node checks/project-rules-check.js
-npm run test
+### 提交分析请求
+
+1. 首页点击右下角 "+" 按钮
+2. 选择 "分析方法" 或 "多维度分析"
+3. 选择分析方法（领域分组卡片式选择器）
+4. 输入需要分析的内容
+5. 点击提交
+
+### 查看分析结果
+
+1. 首页列表查看笔记状态
+2. 状态为 "分析中" 的笔记需等待 18 小时后查看
+3. 点击笔记进入详情页查看完整分析结果
+
+## 项目结构
+
 ```
+wxapp-project/
+├── miniprogram/                 # 微信小程序前端
+│   ├── pages/                   # 页面
+│   │   ├── login/               # 登录页
+│   │   ├── index/               # 首页（笔记列表、搜索）
+│   │   ├── write/               # 分析方法页（单维度）
+│   │   ├── roundtable/          # 多维度分析页
+│   │   ├── incubator/           # 思想孵化器
+│   │   ├── structureAnalysis/   # 结构分析
+│   │   ├── detail/              # 笔记详情
+│   │   ├── stamps/              # 额度管理
+│   │   ├── profile/             # 个人中心
+│   │   ├── trash/               # 回收站
+│   │   └── privacy/             # 隐私政策
+│   ├── components/              # 组件
+│   ├── utils/                   # 工具类
+│   └── app.js                   # 应用入口
+├── cloudfunctions/              # 云函数
+│   ├── replyToLetter/           # AI 分析核心引擎
+│   ├── getMentorRules/          # 获取导师规则配置
+│   ├── getMentors/              # 获取导师列表
+│   ├── login/                   # 用户登录
+│   ├── hasSensitiveWord/        # 敏感词检测
+│   ├── detectSensitiveWords/    # 敏感词检测（增强版）
+│   └── filterSensitiveWords/    # 敏感词过滤
+├── docs/                        # 项目文档
+├── CODE_WIKI.md                 # 代码级详细文档
+├── TEST_CASES.md                # 测试用例文档
+└── README.md                    # 项目入口文档
+```
+
+## 思维导师体系
+
+本项目提供 22 位跨领域思维导师，按 4 个领域分组：
+
+| 领域 | 导师 |
+|------|------|
+| 价值思维 | 查理·芒格、巴菲特、格雷厄姆 |
+| 创业创新 | 段永平、张小龙、乔布斯、马斯克、贝佐斯、彼得·蒂尔 |
+| 心理学 | 荣格、弗洛伊德、弗洛姆、阿德勒、马斯洛 |
+| 哲学 | 老子、孔子、苏格拉底、柏拉图、亚里士多德、尼采、维特根斯坦 |
+
+每位导师拥有独立的人格设定、核心原则、思维框架和提问风格，AI 在分析时会完全代入该导师的视角进行回答。
+
+## 常见问题解答
+
+**Q: 为什么分析结果需要等待 18 小时？**
+A: 这是产品的核心设计理念。延迟查看机制迫使用户在提交后先进行自主思考，避免过度依赖 AI。
+
+**Q: 额度用完后如何获得？**
+A: 可以在额度管理页购买分析额度。
+
+**Q: 分析结果不满意怎么办？**
+A: 可以尝试更换分析方法重新提交，或使用多维度分析获得更全面的视角。
+
+**Q: 支持哪些主题？**
+A: 支持亮色、暗色、跟随系统三种模式，可在个人中心切换。
+
+## 开发与贡献指南
+
+### 代码规范
+
+- 缩进：2 空格
+- 引号：单引号
+- 分号：必须
+- 注释：中文注释，说明"为什么"而非"做什么"
+
+### 提交格式
+
+```
+type(scope): subject
+
+type: feat/fix/docs/style/refactor/test/chore
+```
+
+### 开发流程
+
+1. 从 `develop` 分支创建功能分支 `feature/xxx`
+2. 遵循单次变更限制（修改文件 ≤5，代码行 ≤200，影响模块 ≤1）
+3. 提交前运行规则检查：`node scripts/checks/project-rules-check.js`
+4. 通过测试后合并回 `develop`
 
 ## 文档导航
 
-- [项目强制规范](/Users/bill/编程/invest-diary/.trae/rules/project_rules.md)
-- [执行与交付规范](/Users/bill/编程/invest-diary/.trae/rules/AGENTS.md)
-- [代码级 Wiki](/Users/bill/编程/invest-diary/CODE_WIKI.md)
-- [脚本说明](/Users/bill/编程/invest-diary/scripts/README.md)
-- [测试报告](/Users/bill/编程/invest-diary/TEST_REPORT.md)
+- [项目强制规范](.trae/rules/project_rules.md)
+- [执行与交付规范](.trae/rules/AGENTS.md)
+- [代码级 Wiki](CODE_WIKI.md)
+- [测试用例](TEST_CASES.md)
 
-## 当前 README 的定位
+## 更新日志
 
-按照仓库规则，根目录 `README.md` 应该是“用户手册和项目入口”，因此这里重点保留：
+### v2.1 (2026-05-04)
 
-- 这个项目现在是什么
-- 代码里已经实现了什么
-- 从哪里开始看规则、看代码、跑项目
+- 导师体系升级：从「分析方法」升级为「思维导师」，22 位真实人物人格化分析
+- 动态规则加载：支持通过云函数动态获取导师配置，无需发版即可扩展
+- 新增热力图日历组件：可视化展示用户分析提交历史
+- README 文档同步更新，对齐当前产品形态
 
-更细的模块级说明、函数清单和设计细节，请直接看 `CODE_WIKI.md`。
+### v2.0 (2026-05-02)
+
+- UI 统一化改造：单维度分析、多维度分析、思想孵化器三页视觉风格统一
+- 导师选择器重构：从下拉菜单改为卡片式领域分组选择器
+- 合规改造：去拟人化文案、AI 免责声明、使用时长提醒、隐私政策更新
+- 文档完善：CODE_WIKI、TEST_CASES、README 全面更新
+
+### v1.5 (2026-04-12)
+
+- 思想孵化器 MVP 上线
+- 产品结构分析 MVP 上线
+- 公司结构分析 MVP 上线
+
+## 许可协议
+
+本项目为私有项目，未经授权禁止商用或二次分发。
+
+---
+
+*本文档由工程化 Vibe Coding 全栈研发架构师维护更新。*

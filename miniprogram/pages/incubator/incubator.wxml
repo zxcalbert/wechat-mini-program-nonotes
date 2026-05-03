@@ -1,36 +1,37 @@
 <view class="page {{themeClass}}">
   <view class="hero">
+    <view class="eyebrow">结构化思考工具</view>
     <view class="title">思想孵化器</view>
     <view class="subtitle">输入一个初始想法，生成结构化孵化报告。</view>
   </view>
 
   <view class="panel">
-    <view class="label">选择导师（1-3位）</view>
-    <view class="mentor-fields">
-      <view wx:for="{{mentorFields}}" wx:key="key" class="mentor-field">
+    <view class="label">选择分析方法（1-3种）</view>
+    <view class="method-fields">
+      <view wx:for="{{methodFields}}" wx:key="key" class="method-field">
         <view class="field-header">
           <text class="field-icon">{{item.icon}}</text>
           <text class="field-name">{{item.name}}</text>
         </view>
-        <view class="mentor-tags">
+        <view class="method-tags">
           <view
-            wx:for="{{item.mentors}}"
-            wx:for-item="mentor"
+            wx:for="{{item.methods}}"
+            wx:for-item="method"
             wx:key="*this"
-            class="mentor-tag {{selectedMentorMap[mentor] ? 'selected' : ''}}"
-            data-name="{{mentor}}"
-            bindtap="toggleMentor"
-          >{{mentor}}</view>
+            class="method-tag {{selectedMethodMap[method] ? 'selected' : ''}}"
+            data-method="{{method}}"
+            bindtap="toggleMethod"
+          >{{method}}</view>
         </view>
       </view>
     </view>
     <view class="selected-info">
       <view class="selected-count">
-        <text class="count-label">已选导师</text>
-        <text class="count-number">{{selectedMentors.length}}/3</text>
+        <text class="count-label">已选方法</text>
+        <text class="count-number">{{selectedMethods.length}}/3</text>
       </view>
       <view class="selected-list">
-        <text>{{selectedMentors.length > 0 ? selectedMentors.join('、') : '请点击上方导师标签进行选择'}}</text>
+        <text>{{selectedMethods.length > 0 ? selectedMethods.join('、') : '请点击上方方法标签进行选择'}}</text>
       </view>
     </view>
   </view>
@@ -48,15 +49,15 @@
     <button class="submit" loading="{{loading}}" bindtap="generateReport">生成孵化报告</button>
   </view>
 
-  <view wx:if="{{mentors.length}}" class="panel">
-    <view class="label">导师视角</view>
+  <view wx:if="{{methods.length}}" class="panel">
+    <view class="label">分析方法</view>
     <view class="tags">
-      <view wx:for="{{mentors}}" wx:key="*this" class="tag">{{item}}</view>
+      <view wx:for="{{methods}}" wx:key="*this" class="tag">{{item}}</view>
     </view>
   </view>
 
   <view wx:if="{{dimensions.length}}" class="panel">
-    <view class="label">固定维度</view>
+    <view class="label">分析维度</view>
     <view class="tags">
       <view wx:for="{{dimensions}}" wx:key="*this" class="tag tag-soft">{{item}}</view>
     </view>

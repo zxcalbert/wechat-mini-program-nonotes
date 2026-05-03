@@ -1,76 +1,67 @@
-<view class="container {{themeClass}}">
-  <view class="header" style="padding-top: {{statusBarHeight + 10}}px;">
-    <view class="back-btn" bindtap="goBack">
-      <text class="back-icon">←</text>
-    </view>
-    <view class="header-title">圆桌会议</view>
-    <view class="header-spacer"></view>
+<view class="page">
+  <view class="hero">
+    <view class="eyebrow">多维度思考工具</view>
+    <view class="title">多维度分析</view>
+    <view class="subtitle">选择3-5种分析方法，从不同维度深入分析你的问题。</view>
   </view>
 
-  <!-- 功能开发中提示 -->
-  <view wx:if="{{!featureEnabled}}" class="feature-disabled-mask">
-    <view class="feature-disabled-content">
-      <text class="feature-disabled-icon">🚧</text>
-      <text class="feature-disabled-text">功能正在开发中</text>
-      <text class="feature-disabled-subtitle">敬请期待</text>
+  <view class="panel">
+    <view class="label">选择分析方法（3-5种）</view>
+    <view class="method-fields">
+      <view wx:for="{{methodsByDomain}}" wx:for-index="domain" wx:for-item="methods" wx:key="domain" class="method-field">
+        <view class="field-header">
+          <text class="field-name">{{domain}}</text>
+        </view>
+        <view class="method-tags">
+          <view
+            wx:for="{{methods}}"
+            wx:for-item="method"
+            wx:key="*this"
+            class="method-tag {{selectedMethodsMap[method] ? 'selected' : ''}}"
+            data-method="{{method}}"
+            bindtap="toggleMethod"
+          >{{method}}</view>
+        </view>
+      </view>
+    </view>
+    <view class="selected-info">
+      <view class="selected-count">
+        <text class="count-label">已选方法</text>
+        <text class="count-number">{{selectedMethods.length}}/5</text>
+      </view>
+      <view class="selected-list">
+        <text>{{selectedMethods.length > 0 ? selectedMethods.join('、') : '请点击上方方法标签进行选择'}}</text>
+      </view>
     </view>
   </view>
 
-  <view class="content">
-    <view class="date-section">
-      <text class="date-text">{{currentDate}}</text>
-    </view>
+  <view class="panel">
+    <view class="label">需要分析的内容</view>
+    <textarea
+      class="content-input"
+      placeholder="请输入需要分析的问题或内容..."
+      maxlength="2000"
+      bindinput="onInput"
+      value="{{content}}"
+    />
+    <view class="word-count">{{wordCount}}/2000字</view>
+  </view>
 
-    <view class="mentor-section">
-      <view class="section-title">选择导师（3-5位）</view>
-      <view class="selected-count">已选：{{selectedMentors.length}}/5</view>
-      
-      <view class="mentor-domains">
-        <block wx:for="{{mentorsByDomain}}" wx:key="*this">
-          <view class="domain-section">
-            <view class="domain-title">{{index}}</view>
-            <view class="mentor-list">
-              <view 
-                wx:for="{{item}}" 
-                wx:for-item="mentor" 
-                wx:key="*this"
-                class="mentor-item mentor-item-{{mentor}} {{selectedMentorsMap[mentor] ? 'selected mentor-selected' : ''}}"
-                data-mentor="{{mentor}}"
-                bindtap="toggleMentor"
-              >
-                <text class="mentor-name {{selectedMentorsMap[mentor] ? 'mentor-name-selected' : ''}}">{{mentor}}</text>
-              </view>
-            </view>
-          </view>
-        </block>
-      </view>
-    </view>
+  <view wx:if="{{hasSensitiveWarning}}" class="sensitive-warning">
+    <text class="warning-icon">⚠️</text>
+    <text class="warning-text">{{sensitiveWarning}}</text>
+  </view>
 
-    <view class="input-section">
-      <view class="section-title">写下你的问题</view>
-      <textarea 
-        class="content-input" 
-        placeholder="在这里写下你想讨论的问题，让多位导师从不同角度为你分析..."
-        value="{{content}}"
-        bindinput="onInput"
-        maxlength="500"
-        auto-height
-      ></textarea>
-      <view class="word-count">{{wordCount}}/500</view>
+  <view class="panel">
+    <view class="label">分析选项</view>
+    <view class="stamps-info">
+      <text class="stamps-text">本次分析消耗 3 次额度（当前：{{userStamps}}次）</text>
     </view>
+  </view>
 
-    <view class="submit-section">
-      <view class="stamp-info">
-        <text class="stamp-icon">🎫</text>
-        <text class="stamp-text">消耗3张邮票（当前：{{userStamps}}张）</text>
-      </view>
-      <button 
-        class="submit-btn {{!canSubmit ? 'disabled' : ''}}"
-        bindtap="handleSubmit"
-        disabled="{{!canSubmit}}"
-      >
-        {{featureEnabled ? '开始圆桌讨论' : '功能开发中'}}
-      </button>
-    </view>
+  <view class="submit-bar">
+    <button class="submit-btn {{!canSubmit ? 'disabled' : ''}}" bindtap="handleSubmit" disabled="{{!canSubmit}}">
+      🔍 提交多维度分析
+    </button>
   </view>
 </view>

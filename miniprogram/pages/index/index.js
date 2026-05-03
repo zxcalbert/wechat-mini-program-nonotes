@@ -111,7 +111,7 @@ Page({
         this.setData({ userStamps: 2 });
       }
     } catch (err) {
-      console.error('获取邮票失败:', err);
+      console.error('获取额度失败:', err);
       this.setData({ userStamps: 2 });
     }
   },
@@ -154,9 +154,12 @@ Page({
           displayRoundtables: roundtables
         });
         this.refreshDisplayItems();
+      } else {
+        console.error('获取圆桌会议失败:', result.error);
+        wx.showToast({ title: '圆桌记录加载失败', icon: 'none', duration: 2000 });
       }
     } catch (err) {
-      // 静默失败
+      console.error('获取圆桌会议异常:', err);
     }
   },
 
@@ -164,14 +167,25 @@ Page({
    * 格式化圆桌会议数据
    */
   formatRoundtables(data) {
-    return data.map(item => ({
-      ...item,
-      displayDate: cloudbaseUtil.formatDate(item.createTime),
-      type: 'roundtable',
-      tagText: '圆桌会议',
-      tagClass: 'tag-green',
-      content: item.content || '圆桌讨论'
-    }));
+    return data.map(item => {
+      const isProcessing = item.status === 'processing';
+      const isPartial = item.status === 'partial';
+      let statusExtra = '';
+      if (isProcessing) {
+        statusExtra = ' [生成中]';
+      } else if (isPartial) {
+        statusExtra = ' [部分完成]';
+      }
+      return {
+        ...item,
+        displayDate: cloudbaseUtil.formatDate(item.createTime),
+        type: 'roundtable',
+        tagText: isProcessing ? '圆桌会议(分析中)' : '多维度分析',
+        tagClass: isProcessing ? 'tag-green-fade' : 'tag-green',
+        content: (item.content || '圆桌讨论') + statusExtra,
+        isProcessing
+      };
+    });
   },
 
   /**
@@ -192,9 +206,11 @@ Page({
         const incubators = this.formatIncubators(result.data);
         this.setData({ incubators });
         this.refreshDisplayItems();
+      } else {
+        console.error('获取思想孵化器报告失败:', result.error);
       }
     } catch (err) {
-      console.error('获取思想孵化器报告失败:', err);
+      console.error('获取思想孵化器报告异常:', err);
     }
   },
 
@@ -230,9 +246,11 @@ Page({
         const structureAnalyses = this.formatStructureAnalyses(result.data);
         this.setData({ structureAnalyses });
         this.refreshDisplayItems();
+      } else {
+        console.error('获取结构分析报告失败:', result.error);
       }
     } catch (err) {
-      console.error('获取结构分析报告失败:', err);
+      console.error('获取结构分析报告异常:', err);
     }
   },
 
@@ -391,7 +409,7 @@ Page({
       displayDate: cloudbaseUtil.formatDate(item.createTime),
       statusLabel: this.getStatusLabel(item.status),
       type: 'letter',
-      tagText: '导师回信',
+      tagText: '分析方法',
       tagClass: 'tag-blue'
     }));
   },
@@ -447,9 +465,10 @@ Page({
 
   getStatusLabel(status) {
     const statusMap = {
-      'pending': '待回复',
-      'replied': '已回复',
-      'read': '已读',
+      'pending': '分析中',
+      'replied': '已完成',
+      'read': '已查看',
+      'saved': '已保存',
       'archived': '已归档'
     };
     return statusMap[status] || '未知';
@@ -475,7 +494,7 @@ Page({
         url: `../structureAnalysisResult/structureAnalysisResult?id=${id}`
       });
     } else {
-      // 导师回信跳转到详情页
+      // 分析结果跳转到详情页
       wx.navigateTo({
         url: `../detail/detail?id=${id}`
       });
@@ -585,7 +604,7 @@ Page({
     this.setData({ showFloatMenu: false });
   },
 
-  // 跳转到写信页面
+  // 跳转到分析页面
   goToWriteLetter: function() {
     this.hideFloatMenu();
     wx.navigateTo({

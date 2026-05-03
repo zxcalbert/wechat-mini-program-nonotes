@@ -1,46 +1,42 @@
 <view class="container {{themeClass}}">
   <scroll-view scroll-y="true" class="content">
-    <!-- 邮票余额卡片 -->
     <view class="stamp-card">
-      <view class="stamp-icon">🎫</view>
+      <view class="stamp-icon">🔍</view>
       <view class="stamp-info">
         <text class="current-stamps">{{userStamps}}</text>
-        <text class="stamps-label">张邮票</text>
+        <text class="stamps-label">次分析额度</text>
       </view>
     </view>
 
-    <!-- 免费邮票说明 -->
     <view class="info-section">
-      <text class="section-title">💝 免费邮票</text>
-      <text class="info-text">每个新用户获得 2 张免费邮票，可用于请求导师回信。</text>
-      <text class="info-text">每次请求回信消耗 1 张邮票。</text>
+      <text class="section-title">💝 免费额度</text>
+      <text class="info-text">每个新用户获得 2 次免费分析额度，可用于AI分析。</text>
+      <text class="info-text">每次分析消耗 1 次额度。</text>
       <text class="info-text">用完后需要购买。</text>
     </view>
 
-    <!-- 邮票机制说明 -->
     <view class="mechanism-section">
-      <text class="section-title">⏱️ 回信机制</text>
+      <text class="section-title">⏱️ 分析机制</text>
       <view class="mechanism-item">
         <text class="mechanism-bullet">•</text>
-        <text class="mechanism-text">寄出笔记后，导师将在 18 小时内回复</text>
+        <text class="mechanism-text">提交分析请求后，AI将在 18 小时内完成分析</text>
       </view>
       <view class="mechanism-item">
         <text class="mechanism-bullet">•</text>
-        <text class="mechanism-text">这个延迟可以帮助你深入思考和写作</text>
+        <text class="mechanism-text">这个机制可帮助你深入思考和沉淀</text>
       </view>
       <view class="mechanism-item">
         <text class="mechanism-bullet">•</text>
-        <text class="mechanism-text">每天最多可以寄信一次</text>
+        <text class="mechanism-text">每天最多可以提交6次分析请求</text>
       </view>
     </view>
 
-    <!-- 购买邮票 -->
     <view class="purchase-section">
-      <text class="section-title">🛒 购买邮票</text>
+      <text class="section-title">🛒 购买额度</text>
       
       <view class="stamp-package">
         <text class="package-name">基础包</text>
-        <text class="package-stamps">3 张邮票</text>
+        <text class="package-stamps">3 次额度</text>
         <text class="package-price">¥9.99</text>
         <button class="buy-btn" bindtap="buyPackage" data-stamps="3" data-price="9.99">购买</button>
       </view>
@@ -48,20 +44,19 @@
       <view class="stamp-package popular">
         <text class="popular-badge">热销</text>
         <text class="package-name">优享包</text>
-        <text class="package-stamps">10 张邮票</text>
+        <text class="package-stamps">10 次额度</text>
         <text class="package-price">¥24.99</text>
         <button class="buy-btn primary" bindtap="buyPackage" data-stamps="10" data-price="24.99">购买</button>
       </view>
 
       <view class="stamp-package">
         <text class="package-name">畅享包</text>
-        <text class="package-stamps">30 张邮票</text>
+        <text class="package-stamps">30 次额度</text>
         <text class="package-price">¥59.99</text>
         <button class="buy-btn" bindtap="buyPackage" data-stamps="30" data-price="59.99">购买</button>
       </view>
     </view>
 
-    <!-- 历史记录 -->
     <view class="history-section">
       <text class="section-title">📋 使用记录</text>
       

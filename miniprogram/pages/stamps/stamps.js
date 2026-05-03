@@ -27,9 +27,6 @@ Page({
     }
   },
 
-  /**
-   * 检查登录状态
-   */
   checkAuth() {
     const openid = wx.getStorageSync('openid');
     
@@ -45,9 +42,6 @@ Page({
     this.fetchHistory();
   },
 
-  /**
-   * 获取用户邮票数
-   */
   async fetchUserStamps() {
     try {
       const result = await cloudbaseUtil.query('users', {
@@ -57,18 +51,14 @@ Page({
 
       if (result.success && result.data.length > 0) {
         const userStamps = result.data[0].stamps;
-        // 只有当 stamps 字段不存在时才使用默认值 3
         const stamps = userStamps !== undefined ? userStamps : 3;
         this.setData({ userStamps: stamps });
       }
     } catch (err) {
-      console.error('获取邮票失败:', err);
+      console.error('获取额度失败:', err);
     }
   },
 
-  /**
-   * 获取使用历史
-   */
   async fetchHistory() {
     try {
       const result = await cloudbaseUtil.query('stampHistory', {
@@ -90,16 +80,13 @@ Page({
     }
   },
 
-  /**
-   * 购买邮票
-   */
   buyPackage(e) {
     const stamps = parseInt(e.currentTarget.dataset.stamps);
     const price = parseFloat(e.currentTarget.dataset.price);
 
     wx.showModal({
       title: '确认购买',
-      content: `确定购买 ${stamps} 张邮票，价格 ¥${price}？`,
+      content: `确定购买 ${stamps} 次分析额度，价格 ¥${price}？`,
       success: (res) => {
         if (res.confirm) {
           this.processPay(stamps, price);
@@ -108,18 +95,12 @@ Page({
     });
   },
 
-  /**
-   * 处理支付
-   */
   async processPay(stamps, price) {
     wx.showLoading({ title: '处理中...', mask: true });
 
     try {
-      // 这里应该调用真实的支付接口
-      // 暂时使用模拟支付
       const db = wx.cloud.database();
 
-      // 获取或创建用户记录
       const result = await cloudbaseUtil.query('users', {
         where: { _openid: this.data.openid },
         limit: 1
@@ -127,7 +108,6 @@ Page({
 
       let userDoc = result.data[0];
       if (!userDoc) {
-        // 创建用户记录
         const addRes = await db.collection('users').add({
           data: {
             stamps: stamps,
@@ -137,17 +117,15 @@ Page({
         });
         userDoc = { _id: addRes._id };
       } else {
-        // 更新邮票数
         await cloudbaseUtil.update('users', userDoc._id, {
           stamps: (userDoc.stamps !== undefined ? userDoc.stamps : 0) + stamps,
           totalPurchased: (userDoc.totalPurchased || 0) + stamps
         });
       }
 
-      // 记录历史
       await db.collection('stampHistory').add({
         data: {
-          action: `购买 ${stamps} 张邮票`,
+          action: `购买 ${stamps} 次分析额度`,
           change: stamps,
           price: price,
           time: db.serverDate()
@@ -160,7 +138,6 @@ Page({
         icon: 'success'
       });
 
-      // 刷新数据
       this.fetchUserStamps();
       this.fetchHistory();
     } catch (err) {
@@ -174,9 +151,6 @@ Page({
     }
   },
 
-  /**
-   * 返回
-   */
   goBack() {
     wx.navigateBack();
   }

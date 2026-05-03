@@ -99,13 +99,13 @@ page {
   color: #2b2318;
 }
 
-.mentor-fields {
+.method-fields {
   display: flex;
   flex-direction: column;
   gap: 20rpx;
 }
 
-.mentor-field {
+.method-field {
   background: #f8f2e8;
   border-radius: 16rpx;
   padding: 16rpx;
@@ -128,13 +128,13 @@ page {
   color: #5a4d3a;
 }
 
-.mentor-tags {
+.method-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 10rpx;
 }
 
-.mentor-tag {
+.method-tag {
   padding: 12rpx 20rpx;
   border-radius: 999rpx;
   background: #fff;
@@ -142,10 +142,9 @@ page {
   color: #5a4d3a;
   font-size: 24rpx;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
 }
 
-.mentor-tag.selected {
+.method-tag.selected {
   background: #1f6f5f !important;
   border-color: #1f6f5f !important;
   color: #fff !important;

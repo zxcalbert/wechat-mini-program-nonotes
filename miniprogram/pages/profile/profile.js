@@ -141,12 +141,12 @@ Page({
       wx.showModal({
         title: '修复完成',
         content: repairedIds.length > 0
-          ? `已修复 ${repairedIds.length} 条圆桌会议记录归属，返回首页后会显示。`
+          ? `已修复 ${repairedIds.length} 条多维度分析记录归属，返回首页后会显示。`
           : '这 4 条记录已经具备归属信息，或当前无需修复。',
         showCancel: false
       });
     } catch (err) {
-      console.error('修复圆桌归属失败:', err);
+      console.error('修复记录归属失败:', err);
       wx.showToast({
         title: '修复失败，请重试',
         icon: 'none'
@@ -154,6 +154,102 @@ Page({
     } finally {
       this.setData({ fixRoundtableLoading: false });
     }
+  },
+
+  async exportAllData() {
+    wx.showLoading({ title: '导出中...', mask: true });
+    try {
+      const cloudbaseUtil = require('../../utils/cloudbaseUtil');
+      const openid = wx.getStorageSync('openid');
+      let exportText = '# 智慧笔记 - 数据导出\n\n';
+
+      const letters = await cloudbaseUtil.query('letters', {
+        where: { _openid: openid },
+        limit: 100
+      });
+      if (letters.success && letters.data.length > 0) {
+        exportText += '## 分析记录\n\n';
+        letters.data.forEach((letter) => {
+          exportText += `### ${letter.displayMethod || letter.mentor || '分析'}\n`;
+          exportText += `- 内容：${letter.content || ''}\n`;
+          exportText += `- 分析结果：${letter.replyContent || '无'}\n`;
+          exportText += `- 时间：${letter.createTime ? new Date(letter.createTime).toLocaleString() : '未知'}\n\n`;
+        });
+      }
+
+      const roundtables = await cloudbaseUtil.query('roundtable_discussions', {
+        where: { _openid: openid },
+        limit: 100
+      });
+      if (roundtables.success && roundtables.data.length > 0) {
+        exportText += '## 多维度分析\n\n';
+        roundtables.data.forEach((rt) => {
+          exportText += `### ${rt.content || ''}\n`;
+          if (rt.discussions) {
+            rt.discussions.forEach((d) => {
+              exportText += `- ${d.mentor || ''}: ${d.reply || ''}\n`;
+            });
+          }
+          exportText += '\n';
+        });
+      }
+
+      wx.hideLoading();
+      wx.setClipboardData({
+        data: exportText,
+        success: () => {
+          wx.showToast({ title: '已复制到剪贴板', icon: 'success' });
+        }
+      });
+    } catch (err) {
+      wx.hideLoading();
+      console.error('导出失败:', err);
+      wx.showToast({ title: '导出失败', icon: 'none' });
+    }
+  },
+
+  async deleteAllData() {
+    wx.showModal({
+      title: '确认删除',
+      content: '此操作将删除您的所有分析记录，且无法恢复。确定继续吗？',
+      confirmColor: '#e74c3c',
+      success: async (res) => {
+        if (!res.confirm) return;
+
+        wx.showLoading({ title: '删除中...', mask: true });
+        try {
+          const cloudbaseUtil = require('../../utils/cloudbaseUtil');
+          const openid = wx.getStorageSync('openid');
+
+          const letters = await cloudbaseUtil.query('letters', {
+            where: { _openid: openid },
+            limit: 100
+          });
+          if (letters.success) {
+            for (const letter of letters.data) {
+              await cloudbaseUtil.delete('letters', letter._id);
+            }
+          }
+
+          const roundtables = await cloudbaseUtil.query('roundtable_discussions', {
+            where: { _openid: openid },
+            limit: 100
+          });
+          if (roundtables.success) {
+            for (const rt of roundtables.data) {
+              await cloudbaseUtil.delete('roundtable_discussions', rt._id);
+            }
+          }
+
+          wx.hideLoading();
+          wx.showToast({ title: '已删除全部数据', icon: 'success' });
+        } catch (err) {
+          wx.hideLoading();
+          console.error('删除失败:', err);
+          wx.showToast({ title: '删除失败', icon: 'none' });
+        }
+      }
+    });
   },
 
   goBack() {

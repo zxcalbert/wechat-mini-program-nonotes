@@ -90,7 +90,7 @@ Page({
       text += `=` .repeat(40) + `\n\n`;
     }
 
-    text += `【导师回复】\n\n`;
+    text += `【分析视角】\n\n`;
     for (const d of this.data.data.discussions) {
       text += `【${d.mentor} - ${d.field}】\n`;
       text += d.reply + `\n\n`;

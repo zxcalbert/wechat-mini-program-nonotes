@@ -34,13 +34,23 @@
 
     <view wx:if="{{showRoundtableFixButton}}" class="fix-section">
       <text class="fix-title">一次性修复</text>
-      <text class="fix-desc">修复 4 条历史圆桌会议缺少用户归属的问题。</text>
+      <text class="fix-desc">修复 4 条历史多维度分析缺少用户归属的问题。</text>
       <button
         class="btn btn-fix"
         bindtap="repairRoundtableOwnership"
         loading="{{fixRoundtableLoading}}"
       >
-        <text>修复历史圆桌记录</text>
+        <text>修复历史记录</text>
+      </button>
+    </view>
+
+    <view class="data-section">
+      <text class="section-title">数据管理</text>
+      <button class="btn btn-export" bindtap="exportAllData">
+        <text>导出全部数据</text>
+      </button>
+      <button class="btn btn-danger" bindtap="deleteAllData">
+        <text>删除全部数据</text>
       </button>
     </view>
   </view>

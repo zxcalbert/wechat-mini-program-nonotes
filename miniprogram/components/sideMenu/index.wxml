@@ -19,7 +19,7 @@
     <view class="menu-items">
       <view class="menu-item" bindtap="viewRoundtable">
         <text class="menu-icon">🗣️</text>
-        <text class="menu-text">圆桌会议</text>
+        <text class="menu-text">多维度分析</text>
       </view>
       
       <view class="menu-item" bindtap="viewProfile">
@@ -44,13 +44,12 @@
 
       <view class="menu-item" bindtap="viewStamps">
         <text class="menu-icon">🎫</text>
-        <text class="menu-text">邮票（{{userStamps}}张）</text>
+        <text class="menu-text">分析额度（{{userStamps}}次）</text>
       </view>
 
-      <!-- 邮票不足时显示购买提示 -->
       <view class="menu-item buy-stamp" wx:if="{{userStamps <= 1}}" bindtap="buyStamps">
         <text class="menu-icon">💰</text>
-        <text class="menu-text urgent">邮票不足，点击购买</text>
+        <text class="menu-text urgent">额度不足，点击购买</text>
       </view>
 
       <view class="menu-item" bindtap="viewAbout">
