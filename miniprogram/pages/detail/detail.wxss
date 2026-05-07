@@ -88,3 +88,20 @@ page {
   color: var(--secondaryTextColor, #999);
 }
 
+/* 导出 Markdown 按钮 */
+.export-section {
+  margin-top: 20rpx;
+  padding: 0 40rpx;
+}
+
+.export-btn {
+  background-color: var(--backgroundColor, #f8f9fa);
+  border: 1rpx solid var(--borderColor, #dee2e6);
+  border-radius: 12rpx;
+  padding: 20rpx;
+  text-align: center;
+  font-size: 28rpx;
+  color: var(--secondaryTextColor, #6c757d);
+}
+
+

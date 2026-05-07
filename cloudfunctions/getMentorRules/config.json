@@ -1,6 +1,6 @@
 {
   "name": "getMentorRules",
-  "description": "获取AI大师和心境规则库",
+  "description": "获取分析方法规则库",
   "runtime": "nodejs14",
   "memorySize": 256,
   "timeout": 30

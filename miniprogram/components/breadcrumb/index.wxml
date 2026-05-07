@@ -1,0 +1,10 @@
+<view class="breadcrumb">
+  <block wx:for="{{displayPaths}}" wx:key="index">
+    <text
+      class="breadcrumb-item {{item.isLast ? 'breadcrumb-last' : ''}}"
+      bindtap="onItemTap"
+      data-index="{{index}}"
+    >{{item.name}}</text>
+    <text wx:if="{{!item.isLast}}" class="breadcrumb-sep">/</text>
+  </block>
+</view>

@@ -12,9 +12,9 @@ Page({
   },
 
   onLoad: function() {
-    const systemInfo = wx.getSystemInfoSync();
+    const windowInfo = wx.getWindowInfo();
     this.setData({ 
-      statusBarHeight: systemInfo.statusBarHeight,
+      statusBarHeight: windowInfo.statusBarHeight,
       themeClass: app.getThemeClass()
     });
     this.checkAuth();
@@ -52,32 +52,49 @@ Page({
     this.setData({ loading: true });
 
     try {
-      const result = await cloudbaseUtil.query('letters', {
-        where: { _openid: this.data.openid },
-        orderBy: 'deleteTime',
-        orderDirection: 'desc',
-        limit: 100
-      });
+      const openid = this.data.openid;
+      const allDeleted = [];
 
-      if (result.success) {
-        // 在客户端过滤已删除的笔记
-        const deletedLetters = result.data
-          .filter(item => item.deleted === true)
-          .map(item => ({
-            ...item,
-            displayDate: cloudbaseUtil.formatDate(item.deleteTime || item.createTime),
-            statusLabel: this.getStatusLabel(item.status)
-          }));
+      // 查询所有集合中软删除的记录
+      const collections = [
+        { name: 'letters', type: 'letter', label: '笔记' },
+        { name: 'roundtable_discussions', type: 'roundtable', label: '多维度分析' },
+        { name: 'incubator_reports', type: 'incubator', label: '孵化报告' },
+        { name: 'structure_analysis_reports', type: 'structure_analysis', label: '结构分析' }
+      ];
 
-        this.setData({
-          deletedLetters,
-          empty: deletedLetters.length === 0
-        });
-        console.log('回收站加载成功，共', deletedLetters.length, '篇笔记');
-      } else {
-        wx.showToast({ title: '加载失败', icon: 'error' });
-        console.error('查询失败:', result.error);
+      for (const col of collections) {
+        try {
+          const result = await cloudbaseUtil.query(col.name, {
+            where: { _openid: openid, deleted: true },
+            orderBy: 'deleteTime',
+            orderDirection: 'desc',
+            limit: 100
+          });
+          if (result.success && result.data.length > 0) {
+            result.data.forEach(item => {
+              allDeleted.push({
+                ...item,
+                type: item.originalType || col.type,
+                typeLabel: col.label,
+                displayDate: cloudbaseUtil.formatDate(item.deleteTime || item.createTime),
+                statusLabel: this.getStatusLabel(item.status),
+                collectionName: col.name
+              });
+            });
+          }
+        } catch (e) {
+          console.error('查询' + col.label + '失败:', e);
+        }
       }
+
+      // 按删除时间降序排列
+      allDeleted.sort((a, b) => (b.deleteTime || 0) - (a.deleteTime || 0));
+
+      this.setData({
+        deletedLetters: allDeleted,
+        empty: allDeleted.length === 0
+      });
     } finally {
       this.setData({ loading: false });
     }
@@ -101,13 +118,14 @@ Page({
    */
   restoreLetter: function(event) {
     const letterId = event.currentTarget.dataset.id;
+    const collectionName = event.currentTarget.dataset.collection || 'letters';
 
     wx.showModal({
-      title: '恢复笔记',
-      content: '确定要恢复这篇笔记吗？',
+      title: '恢复记录',
+      content: '确定要恢复这条记录吗？',
       success: async (res) => {
         if (res.confirm) {
-          const result = await cloudbaseUtil.update('letters', letterId, {
+          const result = await cloudbaseUtil.update(collectionName, letterId, {
             deleted: false,
             deleteTime: null
           });
@@ -139,14 +157,15 @@ Page({
    */
   permanentDelete: function(event) {
     const letterId = event.currentTarget.dataset.id;
+    const collectionName = event.currentTarget.dataset.collection || 'letters';
 
     wx.showModal({
       title: '永久删除',
-      content: '确定要永久删除这篇笔记吗？此操作不可恢复！',
+      content: '确定要永久删除这条记录吗？此操作不可恢复！',
       confirmColor: '#ff4d4f',
       success: async (res) => {
         if (res.confirm) {
-          const result = await cloudbaseUtil.delete('letters', letterId);
+          const result = await cloudbaseUtil.delete(collectionName, letterId);
 
           if (result.success) {
             wx.showToast({

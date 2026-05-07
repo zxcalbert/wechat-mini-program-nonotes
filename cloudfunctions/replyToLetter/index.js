@@ -1,16 +1,9 @@
 const cloud = require('wx-server-sdk');
 const axios = require('axios');
 const sensitiveWordDetector = require('./sensitiveWordDetector');
-// 优先加载扩展版分析方法规则，如果没有则回退到原版
-let mentorRules;
-try {
-  mentorRules = require('./mentorRules_expanded.json');
-  console.log('已加载扩展版分析方法规则，共', Object.keys(mentorRules.mentors).length, '种方法');
-  console.log('领域配置:', Object.keys(mentorRules.fields || {}));
-} catch (e) {
-  console.log('未找到扩展版分析方法规则，使用原版');
-  mentorRules = require('./mentorRules.json');
-}
+const mentorRules = require('./mentorRules.json');
+const prompts = require('./prompts');
+console.log('已加载分析方法规则，共', Object.keys(mentorRules.mentors).length, '种方法');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
 function getOpenIdFromContext(context) {
@@ -35,24 +28,9 @@ function addAIDisclaimer(replyContent, methodName) {
 }
 
 // ==================== 字数自适应引擎 ====================
-
-const wordCountConfig = {
-  simple: { min: 200, max: 200, maxTokens: 280, label: '简单' },
-  medium: { min: 200, max: 300, maxTokens: 400, label: '中等' },
-  complex: { min: 400, max: 500, maxTokens: 650, label: '复杂' }
-};
-
-function estimateComplexity(userContent) {
-  const length = userContent.length;
-  if (length < 100) return 'simple';
-  if (length > 300) return 'complex';
-  return 'medium';
-}
-
-function getWordCountConfig(userContent) {
-  const complexity = estimateComplexity(userContent);
-  return wordCountConfig[complexity];
-}
+const wordCountConfig = prompts.wordCountConfig;
+const estimateComplexity = prompts.estimateComplexity;
+const getWordCountConfig = prompts.getWordCountConfig;
 
 function countChineseWords(text) {
   const chineseChars = text.match(/[\u4e00-\u9fa5]/g) || [];
@@ -89,141 +67,14 @@ function truncateByChineseWords(text, maxWords) {
   return lastPunc > 0 ? best.substring(0, lastPunc + 1) : best;
 }
 
-// ==================== 超详细提示词组装器 ====================
-
-// AI自主推断情绪的提示词生成器
-function getAIDeducedPrompt(mentorData, content, mentorName) {
-  const config = getWordCountConfig(content);
-
-  let prompt = `【分析方法约束部分（不可变，来自规则库）】
-请运用${mentorName}的核心理论框架，客观分析以下问题。遵循以下核心原则：
-`;
-
-  mentorData.corePrinciples.forEach((principle) => {
-    prompt += `${principle}\n`;
-  });
-
-  prompt += `
-【重要约束 - 合规要求】
-1. 不要模拟任何人物的身份、语气或人格
-2. 不要使用第一人称（"我"、"我们认为"）
-3. 以书面分析报告的形式呈现
-4. 列出分析逻辑和推导过程
-5. 明确标注哪些是${mentorName}的核心理论，哪些是分析推导的扩展
-6. 不要编造不存在的书籍、演讲或事件
-7. 回复必须直接、具体、有针对性，避免空泛
-
-【分析角度推断】
-请根据用户的以下内容，自主判断其核心关注点，并据此调整分析重点：
-- 如果用户表现出焦虑：侧重冷静分析和长期视角
-- 如果用户表现出急躁：强调耐心和理性决策的重要性
-- 如果用户表现平和：深入探讨方法论和长期思考
-- 如果用户表现出困惑：帮助理清思路和方向
-
-【分析方法框架】
-分析框架名称：
-${mentorName}
-
-核心思考框架：
-`;
-
-  mentorData.thinkingFrameworks.forEach((framework) => {
-    prompt += `${framework}\n`;
-  });
-
-  prompt += `
-常用分析角度：
-`;
-
-  mentorData.commonQuestions.forEach((question) => {
-    prompt += `${question}\n`;
-  });
-
-  prompt += `
-基于以上约束，针对用户的问题：
-${content}
-
-【字数自适应要求】
-- 先评估内容复杂度：${config.label}
-- ${config.label}问题：${config.min}-${config.max}字
-- 上限：严格${config.max}字，不得超过
-
-请以客观分析报告的形式回复，${config.min}-${config.max}字。无需重复约束条件。
-`;
-
-  return prompt;
-}
-
-// 历史数据兼容的提示词生成器
-function getOriginalPrompt(mentorData, moodData, content, mentorName) {
-  const config = getWordCountConfig(content);
-
-  let prompt = `【分析方法约束部分（不可变，来自规则库）】
-请运用${mentorName}的核心理论框架，客观分析以下问题。遵循以下核心原则：
-`;
-
-  mentorData.corePrinciples.forEach((principle) => {
-    prompt += `${principle}\n`;
-  });
-
-  prompt += `
-【重要约束 - 合规要求】
-1. 不要模拟任何人物的身份、语气或人格
-2. 不要使用第一人称（"我"、"我们认为"）
-3. 以书面分析报告的形式呈现
-4. 列出分析逻辑和推导过程
-5. 明确标注哪些是${mentorName}的核心理论，哪些是分析推导的扩展
-6. 不要编造不存在的书籍、演讲或事件
-7. 回复必须直接、具体、有针对性，避免空泛
-
-用户当前关注点：${moodData.name || '平和'}
-- 分析语气：${moodData.tone}
-- 分析重点：${moodData.focus}
-- 必须涵盖以下关键点：
-`;
-
-  moodData.keyPoints.forEach((point) => {
-    prompt += `${point}\n`;
-  });
-
-  prompt += `
-【分析方法框架】
-分析框架名称：
-${mentorName}
-
-核心思考框架：
-`;
-
-  mentorData.thinkingFrameworks.forEach((framework) => {
-    prompt += `${framework}\n`;
-  });
-
-  prompt += `
-常用分析角度：
-`;
-
-  mentorData.commonQuestions.forEach((question) => {
-    prompt += `${question}\n`;
-  });
-
-  prompt += `
-基于以上约束，针对用户的问题：
-${content}
-
-【字数自适应要求】
-- 先评估内容复杂度：${config.label}
-- ${config.label}问题：${config.min}-${config.max}字
-- 上限：严格${config.max}字，不得超过
-
-请以客观分析报告的形式回复，${config.min}-${config.max}字。
-`;
-
-  return prompt;
-}
+// ==================== 提示词组装器（从 prompts.js 引入） ====================
+const getAIDeducedPrompt = prompts.getAIDeducedPrompt;
+const getOriginalPrompt = prompts.getOriginalPrompt;
+const getMindmapPrompt = prompts.getMindmapPrompt;
 
 // 为不同分析方法生成个性化的系统提示词
 function getMentorPrompt(mentor, mood, content) {
-  const mentorData = mentorRules.mentors[mentor] || mentorRules.mentors['查理·芒格'];
+  const mentorData = mentorRules.mentors[mentor] || mentorRules.mentors['多元思维模型分析'];
   
   // mood兼容处理：AI推断 vs 历史数据
   if (mood === null || mood === '由AI推断' || !mood) {
@@ -750,6 +601,229 @@ function ensureStructureAnalysisSummary(report, analysisType) {
   return `${parts[0].trim()}\n\n${fallbackSummary.trim()}`;
 }
 
+async function generateMindmapJSON(analysisContent, methodName) {
+  const prompt = getMindmapPrompt(analysisContent, methodName);
+  const maxRetries = 2;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      if (attempt > 0) {
+        console.log('脑图生成第' + attempt + '次重试...');
+      }
+
+      const rawReply = await callDeepSeekAPI(prompt, analysisContent, {
+        maxTokens: 1000,
+        skipTruncate: true
+      });
+
+      const mindmapData = extractMindmapJSON(rawReply);
+
+      // 兼容两种数据结构：新版 sections 格式和旧版 children 格式
+      if (mindmapData.sections && Array.isArray(mindmapData.sections)) {
+        if (mindmapData.sections.length < 2) {
+          throw new Error('脑图章节数不足: ' + mindmapData.sections.length);
+        }
+      } else if (mindmapData.children && Array.isArray(mindmapData.children)) {
+        // 旧版格式兼容：转换为 sections 格式
+        mindmapData.sections = mindmapData.children.map(function(child, i) {
+          return {
+            id: child.id || 's' + (i + 1),
+            title: child.label || '章节',
+            summary: child.detail || '',
+            color: child.color || '#4A90D9',
+            points: (child.children || []).map(function(sub, j) {
+              return {
+                id: sub.id || 's' + (i + 1) + '-' + (j + 1),
+                title: sub.label || '要点',
+                detail: sub.detail || ''
+              };
+            })
+          };
+        });
+        mindmapData.summary = mindmapData.title || '';
+        delete mindmapData.children;
+      } else {
+        throw new Error('脑图JSON结构不完整: 缺少sections或children');
+      }
+
+      if (!mindmapData.title) {
+        mindmapData.title = methodName + '分析';
+      }
+
+      return { success: true, data: mindmapData };
+    } catch (err) {
+      console.error('脑图生成失败(第' + (attempt + 1) + '次):', err.message);
+      if (attempt === maxRetries) {
+        // 最后一次尝试失败，生成降级脑图
+        console.log('使用降级方案生成脑图');
+        return {
+          success: true,
+          data: generateFallbackMindmap(analysisContent, methodName)
+        };
+      }
+    }
+  }
+
+  return { success: false, error: '所有尝试均失败' };
+}
+
+// H5: Flipbook 深入探索 — 从已有分析中提取子主题，生成新的短分析
+async function generateDeepExploration(sourceContent, sourceMethod) {
+  var prompt = '你是一个知识探索助手。以下是一段已有的分析方法结果，请从中选择一个最值得深入的子主题，生成一段简短的新分析（200-400字）。\n\n' +
+    '原始分析（来自「' + sourceMethod + '」）：\n' + sourceContent.substring(0, 800) + '\n\n' +
+    '要求：\n' +
+    '1. 选择一个子主题深入分析，不要重复原文\n' +
+    '2. 从不同角度展开思考\n' +
+    '3. 返回JSON格式（只输出JSON）：\n' +
+    '{"title": "深入主题标题", "content": "简短分析内容（200-400字）", "method": "推荐使用的方法名（可选）"}\n' +
+    '4. 严格JSON格式，不要markdown代码块';
+
+  try {
+    var rawReply = await callDeepSeekAPI(prompt, sourceContent.substring(0, 500), {
+      maxTokens: 800,
+      skipTruncate: true
+    });
+
+    var jsonStr = rawReply.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    var match = jsonStr.match(/\{[\s\S]*\}/);
+    if (!match) {
+      return { success: false, error: '无法解析探索结果' };
+    }
+
+    var result = JSON.parse(match[0]);
+    return {
+      success: true,
+      data: {
+        title: result.title || '深入探索',
+        content: result.content || '',
+        method: result.method || sourceMethod
+      }
+    };
+  } catch (err) {
+    console.error('深入探索生成失败:', err);
+    return { success: false, error: '深入探索生成失败: ' + err.message };
+  }
+}
+
+/**
+ * 从 AI 回复中提取脑图 JSON，支持多种格式容错
+ */
+function extractMindmapJSON(rawReply) {
+  let jsonStr = rawReply.trim();
+
+  // 尝试1: 直接解析
+  try {
+    return JSON.parse(jsonStr);
+  } catch (e) {}
+
+  // 尝试2: 去掉 markdown 代码块包裹
+  const codeBlockMatch = jsonStr.match(/```(?:json)?\s*\n?([\s\S]*?)\n?\s*```/);
+  if (codeBlockMatch) {
+    try {
+      return JSON.parse(codeBlockMatch[1].trim());
+    } catch (e) {}
+  }
+
+  // 尝试3: 查找第一个 { 到最后一个 } 之间的内容
+  const firstBrace = jsonStr.indexOf('{');
+  const lastBrace = jsonStr.lastIndexOf('}');
+  if (firstBrace >= 0 && lastBrace > firstBrace) {
+    try {
+      return JSON.parse(jsonStr.substring(firstBrace, lastBrace + 1));
+    } catch (e) {}
+  }
+
+  // 尝试4: 移除常见的非JSON前缀文字
+  const jsonStart = jsonStr.indexOf('{"');
+  if (jsonStart >= 0) {
+    try {
+      return JSON.parse(jsonStr.substring(jsonStart));
+    } catch (e) {}
+  }
+
+  throw new Error('无法从AI回复中提取有效JSON: ' + jsonStr.substring(0, 100));
+}
+
+/**
+ * 降级方案：从分析内容中自动提取章节结构生成脑图
+ */
+function generateFallbackMindmap(analysisContent, methodName) {
+  var lines = analysisContent.split('\n');
+  var sections = [];
+  var currentSection = null;
+  var colors = ['#4A90D9', '#27AE60', '#E67E22', '#E74C3C', '#9B59B6'];
+
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i].trim();
+
+    // 检测二级标题 ## 作为 section
+    if (/^##\s+/.test(line)) {
+      var title = line.replace(/^##\s+/, '').trim();
+      if (title.length > 0 && title.length <= 20) {
+        currentSection = {
+          id: 's' + (sections.length + 1),
+          title: title,
+          summary: '',
+          color: colors[sections.length % colors.length],
+          points: []
+        };
+        sections.push(currentSection);
+      }
+      continue;
+    }
+
+    // 在当前 section 下提取列表项作为 points
+    if (currentSection && (/^[\-\*]\s+/.test(line) || /^\d+\.\s+/.test(line))) {
+      var pointText = line.replace(/^[\-\*]\s+/, '').replace(/^\d+\.\s+/, '');
+      pointText = pointText.replace(/\*\*(.+?)\*\*/g, '$1').trim();
+      if (pointText.length > 2 && pointText.length <= 30) {
+        currentSection.points.push({
+          id: currentSection.id + '-' + (currentSection.points.length + 1),
+          title: pointText.substring(0, 10),
+          detail: pointText
+        });
+      }
+    }
+
+    // 第一段非标题文字作为 summary
+    if (currentSection && !currentSection.summary && line.length > 5 && !/^#/.test(line)) {
+      currentSection.summary = line.substring(0, 25);
+    }
+  }
+
+  // 限制 sections 数量
+  if (sections.length > 6) {
+    sections = sections.slice(0, 6);
+  }
+  // 每个 section 限制 points
+  sections.forEach(function(s) {
+    if (s.points.length > 4) {
+      s.points = s.points.slice(0, 4);
+    }
+  });
+
+  // 兜底
+  if (sections.length < 2) {
+    sections = [
+      { id: 's1', title: '核心观点', summary: '分析的核心结论', color: '#4A90D9', points: [
+        { id: 's1-1', title: '主要发现', detail: '基于分析的主要发现' }
+      ]},
+      { id: 's2', title: '分析要点', summary: '分析的关键维度', color: '#27AE60', points: [
+        { id: 's2-1', title: '关键因素', detail: '影响结论的关键因素' }
+      ]},
+      { id: 's3', title: '行动建议', summary: '基于分析的下一步', color: '#9B59B6', points: [
+        { id: 's3-1', title: '建议方向', detail: '建议的后续行动方向' }
+      ]}
+    ];
+  }
+
+  return {
+    title: methodName + '分析',
+    summary: '基于' + methodName + '的结构化分析',
+    sections: sections
+  };
+}
+
 exports.main = async (event, context) => {
   const { letterId, replyContent, mentor, mood, content, type, mentors, analysisType } = event;
   const db = cloud.database();
@@ -1083,7 +1157,7 @@ exports.main = async (event, context) => {
       for (const m of sortedMentors) {
         try {
           const systemPrompt = getMentorPrompt(m, '平和', content);
-          const mentorData = mentorRules.mentors[m] || mentorRules.mentors['查理·芒格'];
+          const mentorData = mentorRules.mentors[m] || mentorRules.mentors['多元思维模型分析'];
           const previousReplies = discussions.map(d => d.reply);
           
           let reply = null;
@@ -1177,6 +1251,23 @@ exports.main = async (event, context) => {
           createTime: new Date().toISOString()
         }
       };
+    }
+
+    if (type === 'mindmap') {
+      const { analysisContent, methodName } = event;
+      if (!analysisContent) {
+        return { success: false, message: '缺少分析内容' };
+      }
+      return await generateMindmapJSON(analysisContent, methodName || '分析方法');
+    }
+
+    // H5: Flipbook 深入探索 — 从已有分析中提取子主题并生成新分析
+    if (type === 'deepexplore') {
+      const { sourceContent, sourceMethod } = event;
+      if (!sourceContent) {
+        return { success: false, message: '缺少源分析内容' };
+      }
+      return await generateDeepExploration(sourceContent, sourceMethod || '分析方法');
     }
 
     if (mentor && content) {

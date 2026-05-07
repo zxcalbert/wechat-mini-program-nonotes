@@ -19,8 +19,8 @@
 
       <!-- 操作按钮 -->
       <view class="note-actions" catchtap="stopPropagation">
-        <button class="action-btn restore-btn" size="mini" bindtap="restoreLetter" data-id="{{item._id}}">恢复</button>
-        <button class="action-btn delete" size="mini" bindtap="permanentDelete" data-id="{{item._id}}">永久删除</button>
+        <button class="action-btn restore-btn" size="mini" bindtap="restoreLetter" data-id="{{item._id}}" data-collection="{{item.collectionName}}">恢复</button>
+        <button class="action-btn delete" size="mini" bindtap="permanentDelete" data-id="{{item._id}}" data-collection="{{item.collectionName}}">永久删除</button>
       </view>
     </view>
 

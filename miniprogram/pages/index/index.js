@@ -25,6 +25,7 @@ Page({
     statusBarHeight: 0,
     themeIcon: '🌓',
     themeClass: '',
+    fontClass: '',
     menuButtonRight: 0,
     navbarPaddingRight: 16,
     
@@ -36,31 +37,70 @@ Page({
     isLoadingMore: false,
     
     // 浮动菜单
-    showFloatMenu: false
+    showFloatMenu: false,
+
+    // 领域卡片数据
+    domains: [
+      {
+        id: 'value',
+        name: '价值思维',
+        icon: '💰',
+        color: '#8b4513',
+        methods: ['多元思维模型分析', '价值投资分析框架', '安全边际分析'],
+        count: 0
+      },
+      {
+        id: 'innovation',
+        name: '创新创业',
+        icon: '🚀',
+        color: '#2ecc71',
+        methods: ['本分经营分析', '极简产品分析', '创新设计分析', '第一性原理分析', '长期主义分析', '垄断竞争分析'],
+        count: 0
+      },
+      {
+        id: 'psychology',
+        name: '心理学',
+        icon: '🧠',
+        color: '#9b59b6',
+        methods: ['原型心理分析', '精神分析框架', '人本精神分析', '目的论分析', '需求层次分析'],
+        count: 0
+      },
+      {
+        id: 'philosophy',
+        name: '哲学',
+        icon: '📖',
+        color: '#34495e',
+        methods: ['道家思想分析', '儒家伦理分析', '苏格拉底式提问', '理念论分析', '幸福伦理学分析', '超人哲学分析', '语言哲学分析'],
+        count: 0
+      }
+    ],
+    showDomainCards: true
   },
 
   onLoad: function() {
-    const systemInfo = wx.getSystemInfoSync();
-    
+    const windowInfo = wx.getWindowInfo();
+
     let menuButtonRight = 0;
     let navbarPaddingRight = 16;
-    
+
     try {
       const menuButton = wx.getMenuButtonBoundingClientRect();
       if (menuButton && menuButton.right) {
-        const screenWidth = systemInfo.screenWidth;
+        const screenWidth = windowInfo.screenWidth;
         menuButtonRight = screenWidth - menuButton.right;
         navbarPaddingRight = menuButton.width + menuButtonRight + 8;
       }
     } catch (e) {
       console.warn('获取胶囊按钮位置失败:', e);
     }
-    
-    this.setData({ 
-      statusBarHeight: systemInfo.statusBarHeight,
+
+    this.setData({
+      statusBarHeight: windowInfo.statusBarHeight,
       themeClass: app.getThemeClass(),
+      fontClass: app.getFontSizeClass(),
       menuButtonRight,
-      navbarPaddingRight
+      navbarPaddingRight,
+      openid: wx.getStorageSync('openid') || ''
     });
     this.checkAuth();
     this.generateHeatmapData();
@@ -80,6 +120,45 @@ Page({
     this.fetchRoundtables();
     this.fetchIncubators();
     this.fetchStructureAnalyses();
+    this._countDomainUsage();
+  },
+
+  /**
+   * 统计各领域的使用次数
+   */
+  _countDomainUsage() {
+    var letters = this.data.letters || [];
+    var domains = this.data.domains.map(function(d) {
+      var count = 0;
+      letters.forEach(function(l) {
+        if (d.methods.indexOf(l.mentor) >= 0) count++;
+      });
+      return Object.assign({}, d, { count: count });
+    });
+    this.setData({ domains: domains });
+  },
+
+  /**
+   * 点击领域卡片 — 进入该领域的分析方法列表
+   */
+  goToDomain(e) {
+    var domainId = e.currentTarget.dataset.id;
+    wx.navigateTo({
+      url: '../domainDetail/domainDetail?domain=' + domainId
+    });
+  },
+
+  /**
+   * 切换领域卡片显示
+   */
+  toggleDomainCards() {
+    this.setData({ showDomainCards: !this.data.showDomainCards });
+  },
+
+  goToKnowledgeMap() {
+    wx.navigateTo({
+      url: '../knowledgeMap/knowledgeMap'
+    });
   },
 
   checkAuth: function() {
@@ -155,11 +234,11 @@ Page({
         });
         this.refreshDisplayItems();
       } else {
-        console.error('获取圆桌会议失败:', result.error);
-        wx.showToast({ title: '圆桌记录加载失败', icon: 'none', duration: 2000 });
+        console.error('获取多维度分析失败:', result.error);
+        wx.showToast({ title: '多维度分析加载失败', icon: 'none', duration: 2000 });
       }
     } catch (err) {
-      console.error('获取圆桌会议异常:', err);
+      console.error('获取多维度分析异常:', err);
     }
   },
 
@@ -180,7 +259,7 @@ Page({
         ...item,
         displayDate: cloudbaseUtil.formatDate(item.createTime),
         type: 'roundtable',
-        tagText: isProcessing ? '圆桌会议(分析中)' : '多维度分析',
+        tagText: isProcessing ? '多维度分析(分析中)' : '多维度分析',
         tagClass: isProcessing ? 'tag-green-fade' : 'tag-green',
         content: (item.content || '圆桌讨论') + statusExtra,
         isProcessing
@@ -446,21 +525,59 @@ Page({
     }
   },
 
-  generateHeatmapData() {
-    const today = new Date();
-    const oneYearAgo = new Date(today.getTime() - 365 * 24 * 60 * 60 * 1000);
-    const data = [];
+  async generateHeatmapData() {
+    const openid = this.data.openid;
+    if (!openid) return;
 
-    for (let d = new Date(oneYearAgo); d <= today; d.setDate(d.getDate() + 1)) {
-      const dateStr = d.toISOString().split('T')[0];
-      const count = Math.floor(Math.random() * 4);
-      data.push({
-        date: dateStr,
-        count: count
-      });
+    try {
+      const today = new Date();
+      const oneYearAgo = new Date(today.getTime() - 365 * 24 * 60 * 60 * 1000);
+
+      const countMap = {};
+      for (let d = new Date(oneYearAgo); d <= today; d.setDate(d.getDate() + 1)) {
+        countMap[d.toISOString().split('T')[0]] = 0;
+      }
+
+      const queries = [
+        { collection: 'letters', field: 'createTime' },
+        { collection: 'roundtable_discussions', field: 'createTime' },
+        { collection: 'incubator_reports', field: 'createTime' },
+        { collection: 'structure_analysis_reports', field: 'createTime' }
+      ];
+
+      for (const q of queries) {
+        try {
+          const result = await cloudbaseUtil.query(q.collection, {
+            where: { _openid: openid },
+            orderBy: 'createTime',
+            orderDirection: 'desc',
+            limit: 500
+          });
+          if (result.success && result.data) {
+            result.data.forEach(item => {
+              if (item[q.field]) {
+                const dateStr = new Date(item[q.field]).toISOString().split('T')[0];
+                if (countMap.hasOwnProperty(dateStr)) {
+                  countMap[dateStr]++;
+                }
+              }
+            });
+          }
+        } catch (e) {
+          console.error('热力图数据查询失败:', q.collection, e);
+        }
+      }
+
+      const heatmapData = Object.keys(countMap).map(date => ({
+        date: date,
+        count: countMap[date]
+      }));
+
+      this.setData({ heatmapData });
+    } catch (err) {
+      console.error('生成热力图数据失败:', err);
+      this.setData({ heatmapData: [] });
     }
-
-    this.setData({ heatmapData: data });
   },
 
   getStatusLabel(status) {
@@ -501,42 +618,75 @@ Page({
     }
   },
 
-  deleteLetter: function(event) {
-    const letterId = event.currentTarget.dataset.id;
-    
+  deleteItem: function(event) {
+    const itemId = event.currentTarget.dataset.id;
+    const itemType = event.currentTarget.dataset.type;
+
+    const collectionMap = {
+      'letter': 'letters',
+      'roundtable': 'roundtable_discussions',
+      'incubator': 'incubator_reports',
+      'structure_analysis': 'structure_analysis_reports'
+    };
+
+    const typeLabelMap = {
+      'letter': '笔记',
+      'roundtable': '多维度分析',
+      'incubator': '孵化报告',
+      'structure_analysis': '结构分析'
+    };
+
+    const reloadMap = {
+      'letter': 'fetchLetters',
+      'roundtable': 'fetchRoundtables',
+      'incubator': 'fetchIncubators',
+      'structure_analysis': 'fetchStructureAnalyses'
+    };
+
+    const collection = collectionMap[itemType];
+    const typeLabel = typeLabelMap[itemType] || '记录';
+    const reloadFn = reloadMap[itemType];
+
+    if (!collection) {
+      wx.showToast({ title: '无法删除', icon: 'none' });
+      return;
+    }
+
     wx.showModal({
-      title: '删除笔记',
-      content: '确定要删除这篇笔记吗？可以在回收站恢复。',
+      title: '删除' + typeLabel,
+      content: '确定要删除这条' + typeLabel + '吗？',
       success: async (res) => {
         if (res.confirm) {
-          const result = await cloudbaseUtil.update('letters', letterId, {
-            deleted: true,
-            deleteTime: new Date().getTime()
-          });
-          
-          if (result.success) {
-            wx.showToast({ 
-              title: '已移入回收站',
-              icon: 'success'
+          try {
+            let result;
+            // 所有类型统一走软删除，保证回收站可见
+            result = await cloudbaseUtil.update(collection, itemId, {
+              deleted: true,
+              deleteTime: new Date().getTime(),
+              originalType: itemType
             });
-            
-            // 删除缓存
-            const openid = this.data.openid;
-            const cachePrefix = `letters_${openid}_`;
-            const storageInfo = wx.getStorageInfoSync();
-            storageInfo.keys.forEach(key => {
-              if (key.startsWith(cachePrefix)) {
-                wx.removeStorageSync(key);
+
+            if (result.success) {
+              wx.showToast({ title: '已移入回收站', icon: 'success' });
+
+              if (itemType === 'letter') {
+                const openid = this.data.openid;
+                const cachePrefix = `letters_${openid}_`;
+                const storageInfo = wx.getStorageInfoSync();
+                storageInfo.keys.forEach(key => {
+                  if (key.startsWith(cachePrefix)) wx.removeStorageSync(key);
+                });
               }
-            });
-            
-            // 重新加载
-            this.fetchLetters();
-          } else {
-            wx.showToast({ 
-              title: '删除失败',
-              icon: 'error'
-            });
+
+              if (reloadFn && typeof this[reloadFn] === 'function') {
+                this[reloadFn]();
+              }
+            } else {
+              wx.showToast({ title: '删除失败', icon: 'error' });
+            }
+          } catch (err) {
+            console.error('删除失败:', err);
+            wx.showToast({ title: '删除失败', icon: 'error' });
           }
         }
       }
@@ -556,7 +706,10 @@ Page({
   },
 
   onThemeChanged() {
-    this.setData({ themeClass: app.getThemeClass() });
+    this.setData({
+      themeClass: app.getThemeClass(),
+      fontClass: app.getFontSizeClass()
+    });
   },
 
   /**
@@ -692,8 +845,11 @@ Page({
   toggleTheme: function() {
     app.toggleTheme();
     this.updateThemeIcon();
-    this.setData({ themeClass: app.getThemeClass() });
-    
+    this.setData({
+      themeClass: app.getThemeClass(),
+      fontClass: app.getFontSizeClass()
+    });
+
     const theme = app.getTheme();
     let tip;
     if (theme === 'system') {

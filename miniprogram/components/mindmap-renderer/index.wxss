@@ -1,0 +1,17 @@
+.mindmap-container {
+  position: relative;
+  width: 100%;
+  background: #FAFBFC;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.mindmap-canvas {
+  width: 100%;
+  height: 400px;
+}
+
+.mindmap-image {
+  width: 100%;
+  display: block;
+}

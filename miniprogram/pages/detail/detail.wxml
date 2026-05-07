@@ -1,4 +1,4 @@
-<view class="container {{themeClass}}">
+<view class="container {{themeClass}} {{fontClass}}">
   <view class="letter-paper full-view">
     <view class="letter-header" wx:if="{{letter.showMethod}}">
       <text class="mentor-name">分析方法：{{letter.displayMethod}}</text>
@@ -20,7 +20,32 @@
       </view>
       <view class="reply-card">
         <view class="reply-title">分析结果</view>
-        <text class="reply-text" user-select="true">{{letter.replyContent}}</text>
+        <markdown-renderer content="{{letter.replyContent}}" />
+      </view>
+
+      <view class="mindmap-section" wx:if="{{letter.replyContent}}">
+        <view class="mindmap-btn" bindtap="generateMindmap">
+          <text class="mindmap-btn-icon">🧠</text>
+          <text class="mindmap-btn-text">{{mindmapLoading ? '生成中...' : '生成可视化脑图'}}</text>
+        </view>
+
+        <view wx:if="{{mindmapError}}" class="mindmap-error">
+          <text>生成失败，</text>
+          <text class="mindmap-retry" bindtap="generateMindmap">点击重试</text>
+        </view>
+
+        <view wx:if="{{mindmapData}}" class="mindmap-result">
+          <mindmap-renderer id="mindmapRenderer" nodeData="{{mindmapData}}" />
+          <view class="mindmap-save-btn" bindtap="saveMindmapImage">
+            <text>💾 保存截图</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="export-section">
+        <view class="export-btn" bindtap="exportAsMarkdown">
+          <text>导出 Markdown</text>
+        </view>
       </view>
     </block>
 

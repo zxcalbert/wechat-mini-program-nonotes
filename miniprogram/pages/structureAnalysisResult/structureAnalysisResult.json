@@ -1,4 +1,7 @@
 {
   "navigationBarTitleText": "结构分析报告",
-  "usingComponents": {}
+  "usingComponents": {
+    "mindmap-renderer": "/components/mindmap-renderer/index",
+    "markdown-renderer": "/components/markdown-renderer/index"
+  }
 }

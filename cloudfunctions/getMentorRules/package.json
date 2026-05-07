@@ -1,7 +1,7 @@
 {
   "name": "getMentorRules",
   "version": "1.0.0",
-  "description": "获取AI大师和心境规则库的云函数",
+  "description": "获取分析方法规则库",
   "main": "index.js",
   "dependencies": {
     "wx-server-sdk": "^3.0.1"

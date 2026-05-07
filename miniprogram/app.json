@@ -13,7 +13,11 @@
         "pages/detail/detail",
         "pages/stamps/stamps",
         "pages/trash/trash",
-        "pages/profile/profile"
+        "pages/profile/profile",
+        "pages/about/about",
+        "pages/legal/legal",
+        "pages/domainDetail/domainDetail",
+        "pages/knowledgeMap/knowledgeMap"
     ],
     "window":{
         "navigationBarBackgroundColor": "#000000",
@@ -26,9 +30,5 @@
         "scope.writePhotosAlbum": {
             "desc": "用于保存分析结果图片到相册"
         }
-    },
-    "privacySheet": {
-        "open": true,
-        "url": "/pages/privacy/privacy"
     }
 }

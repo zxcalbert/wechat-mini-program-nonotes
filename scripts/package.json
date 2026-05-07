@@ -8,6 +8,7 @@
     "pre-commit": "bash pre-commit-check.sh",
     "test:unit": "node tests/unit-tests.js",
     "test:integration": "node tests/integration-tests.js",
+    "test:stage-a": "node tests/stage-a-compliance-tests.js",
     "test": "npm run test:unit && npm run test:integration"
   },
   "keywords": [

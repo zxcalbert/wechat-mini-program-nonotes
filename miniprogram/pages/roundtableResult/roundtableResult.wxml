@@ -61,7 +61,7 @@
           <text class="mentor-name">{{item.mentor}}</text>
           <text class="mentor-field" style="background-color: {{fieldColors[item.field]}};">{{item.field}}</text>
         </view>
-        <view class="mentor-reply">{{item.reply}}</view>
+        <markdown-renderer content="{{item.reply}}" />
       </view>
     </view>
 

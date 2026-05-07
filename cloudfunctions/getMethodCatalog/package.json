@@ -1,0 +1,9 @@
+{
+  "name": "getMethodCatalog",
+  "version": "1.0.0",
+  "description": "获取领域和方法分类目录",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "^3.0.1"
+  }
+}

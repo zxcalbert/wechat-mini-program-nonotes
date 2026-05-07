@@ -1,4 +1,5 @@
 const cloudbaseUtil = require('../../utils/cloudbaseUtil');
+const exportUtil = require('../../utils/exportUtil');
 const app = getApp();
 
 const COMPLIANCE_DATE = new Date('2026-07-15').getTime();
@@ -33,7 +34,11 @@ Page({
     loading: true,
     replyContent: '',
     openid: null,
-    themeClass: ''
+    themeClass: '',
+    fontClass: '',
+    mindmapData: null,
+    mindmapLoading: false,
+    mindmapError: false
   },
 
   onLoad: function(options) {
@@ -46,9 +51,10 @@ Page({
       return;
     }
 
-    this.setData({ 
+    this.setData({
       openid,
-      themeClass: app.getThemeClass()
+      themeClass: app.getThemeClass(),
+      fontClass: app.getFontSizeClass()
     });
 
     const letterId = options.id;
@@ -58,7 +64,10 @@ Page({
   },
 
   onShow: function() {
-    this.setData({ themeClass: app.getThemeClass() });
+    this.setData({
+      themeClass: app.getThemeClass(),
+      fontClass: app.getFontSizeClass()
+    });
   },
 
   /**
@@ -189,6 +198,101 @@ Page({
           }
         }
       }
+    });
+  },
+
+  async generateMindmap() {
+    if (this.data.mindmapLoading) return;
+
+    const letter = this.data.letter;
+    if (!letter || !letter.replyContent) {
+      wx.showToast({ title: '无分析内容', icon: 'none' });
+      return;
+    }
+
+    this.setData({ mindmapLoading: true, mindmapError: false });
+
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'replyToLetter',
+        data: {
+          type: 'mindmap',
+          analysisContent: letter.replyContent,
+          methodName: letter.displayMethod || letter.mentor || '分析方法'
+        }
+      });
+
+      const result = res.result || {};
+      if (result.success && result.data) {
+        this.setData({ mindmapData: result.data, mindmapLoading: false });
+      } else {
+        this.setData({ mindmapError: true, mindmapLoading: false });
+        wx.showToast({ title: '脑图生成失败', icon: 'none' });
+      }
+    } catch (err) {
+      console.error('生成脑图失败:', err);
+      this.setData({ mindmapError: true, mindmapLoading: false });
+      wx.showToast({ title: '网络错误', icon: 'none' });
+    }
+  },
+
+  /**
+   * 导出分析结果为 Markdown 文本到剪贴板
+   */
+  exportAsMarkdown() {
+    var letter = this.data.letter;
+    if (!letter) return;
+
+    var md = exportUtil.analysisToMarkdown(letter);
+    if (!md) {
+      wx.showToast({ title: '无内容可导出', icon: 'none' });
+      return;
+    }
+
+    wx.setClipboardData({
+      data: md,
+      success: function() {
+        wx.showToast({ title: '已复制到剪贴板', icon: 'success' });
+      }
+    });
+  },
+
+  saveMindmapImage() {
+    const mindmap = this.selectComponent('#mindmapRenderer');
+    if (!mindmap) {
+      wx.showToast({ title: '脑图未就绪', icon: 'none' });
+      return;
+    }
+
+    wx.showLoading({ title: '保存中...' });
+    mindmap.exportImage().then((tempPath) => {
+      wx.saveImageToPhotosAlbum({
+        filePath: tempPath,
+        success: () => {
+          wx.hideLoading();
+          wx.showToast({ title: '已保存到相册', icon: 'success' });
+        },
+        fail: (err) => {
+          wx.hideLoading();
+          if (err.errMsg && err.errMsg.indexOf('auth deny') !== -1) {
+            wx.showModal({
+              title: '需要授权',
+              content: '请在设置中允许访问相册',
+              confirmText: '去设置',
+              success: (res) => {
+                if (res.confirm) {
+                  wx.openSetting();
+                }
+              }
+            });
+          } else {
+            wx.showToast({ title: '保存失败', icon: 'none' });
+          }
+        }
+      });
+    }).catch(() => {
+      wx.hideLoading();
+      wx.showToast({ title: '导出失败', icon: 'none' });
     });
   }
 });

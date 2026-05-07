@@ -4,9 +4,10 @@
   heatmap-data="{{heatmapData}}"
   bind:close="closeSideMenu"
   bind:themeChanged="onThemeChanged"
+  bind:fontSizeChanged="onThemeChanged"
 />
 
-<view class="container {{themeClass}}">
+<view class="container {{themeClass}} {{fontClass}}">
   <!-- 自定义导航栏 -->
   <view class="custom-navbar" style="padding-right: {{navbarPaddingRight}}px;">
     <text class="menu-toggle" bindtap="toggleSideMenu">☰</text>
@@ -26,6 +27,35 @@
       focus="{{searchFocus}}"
     />
     <text class="search-close" bindtap="hideSearchInput">✕</text>
+  </view>
+
+  <!-- 领域卡片网格 -->
+  <view wx:if="{{showDomainCards}}" class="domain-section">
+    <view class="domain-header">
+      <text class="domain-header-title">知识全景图</text>
+      <view class="domain-header-right">
+        <text class="domain-graph-btn" bindtap="goToKnowledgeMap">🗺️ 图谱</text>
+        <text class="domain-toggle" bindtap="toggleDomainCards">收起</text>
+      </view>
+    </view>
+    <view class="domain-grid">
+      <view
+        wx:for="{{domains}}"
+        wx:key="id"
+        class="domain-card"
+        style="border-left: 4rpx solid {{item.color}};"
+        bindtap="goToDomain"
+        data-id="{{item.id}}"
+      >
+        <text class="domain-icon">{{item.icon}}</text>
+        <text class="domain-name">{{item.name}}</text>
+        <text class="domain-count">{{item.methods.length}}种方法</text>
+        <text wx:if="{{item.count > 0}}" class="domain-used">已分析{{item.count}}次</text>
+      </view>
+    </view>
+  </view>
+  <view wx:if="{{!showDomainCards}}" class="domain-collapsed">
+    <text class="domain-toggle" bindtap="toggleDomainCards">展开知识全景图</text>
   </view>
 
   <!-- 浮动添加按钮菜单 -->
@@ -74,7 +104,7 @@
       wx:key="_id"
       class="note-card"
       bindtap="goToDetail"
-      bindlongpress="{{item.type === 'letter' ? 'deleteLetter' : ''}}"
+      bindlongpress="deleteItem"
       data-id="{{item._id}}"
       data-type="{{item.type}}"
     >

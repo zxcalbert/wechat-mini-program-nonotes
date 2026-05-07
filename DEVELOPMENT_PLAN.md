@@ -1,7 +1,42 @@
 # 智慧笔记 2.0 开发计划
 
 **使命：把有价值的思想孵化迭代出来，可视化，让人不再迷茫**
-**基于：合规改造（COMPLIANCE_PLAN.md）+ Flipbook 可视化（FLIPBOOK_INTEGRATION_REPORT.md）+ Dayu 工程吸收（去财务版）**
+**基于：合规改造（COMPLIANCE_PLAN.md）+ Flipbook 可视化（FLIPBOOK_INTEGRATION_REPORT.md）+ Dayu 工程吸收（去财务版）+ AI Agent 接口（AI_AGENT_INTERFACE_DESIGN.md）**
+
+---
+
+## 📍 当前进度总览（2026-05-06 最新审计）
+
+```
+Phase 0 合规改造：  ████████████████████ 100%  （全部通过）
+Phase 1 脑图 V1：   ████████████████████ 100%  （detail + incubatorResult + structureAnalysisResult 全部集成）
+Phase 1.5 Markdown： ████████████████░░░░ ~75%  （markdown-renderer 增强 + exportUtil + AI输出规范化）
+Phase 2 全景首页：   ████████████████████ 100%  （领域卡片 + 搜索 + 面包屑 + domainDetail + getMethodCatalog）
+Phase 3 全可视化：   ████████████████████ 100%  （H1-H6 全部完成）
+工程基建：           ██████████████████░░ ~95%  （shared/ + tests/fixtures + prompts模块化 + 21方法提示词已生成）
+AI Agent 接口：     ██░░░░░░░░░░░░░░░░░░ ~10%  （概念设计完成，详见 AI_AGENT_INTERFACE_DESIGN.md）
+```
+
+**Phase 1 已完成清单**：
+- detail 页脑图：生成/重试/截图保存 ✅
+- incubatorResult 页脑图：同上 ✅
+- structureAnalysisResult 页脑图：同上 ✅
+- 脑图样式提取到 app.wxss 全局复用 ✅
+- 提示词模块化（prompts.js）✅
+- 脑图容器尺寸优化、reset 按钮移除 ✅
+
+**其他已完成**：
+- 热力图修复（WXML 模板方法调用问题）✅
+- 字体设置生效（fontClass 系统）✅
+- 隐私政策/用户协议页面 + About 页链接 ✅
+- 用户协议页面「邮票」残留清理 ✅
+- Markdown 渲染增强：表格/任务列表/嵌套列表/链接/暗色主题 ✅
+- AI 输出规范化：prompts.js 增加 Markdown 结构要求 ✅
+- 导出功能：exportUtil.js + detail 页「导出 Markdown」按钮 ✅
+- 方法提示词：21 个分析方法独立 prompt 文件 ✅
+- AI Agent 接口概念设计完成 ✅
+
+**Phase 2 启动决策点**：需先上线运行 2-4 周，收集脑图功能使用率数据。点击率 > 15% 才启动。
 
 ---
 
@@ -9,7 +44,7 @@
 
 ```
 2026年4月     5月        6月        7月15日     8月         9月         10月+
-│ 合规红线    │         │         █████     │          │          │
+│ 合规红线    │ ←当前    │         █████     │          │          │
 │             │         │    法规生效日     │          │          │
 └─────────────┴─────────┴─────────┴─────────┴──────────┴──────────┴──
   Phase 0               Phase 1              Phase 2           Phase 3
@@ -124,7 +159,242 @@ P3（隐私政策）──── 发布前的最终检查
 
 ---
 
-## Phase 1：文字分析 + 脑图可视化（7月15日 - 9月）
+## 🔥 下一步开发计划（从当前状态出发，分阶段推进）
+
+> **原则**：不搞一次性大重构，每阶段改动 ≤5 文件、≤200 行、≤1 模块
+> **前置条件**：Phase 0 必须在 7月15日前彻底收尾
+
+### Stage A：Phase 0 收尾 — 清除拟人化残留（优先级最高，5月）
+
+> **目标**：让 Phase 0 验收标准全部通过，为 Phase 1 扫清障碍
+> **预估工时**：~6h / 1个工作日
+
+#### A1. 页面导航标题修正（15分钟）
+
+| 文件 | 当前值 | 改为 |
+|------|--------|------|
+| `pages/detail/detail.json` | "信件详情" | "分析详情" |
+| `pages/roundtable/roundtable.json` | "圆桌会议" | "多维度分析" |
+| `pages/roundtableResult/roundtableResult.json` | "圆桌讨论" | "多维度分析" |
+| `pages/write/write.json` | "写笔记" | "分析方法" |
+
+#### A2. 云函数描述去拟人化（15分钟）
+
+| 文件 | 当前值 | 改为 |
+|------|--------|------|
+| `replyToLetter/config.json` | "获取人生导师的回复" | "AI 分析引擎" |
+| `getMentorRules/config.json` | "获取AI大师和心境规则库" | "获取分析方法规则库" |
+| `getMentorRules/package.json` | "获取AI大师和心境规则库的云函数" | "获取分析方法规则库" |
+
+#### A3. mentorRules_expanded.json 去拟人化（1小时）
+
+**问题**：`mentorRules_expanded.json` 仍以人名作为 key（"查理·芒格"等），包含 `persona` 字段（"我是查理·芒格..."），且云函数优先加载此文件。
+
+**方案**：
+1. 将 `mentorRules_expanded.json` 的 key 从人名改为分析方法名（与 `mentorRules.json` 一致）
+2. 将 `persona` 字段改为 `methodology` 字段
+3. 将 `field: "投资"` 等改为新领域名（"价值思维"等）
+4. 合并两个文件，只保留一个 `mentorRules.json`
+5. 删除 `mentorRules_expanded.json`
+
+#### A4. 云函数 fallback 去拟人化（30分钟）
+
+| 文件 | 行号 | 问题 | 修复 |
+|------|------|------|------|
+| `replyToLetter/index.js` | L226 | `mentorRules.mentors['查理·芒格']` fallback | 改为 `'多元思维模型分析'` |
+| `replyToLetter/index.js` | L1086 | 同上 | 同上 |
+
+#### A5. sideMenu 添加"一键退出"按钮（30分钟）
+
+在 `components/sideMenu/index.wxml` 的"退出登录"按钮旁，新增"一键退出"按钮：
+- 点击直接调用 `wx.exitMiniProgram()`，无需二次确认弹窗
+- 满足合规要求中"用户可随时退出"的规定
+
+#### A6. 新增 reportContent 云函数（1小时）
+
+新建 `cloudfunctions/reportContent/`，实现内容举报功能：
+- 接收参数：`contentId`, `contentType`, `reason`
+- 存入 `reports` 集合
+- 返回成功状态
+
+**A阶段验收清单**：
+```
+✅ 所有页面标题无拟人化文字
+✅ 云函数描述无"导师""大师"
+✅ 只存在一个 mentorRules.json（分析方法名作 key）
+✅ 云函数 fallback 使用分析方法名
+✅ sideMenu 有"一键退出"按钮
+✅ reportContent 云函数可用
+```
+
+---
+
+### Stage B：Phase 0 收尾 — 数据字段名迁移（5月-6月）
+
+> **目标**：将数据库字段从 `mentor` 迁移到 `method`，状态从 `pending/replied` 到 `analyzing/completed`
+> **预估工时**：~4h / 0.5个工作日
+> **风险**：需要兼容旧数据，必须做双向映射
+
+#### B1. 状态字段迁移
+
+| 旧值 | 新值 | 影响文件 |
+|------|------|---------|
+| `pending` | `analyzing` | detail.js, index.js, trash.js |
+| `replied` | `completed` | 同上 |
+| `read` | `viewed` | 同上 |
+
+**兼容方案**：前端 `getStatusLabel()` 同时识别新旧值：
+```javascript
+getStatusLabel(status) {
+  const map = {
+    'analyzing': '分析中', 'pending': '分析中',    // 旧值兼容
+    'completed': '已完成', 'replied': '已完成',    // 旧值兼容
+    'viewed': '已查看', 'read': '已查看',          // 旧值兼容
+    'saved': '已保存'
+  };
+  return map[status] || '未知';
+}
+```
+
+#### B2. 数据字段名 `mentor` → `method` 评估
+
+**暂不建议做此迁移**，原因：
+1. `mentor` 字段贯穿数据库所有集合（letters, roundtable_discussions, incubator_reports）
+2. 云函数、前端十几个文件都引用此字段
+3. 迁移需同时处理历史数据（数千条记录的 `_openid` 级别更新）
+4. 代码层面的 `mentor` 是内部字段名，不影响合规（用户看不到）
+
+**替代方案**：仅做展示层映射（已在 detail.js 的 `methodNameMap` 和 `_getDisplayMethod` 中实现），数据库字段名不变。
+
+**如果未来要做完整迁移**，应放在 Phase 2 或更后，作为独立的"数据层现代化"任务。
+
+---
+
+### Stage C：Phase 1 前置 — 工程基建（6月）
+
+> **目标**：为脑图功能搭建工程基础设施
+> **预估工时**：~5h / 0.5个工作日
+
+#### C1. 创建 `tests/fixtures/` 测试夹具（1小时）
+
+收集真实用户样本用于脑图提示词调优：
+- `tests/fixtures/sample-analysis-simple.json` — 短文本分析结果
+- `tests/fixtures/sample-analysis-medium.json` — 中等文本分析结果
+- `tests/fixtures/sample-analysis-complex.json` — 长文本分析结果
+- `tests/fixtures/expected-mindmap-simple.json` — 期望的脑图 JSON 输出
+
+#### C2. 创建 `cloudfunctions/shared/` 共享层（2小时）
+
+```
+cloudfunctions/shared/
+└── reasoning/
+    ├── pipeline/
+    │   └── stage-2-format-normalizer.js   // 格式归一化
+    └── prompts/
+        ├── base/
+        │   └── soul.md                     // "你是一个方法论分析工具"
+        └── methods/                        // 21个分析方法目录
+            ├── multi-model-thinking.md
+            └── ...
+```
+
+#### C3. 提示词拆分为独立文件（2小时）
+
+将 `replyToLetter/index.js` 中内嵌的提示词字符串，抽取到 `cloudfunctions/shared/reasoning/prompts/` 目录下，便于脑图提示词复用。
+
+---
+
+### Stage D：Phase 1 核心 — detail 页脑图功能（7月）
+
+> **目标**：在分析详情页增加"生成可视化脑图"功能
+> **预估工时**：~17h / 2-3个工作日
+> **前置条件**：Stage A + C 完成
+
+#### D1. 新建 mindmap-renderer 组件（8h）
+
+```
+miniprogram/components/mindmap-renderer/
+├── index.js      // 树状布局算法 + canvas 绘制 + 手势交互
+├── index.wxml    // canvas 画布
+├── index.wxss    // 画布/窗口/工具栏样式
+└── index.json    // 组件配置
+```
+
+核心技术点：
+- 使用微信 Canvas 2D API（非旧版 canvas）
+- 树状布局算法：递归位置分配（参考 DEVELOPMENT_PLAN.md 1.6 节）
+- 手势：双指缩放 + 单指拖拽 + 节点点击
+- 节点 ≤ 20 时性能目标 60fps
+
+#### D2. 云函数新增脑图 JSON 生成（2h）
+
+在 `replyToLetter/index.js` 新增 `generateMindmapJSON()` 函数：
+- 输入：分析结果文本
+- 调用 DeepSeek API 返回结构化脑图 JSON
+- JSON 契约参考 DEVELOPMENT_PLAN.md 1.4 节
+
+#### D3. detail 页集成脑图（4h）
+
+- `detail.wxml`：添加"🧠 生成可视化脑图"按钮 + canvas overlay
+- `detail.js`：新增 `generateMindmap` 事件处理 + 脑图状态管理
+- `detail.wxss`：脑图按钮/overlay 样式
+
+#### D4. 测试与优化（3h）
+
+- 脑图节点 ≤ 20 性能测试
+- AI JSON 输出不稳定时的前端校验+修复
+- 生成失败重试按钮
+- 截图保存功能
+
+**D阶段验收清单**：
+```
+✅ detail 页"分析结果"卡片下有「🧠 生成可视化脑图」按钮
+✅ 点击后 2-5秒展示脑图
+✅ 脑图节点可点击展开详情
+✅ 双指缩放/单指拖拽流畅
+✅ 截图保存功能正常
+✅ 脑图内容无拟人化表述
+✅ 生成失败时有"重试"按钮
+```
+
+---
+
+### Stage E：Phase 1 扩展 — 其他页面脑图（8月）
+
+> **目标**：将脑图功能扩展到孵化器结果页、结构分析结果页
+> **预估工时**：~8h / 1个工作日
+> **前置条件**：Stage D 完成，且脑图组件稳定
+
+#### E1. incubatorResult 页集成脑图（4h）
+#### E2. structureAnalysisResult 页集成脑图（4h）
+
+复用 D1 的 mindmap-renderer 组件，仅做数据适配。
+
+---
+
+### Stage F：Phase 2 — 知识全景图首页（9月-10月）
+
+> **目标**：首页从列表流改造为领域卡片网格
+> **预估工时**：~15h / 2个工作日
+> **前置条件**：Stage D 完成
+
+参考 DEVELOPMENT_PLAN.md Phase 2 原始设计，此处不再展开。
+
+---
+
+## 总工时重新评估
+
+| 阶段 | 时间窗口 | 核心工时 | 文件改动数 | 状态 |
+|------|---------|---------|-----------|------|
+| **Stage A** Phase 0收尾 | 5月 | ~6h / 1天 | ~10 文件 | ✅ 已完成 |
+| **Stage B** 数据字段迁移 | 5-6月 | ~4h / 0.5天 | ~5 文件 | ✅ 展示层映射已完成，数据库层暂缓 |
+| **Stage C** 工程基建 | 6月 | ~5h / 0.5天 | ~8 新文件 | ✅ 已完成（shared/ + tests/fixtures + prompts模块化） |
+| **Stage D** 脑图核心 | 7月 | ~17h / 2.5天 | ~6 新建+4 修改 | ✅ 已完成 |
+| **Stage E** 脑图扩展 | 8月 | ~8h / 1天 | ~8 修改 | ✅ 已完成（incubatorResult + structureAnalysisResult） |
+| **Stage F** 全景首页 | 9-10月 | ~15h / 2天 | ~7 文件 | ✅ 已完成（领域卡片+搜索+混合列表+面包屑+domainDetail+getMethodCatalog） |
+| **Stage G** Phase 2补完 | 5月 | ~10h / 1.5天 | ~10 文件 | ✅ 已完成 |
+| **Stage H1** 知识图谱基础 | 5月 | ~8h / 1天 | ~6 新建+3 修改 | ✅ 已完成（Canvas 2D + LOD渲染 + 三种视图模式） |
+| **Stage H2-H6** 图谱交互+关联+洞察+深入探索+快照 | 5-6月 | ~27h / 4天 | ~10 新建+6 修改 | ✅ 已完成 |
 
 > **核心理念："文字分析为骨，可视化脑图为翼"**
 > 基于合规改造后的"方法论分析工具"形态，在分析结果页增加脑图生成功能
@@ -417,19 +687,52 @@ Phase 1 总计：约 22-30h / 3-4个工作日
 
 ---
 
-## Phase 3：全可视化浏览（11月后）
+## Phase 3：全可视化浏览（5月+）
 
 ### 核心目标
-脑图不依赖外部 AI 绘图 API，实现"文字可视化 Flipbook"——首页领域的节点可在 canvas 上直接展开为子节点
+**"知识是景观，不是数据库"**（Flipbook 启发）+ **"从 -1 到 0"**（South Park Commons 启发）
 
-### 3.1 关键升级点
+采用混合模式：首页保持领域卡片，新增独立知识图谱页面。用户像探索地图一样探索自己的思考历程。
 
-| 升级项 | 触发条件 | 说明 |
-|--------|---------|------|
-| 无限层级展开 | Phase 2 脑图点击率 > 15% | 节点点击→在 canvas 内展开子节点，不是弹窗 |
-| 领域间节点交叉 | 同上 | 一个节点可以关联到另一个领域的方法 |
-| 跨会话知识地图 | Phase 3 中期 | 用户全部历史分析记录以地图形式呈现 |
-| 个性化知识图谱 | Phase 3 中期 | 自动关联相似主题的分析记录 |
+### 已完成（Stage H1）
+
+- ✅ `miniprogram/pages/knowledgeMap/` — 全屏 Canvas 2D 知识图谱页
+- ✅ 虚拟坐标系（支持无限平移和缩放）
+- ✅ LOD 渲染策略（远景只显示领域节点，近景显示全部）
+- ✅ 三层节点：领域→方法→分析记录
+- ✅ 三种视图模式：图谱/聚类/时间线
+- ✅ 手势：双指缩放 + 单指拖拽 + 单击详情 + 双击聚焦
+- ✅ 首页添加"🗺️ 图谱"入口按钮
+
+### 已完成（Stage H2-H6）
+
+#### Stage H2: 图谱交互与节点详情
+- ✅ 单击节点底部弹出详情卡片（领域/方法/分析记录三种类型）
+- ✅ 选中节点时关联节点联动高亮，非关联节点降低透明度
+- ✅ 导航栏新增"洞察"和"截图"按钮
+
+#### Stage H3: 跨分析关联发现
+- ✅ `cloudfunctions/discoverConnections/` — DeepSeek API 分析分析记录间的主题相似性
+- ✅ 关联线渲染（橙色虚线，关联强度可视化）
+- ✅ 结果缓存 7 天（`knowledge_connections` 集合）
+
+#### Stage H4: "从 -1 到 0" 知识洞察
+- ✅ `cloudfunctions/getKnowledgeInsights/` — 生成知识洞察
+- ✅ 洞察面板：概览统计 + 未使用方法 + 推荐探索方向 + 最常用方法排行
+- ✅ DeepSeek 生成个性化推荐（基于已有分析内容）
+- ✅ 点击推荐/未使用方法直接跳转 write 页
+
+#### Stage H5: Flipbook 式深入探索
+- ✅ 双击分析记录节点 → 弹出操作选项（查看脑图/深入探索）
+- ✅ 查看脑图：全屏 overlay 展示 mindmap-renderer 组件
+- ✅ 深入探索：调用 DeepSeek 从原分析中提取子主题生成新分析
+- ✅ 新分析自动添加为图谱节点 + 连线
+- ✅ 平滑 easeOut 动画过渡到新节点位置
+- ✅ `replyToLetter/index.js` 新增 `deepexplore` 类型处理 + `generateDeepExploration()` 函数
+
+#### Stage H6: 知识图谱快照
+- ✅ 导航栏"截图"按钮 → Canvas 导出为图片 → 保存到相册
+- ✅ 复用 mindmap-renderer 的 `canvasToTempFilePath` + `saveImageToPhotosAlbum` 模式
 
 ### 3.2 不照搬 Flipbook（纯图片模式）
 

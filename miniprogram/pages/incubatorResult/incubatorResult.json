@@ -1,4 +1,7 @@
 {
   "navigationBarTitleText": "思想孵化报告",
-  "usingComponents": {}
+  "usingComponents": {
+    "mindmap-renderer": "/components/mindmap-renderer/index",
+    "markdown-renderer": "/components/markdown-renderer/index"
+  }
 }

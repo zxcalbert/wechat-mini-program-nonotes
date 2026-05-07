@@ -1,0 +1,9 @@
+{
+  "name": "discoverConnections",
+  "version": "1.0.0",
+  "description": "发现分析记录间的知识关联",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "^3.0.1"
+  }
+}

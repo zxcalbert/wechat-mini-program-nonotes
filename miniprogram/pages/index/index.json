@@ -4,7 +4,8 @@
   "backgroundColorTop": "#ffffff",
   "backgroundColorBottom": "#ffffff",
   "usingComponents": {
-    "side-menu": "/components/sideMenu/index"
+    "side-menu": "/components/sideMenu/index",
+    "breadcrumb": "/components/breadcrumb/index"
   },
   "enablePullDownRefresh": true,
   "onReachBottomDistance": 50

@@ -11,9 +11,9 @@ Page({
   },
 
   onLoad() {
-    const systemInfo = wx.getSystemInfoSync();
+    const windowInfo = wx.getWindowInfo();
     this.setData({ 
-      statusBarHeight: systemInfo.statusBarHeight,
+      statusBarHeight: windowInfo.statusBarHeight,
       themeClass: app.getThemeClass()
     });
     this.checkAuth();

@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "领域详情",
+  "backgroundColor": "#f5f5f5",
+  "usingComponents": {
+    "breadcrumb": "/components/breadcrumb/index"
+  }
+}

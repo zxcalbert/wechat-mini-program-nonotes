@@ -1,0 +1,9 @@
+{
+  "name": "getKnowledgeInsights",
+  "version": "1.0.0",
+  "description": "生成知识图谱洞察和推荐",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "^3.0.1"
+  }
+}

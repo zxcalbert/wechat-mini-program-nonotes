@@ -1,4 +1,7 @@
 {
-  "navigationBarTitleText": "圆桌讨论",
-  "enablePullDownRefresh": false
+  "navigationBarTitleText": "多维度分析",
+  "enablePullDownRefresh": false,
+  "usingComponents": {
+    "markdown-renderer": "/components/markdown-renderer/index"
+  }
 }

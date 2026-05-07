@@ -15,9 +15,9 @@ Page({
   },
 
   async onLoad(options) {
-    const systemInfo = wx.getSystemInfoSync();
-    this.setData({ 
-      statusBarHeight: systemInfo.statusBarHeight 
+    const windowInfo = wx.getWindowInfo();
+    this.setData({
+      statusBarHeight: windowInfo.statusBarHeight
     });
 
     if (options.data) {
@@ -40,7 +40,7 @@ Page({
         this.setData({ data: result.data, loading: false });
       }
     } catch (err) {
-      console.error('获取圆桌会议数据失败:', err);
+      console.error('获取多维度分析数据失败:', err);
       wx.showToast({
         title: '加载失败',
         icon: 'none'
@@ -136,7 +136,7 @@ Page({
 
       const canvas = canvasRes.node;
       const ctx = canvas.getContext('2d');
-      const dpr = wx.getSystemInfoSync().pixelRatio;
+      const dpr = wx.getWindowInfo().pixelRatio;
 
       canvas.width = 750 * dpr;
       canvas.height = 1200 * dpr;
@@ -254,7 +254,7 @@ Page({
 
       ctx.fillStyle = '#999999';
       ctx.font = '10px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto';
-      ctx.fillText('投资日记 · 圆桌会议', 375, 1150);
+      ctx.fillText('智慧笔记 · 多维度分析', 375, 1150);
 
       const tempFilePath = await new Promise((resolve, reject) => {
         wx.canvasToTempFilePath({

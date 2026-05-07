@@ -1,0 +1,7 @@
+{
+  "navigationStyle": "custom",
+  "backgroundColor": "#f8f9fa",
+  "usingComponents": {
+    "mindmap-renderer": "/components/mindmap-renderer/index"
+  }
+}

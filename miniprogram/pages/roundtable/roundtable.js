@@ -32,9 +32,9 @@ Page({
   },
 
   onLoad() {
-    const systemInfo = wx.getSystemInfoSync();
+    const windowInfo = wx.getWindowInfo();
     this.setData({ 
-      statusBarHeight: systemInfo.statusBarHeight,
+      statusBarHeight: windowInfo.statusBarHeight,
       themeClass: app.getThemeClass()
     });
     this.fallbackToHardcoded();
@@ -332,7 +332,7 @@ Page({
   showFeatureDisabledTip() {
     wx.showModal({
       title: '功能开发中',
-      content: '圆桌会议功能正在开发中，敬请期待',
+      content: '多维度分析功能正在开发中，敬请期待',
       showCancel: false
     });
   },

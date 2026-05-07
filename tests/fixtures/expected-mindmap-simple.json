@@ -1,0 +1,37 @@
+{
+  "title": "如何提高决策质量 - 多元思维模型分析",
+  "root": "提高决策质量",
+  "method_name": "多元思维模型分析",
+  "children": [
+    {
+      "id": "n1",
+      "label": "逆向思维",
+      "detail": "先想怎么做出糟糕决定，然后避免",
+      "color": "#4A90D9",
+      "children": []
+    },
+    {
+      "id": "n2",
+      "label": "多元思维模型",
+      "detail": "不依赖单一视角，综合多学科",
+      "color": "#27AE60",
+      "children": []
+    },
+    {
+      "id": "n3",
+      "label": "常见认知偏差",
+      "detail": "过度自信、确认偏误、可得性偏差",
+      "color": "#E67E22",
+      "children": [
+        { "id": "n3-1", "label": "决策检查清单", "detail": "多角度审视问题", "color": "#F5A623" }
+      ]
+    },
+    {
+      "id": "n4",
+      "label": "冷处理策略",
+      "detail": "重要决策前等24小时",
+      "color": "#E74C3C",
+      "children": []
+    }
+  ]
+}

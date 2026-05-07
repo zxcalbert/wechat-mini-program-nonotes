@@ -46,10 +46,18 @@ Page({
     currentMethodGuide: ''
   },
 
-  onLoad() {
+  onLoad(options) {
     this.fallbackToHardcoded();
     this.checkAuth();
     this.loadMethodRules();
+
+    // 支持从领域详情页预选方法
+    if (options && options.preselectMethod) {
+      var method = decodeURIComponent(options.preselectMethod);
+      var map = {};
+      map[method] = true;
+      this.setData({ selectedMethod: method, selectedMethodMap: map });
+    }
   },
 
   onShow() {
@@ -145,7 +153,7 @@ Page({
   },
 
   selectNeedReply(e) {
-    const needReply = e.currentTarget.dataset.need === 'true';
+    const needReply = !!e.currentTarget.dataset.need;
     this.setData({ needReply });
     this.updateCanSend();
   },

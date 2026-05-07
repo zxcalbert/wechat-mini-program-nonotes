@@ -1,7 +1,7 @@
 # 智慧笔记小程序 - 代码文档（Code Wiki）
 
-**版本**: v2.0  
-**更新日期**: 2026-05-02  
+**版本**: v2.1  
+**更新日期**: 2026-05-04  
 **适用范围**: 全栈开发团队
 
 ---
@@ -100,8 +100,11 @@
 |--------|------|----------|
 | 回复生成 | `cloudfunctions/replyToLetter` | AI 分析核心引擎、DeepSeek API 调用 |
 | 规则获取 | `cloudfunctions/getMentorRules` | 获取分析方法规则库 |
+| 导师列表 | `cloudfunctions/getMentors` | 返回分析方法列表 |
 | 登录 | `cloudfunctions/login` | 用户登录、注册、额度初始化 |
-| 敏感词检测 | `cloudfunctions/hasSensitiveWord` | 内容安全检测 |
+| 敏感词检测 | `cloudfunctions/hasSensitiveWord` | 基础敏感词检测 |
+| 增强检测 | `cloudfunctions/detectSensitiveWords` | 增强版敏感词检测 |
+| 内容过滤 | `cloudfunctions/filterSensitiveWords` | 敏感词内容过滤 |
 
 ### 2.3 工具模块
 
@@ -109,8 +112,7 @@
 |--------|------|----------|
 | 数据库工具 | `utils/cloudbaseUtil.js` | 封装云数据库 CRUD 操作 |
 | 敏感词工具 | `utils/sensitiveWordUtil.js` | 前端敏感词检测 |
-| 缓存工具 | `utils/cacheUtil.js` | 本地缓存管理 |
-| 规则缓存 | `utils/mentorRulesCache.js` | 分析方法规则缓存 |
+| 缓存工具 | `utils/cacheUtil.js` | 本地缓存管理（含分析方法规则缓存） |
 
 ---
 
@@ -527,6 +529,8 @@ function evaluateReplyQuality(mentorName, replyContent, userQuestion, mentorData
   content: string,          // 笔记内容
   mentor: string,           // 分析方法名称
   mood: string,             // 情绪状态
+  type: string,             // 记录类型: 'letter' / 'roundtable' / 'incubator' / 'structure'
+  displayMethod: string,    // 显示用分析方法名（detail.js 中根据 methodNameMap 计算，兼容旧数据）
   status: string,           // 状态: pending / replied / read / saved / error
   needReply: boolean,       // 是否需要 AI 分析
   replyContent: string,     // AI 回复内容
@@ -662,6 +666,27 @@ App({
 2. 旧数据 `mood` 字段兼容（默认 '由AI推断'）
 3. 云函数端自动修复归属（repairRoundtableOwnership）
 
+### 8.6 合规改造进度（对照 DEVELOPMENT_PLAN Phase 0）
+
+**已完成：**
+✅ 前端文案去拟人化：所有 wxml/js 中无"导师""写信""回信""大师""邮票"等词汇
+✅ 前端分析方法选择器：METHOD_FIELDS 使用分析方法名（21种方法，4个领域）
+✅ 云函数提示词去拟人化：getAIDeducedPrompt/getOriginalPrompt 已添加合规约束
+✅ AI 免责声明：detail.wxml、roundtableResult.wxml、incubatorResult.wxml、structureAnalysisResult.wxml 均有
+✅ mentorRules.json：已改为分析方法名（methodology 字段替换 persona 字段）
+✅ 2小时使用时长提醒：app.js 中 startUsageTimer/checkUsageTime
+✅ 数据导出功能：profile.js 中 exportAllData
+✅ 隐私政策更新：privacy.wxml 包含 AI 服务说明、数据权利、使用时长提醒条款
+✅ 旧数据兼容：detail.js 中 methodNameMap 将旧导师名映射为新分析方法名
+✅ 状态映射：detail.js getStatusLabel 将 pending→分析中, replied→已完成
+
+**未完成：**
+❌ mentorRules_expanded.json 仍保留拟人化数据（persona 字段、人名作为 key）
+❌ 云函数 getMentorPrompt 中 fallback 仍为"查理·芒格"而非分析方法名
+❌ 缺少 reportContent 云函数（举报内容功能）
+❌ sideMenu 缺少"一键退出"按钮
+❌ 数据字段名未迁移：仍用 mentor（非 method）、status 仍用 pending/replied（非 analyzing/completed）
+
 ---
 
 ## 附录 A: 文件变更记录
@@ -687,6 +712,15 @@ App({
 | `cloudfunctions/replyToLetter/mentorRules.json` | 修改 | 21位导师 → 21种分析方法 |
 | `miniprogram/app.js` | 修改 | 2小时使用时长提醒 |
 | `pages/privacy/privacy.wxml` | 修改 | 隐私政策更新 |
+
+### v2.1 代码审计更新（2026-05-04）
+
+| 变更范围 | 说明 |
+|----------|------|
+| CODE_WIKI 审计 | 对照代码库实际状态进行全面校对更新 |
+| 云函数列表补全 | 新增 detectSensitiveWords、filterSensitiveWords、getMentors |
+| 合规改造进度 | 新增 8.6 节，记录 Phase 0 合规改造完成情况 |
+| 已知问题 | 记录 mentorRules_expanded.json 拟人化残留等问题 |
 
 ---
 

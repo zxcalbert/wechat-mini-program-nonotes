@@ -1,0 +1,186 @@
+<view class="container {{themeClass}} {{fontClass}}">
+  <!-- 自定义导航栏 -->
+  <view class="navbar">
+    <text class="nav-back" bindtap="goBack">返回</text>
+    <text class="nav-title">知识图谱</text>
+    <view class="nav-right">
+      <text class="nav-action" bindtap="loadInsights">洞察</text>
+      <text class="nav-action" bindtap="saveSnapshot">截图</text>
+      <text class="nav-reset" bindtap="resetView">重置</text>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading-state">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载知识图谱...</text>
+  </view>
+
+  <!-- Canvas 画布 -->
+  <canvas
+    wx:if="{{!loading}}"
+    type="2d"
+    id="knowledgeCanvas"
+    class="knowledge-canvas"
+    bindtouchstart="onTouchStart"
+    bindtouchmove="onTouchMove"
+    bindtouchend="onTouchEnd"
+    disable-scroll="true"
+  ></canvas>
+
+  <!-- 右下角连接数提示 -->
+  <view class="connections-badge" wx:if="{{connections.length > 0 && !loading}}">
+    <text class="connections-text">{{connections.length}}条关联</text>
+  </view>
+
+  <!-- 底部视图模式切换 -->
+  <view class="view-toolbar" wx:if="{{!loading}}">
+    <view class="view-btn {{viewMode === 'graph' ? 'active' : ''}}" bindtap="switchViewMode" data-mode="graph">
+      <text class="view-btn-icon">🕸️</text>
+      <text class="view-btn-label">图谱</text>
+    </view>
+    <view class="view-btn {{viewMode === 'cluster' ? 'active' : ''}}" bindtap="switchViewMode" data-mode="cluster">
+      <text class="view-btn-icon">📦</text>
+      <text class="view-btn-label">聚类</text>
+    </view>
+    <view class="view-btn {{viewMode === 'timeline' ? 'active' : ''}}" bindtap="switchViewMode" data-mode="timeline">
+      <text class="view-btn-icon">📅</text>
+      <text class="view-btn-label">时间线</text>
+    </view>
+  </view>
+
+  <!-- 节点详情面板 -->
+  <view class="detail-panel {{showDetail ? 'show' : ''}}" wx:if="{{detailInfo}}">
+    <!-- 领域节点 -->
+    <block wx:if="{{detailInfo.type === 'domain'}}">
+      <view class="detail-header" style="border-left: 4rpx solid {{detailInfo.color}}">
+        <text class="detail-icon">{{detailInfo.icon}}</text>
+        <view class="detail-title-area">
+          <text class="detail-title">{{detailInfo.name}}</text>
+          <text class="detail-subtitle">{{detailInfo.methodCount}}种方法 · {{detailInfo.analysisCount}}篇分析</text>
+        </view>
+      </view>
+      <view class="detail-actions">
+        <view class="detail-btn" bindtap="goToDomain">进入领域</view>
+        <view class="detail-btn secondary" bindtap="closeDetail">关闭</view>
+      </view>
+    </block>
+
+    <!-- 方法节点 -->
+    <block wx:if="{{detailInfo.type === 'method'}}">
+      <view class="detail-header" style="border-left: 4rpx solid {{detailInfo.color}}">
+        <view class="detail-title-area">
+          <text class="detail-title">{{detailInfo.name}}</text>
+          <text class="detail-subtitle">{{detailInfo.analysisCount}}篇分析</text>
+        </view>
+      </view>
+      <view class="detail-actions">
+        <view class="detail-btn" bindtap="goToMethod">开始分析</view>
+        <view class="detail-btn secondary" bindtap="closeDetail">关闭</view>
+      </view>
+    </block>
+
+    <!-- 分析记录节点 -->
+    <block wx:if="{{detailInfo.type === 'analysis'}}">
+      <view class="detail-header" style="border-left: 4rpx solid {{detailInfo.color}}">
+        <view class="detail-title-area">
+          <text class="detail-title">{{detailInfo.methodName}}</text>
+          <text class="detail-subtitle">{{detailInfo.name}}</text>
+        </view>
+      </view>
+      <view class="detail-content" wx:if="{{detailInfo.fullContent}}">
+        <text>{{detailInfo.fullContent}}</text>
+      </view>
+      <view class="detail-actions">
+        <view class="detail-btn" bindtap="goToDetail">查看完整分析</view>
+        <view class="detail-btn secondary" bindtap="closeDetail">关闭</view>
+      </view>
+    </block>
+  </view>
+
+  <!-- H4: 知识洞察面板 -->
+  <view class="insights-panel {{showInsights ? 'show' : ''}}">
+    <view class="insights-header">
+      <text class="insights-title">知识洞察</text>
+      <text class="insights-close" bindtap="closeInsights">✕</text>
+    </view>
+
+    <view wx:if="{{insightsLoading}}" class="insights-loading">
+      <view class="loading-spinner small"></view>
+      <text>分析中...</text>
+    </view>
+
+    <scroll-view wx:if="{{insights && !insightsLoading}}" scroll-y class="insights-scroll">
+      <!-- 统计概览 -->
+      <view class="insight-section" wx:if="{{insights.totalAnalyses > 0}}">
+        <text class="insight-section-title">概览</text>
+        <text class="insight-stat">已完成 {{insights.totalAnalyses}} 次分析，覆盖 {{insights.usedMethodCount}}/{{insights.totalMethodCount}} 种方法</text>
+      </view>
+
+      <!-- 未使用的方法 -->
+      <view class="insight-section" wx:if="{{insights.unusedMethods.length > 0}}">
+        <text class="insight-section-title">还没尝试过的思考方式</text>
+        <view class="insight-tags">
+          <text
+            wx:for="{{insights.unusedMethods}}"
+            wx:key="*this"
+            class="insight-tag clickable"
+            bindtap="goToUnusedMethod"
+            data-method="{{item}}"
+          >{{item}}</text>
+        </view>
+      </view>
+
+      <!-- 推荐探索方向 -->
+      <view class="insight-section" wx:if="{{insights.suggestedExplorations.length > 0}}">
+        <text class="insight-section-title">推荐探索方向</text>
+        <view
+          wx:for="{{insights.suggestedExplorations}}"
+          wx:key="title"
+          class="insight-card"
+          bindtap="goToSuggestion"
+          data-method="{{item.method}}"
+        >
+          <text class="insight-card-title">{{item.title}}</text>
+          <text class="insight-card-desc">{{item.description}}</text>
+          <text class="insight-card-method">{{item.method}}</text>
+        </view>
+      </view>
+
+      <!-- 高频方法 -->
+      <view class="insight-section" wx:if="{{insights.topMethods.length > 0}}">
+        <text class="insight-section-title">最常用方法</text>
+        <view class="insight-rank">
+          <view wx:for="{{insights.topMethods}}" wx:key="method" class="insight-rank-item">
+            <text class="rank-num">{{index + 1}}</text>
+            <text class="rank-name">{{item.method}}</text>
+            <text class="rank-count">{{item.count}}次</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 无数据提示 -->
+      <view class="insight-section" wx:if="{{insights.totalAnalyses === 0}}">
+        <text class="insight-empty">暂无分析记录，完成更多分析后可查看洞察</text>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- H5: 脑图覆盖层（Flipbook 深入探索） -->
+  <view class="mindmap-overlay" wx:if="{{showMindmapOverlay}}">
+    <view class="mindmap-overlay-header">
+      <text class="mindmap-overlay-title">脑图探索</text>
+      <view class="mindmap-overlay-actions">
+        <text class="mindmap-overlay-btn" bindtap="exploreFromMindmap">深入探索</text>
+        <text class="mindmap-overlay-close" bindtap="closeMindmapOverlay">关闭</text>
+      </view>
+    </view>
+    <view class="mindmap-overlay-body">
+      <mindmap-renderer
+        id="overlayMindmap"
+        nodeData="{{mindmapData}}"
+      />
+    </view>
+    <view class="mindmap-overlay-tip">双击分析节点可选择「查看脑图」或「深入探索」</view>
+  </view>
+</view>

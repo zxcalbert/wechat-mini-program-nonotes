@@ -2,7 +2,8 @@
 App({
   globalData: {
     themeMode: 'system',
-    sessionStartTime: null
+    sessionStartTime: null,
+    fontSize: 'medium'
   },
 
   onLaunch: function () {
@@ -20,6 +21,7 @@ App({
     }
 
     this.initTheme();
+    this.globalData.fontSize = wx.getStorageSync('fontSize') || 'medium';
     this.startUsageTimer();
   },
 
@@ -41,6 +43,17 @@ App({
 
   getTheme: function () {
     return this.globalData.themeMode;
+  },
+
+  getFontSize: function () {
+    return wx.getStorageSync('fontSize') || 'medium';
+  },
+
+  getFontSizeClass: function () {
+    var size = this.getFontSize();
+    if (size === 'small') return 'font-small';
+    if (size === 'large') return 'font-large';
+    return '';
   },
 
   getThemeClass: function () {
