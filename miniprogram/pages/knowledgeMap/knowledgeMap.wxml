@@ -10,6 +10,22 @@
     </view>
   </view>
 
+  <!-- 统计仪表盘 -->
+  <view class="stats-bar" wx:if="{{insights && insights.totalAnalyses > 0 && !loading}}">
+    <view class="stat-item">
+      <text class="stat-value">{{insights.totalAnalyses}}</text>
+      <text class="stat-label">次分析</text>
+    </view>
+    <view class="stat-item">
+      <text class="stat-value">{{insights.usedMethodCount}}/{{insights.totalMethodCount}}</text>
+      <text class="stat-label">方法覆盖</text>
+    </view>
+    <view class="stat-item" wx:if="{{insights.topMethods.length > 0}}">
+      <text class="stat-value">{{insights.topMethods[0].method}}</text>
+      <text class="stat-label">最常用</text>
+    </view>
+  </view>
+
   <!-- 加载状态 -->
   <view wx:if="{{loading}}" class="loading-state">
     <view class="loading-spinner"></view>
@@ -80,8 +96,8 @@
       </view>
     </block>
 
-    <!-- 分析记录节点 -->
-    <block wx:if="{{detailInfo.type === 'analysis'}}">
+    <!-- 分析记录节点（含 analysis/roundtable/incubator/structure） -->
+    <block wx:if="{{detailInfo.type === 'analysis' || detailInfo.type === 'roundtable' || detailInfo.type === 'incubator' || detailInfo.type === 'structure'}}">
       <view class="detail-header" style="border-left: 4rpx solid {{detailInfo.color}}">
         <view class="detail-title-area">
           <text class="detail-title">{{detailInfo.methodName}}</text>
@@ -92,7 +108,8 @@
         <text>{{detailInfo.fullContent}}</text>
       </view>
       <view class="detail-actions">
-        <view class="detail-btn" bindtap="goToDetail">查看完整分析</view>
+        <view class="detail-btn" bindtap="viewMindmapFromDetail">生成脑图</view>
+        <view class="detail-btn secondary" bindtap="goToDetail" wx:if="{{detailInfo.recordId}}">查看原文</view>
         <view class="detail-btn secondary" bindtap="closeDetail">关闭</view>
       </view>
     </block>

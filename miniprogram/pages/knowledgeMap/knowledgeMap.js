@@ -150,8 +150,9 @@ Page({
         self.initCanvas();
         setTimeout(function () { self.render(); }, 100);
       });
-      // 后台加载关联数据
+      // 后台加载关联数据和知识洞察
       self.loadConnections();
+      self.loadInsights({ auto: true });
     }).catch(function (err) {
       console.error('加载知识数据失败:', err);
       self.setData({ loading: false });
@@ -763,6 +764,8 @@ Page({
           mindmapData: result.data,
           mindmapSourceNode: node
         });
+        // 保存脑图到本地历史
+        self._saveMindmapHistory(result.data, node);
       } else {
         wx.showToast({ title: '脑图生成失败', icon: 'none' });
       }
@@ -933,10 +936,25 @@ Page({
 
   goToDetail: function () {
     var detail = this.data.detailInfo;
-    if (!detail || detail.type !== 'analysis' || !detail.recordId) return;
-    wx.navigateTo({
-      url: '../detail/detail?id=' + detail.recordId
-    });
+    if (!detail || !detail.recordId) return;
+    // 根据节点类型跳转到对应结果页
+    if (detail.type === 'roundtable') {
+      wx.navigateTo({ url: '../roundtableResult/roundtableResult?id=' + detail.recordId });
+    } else if (detail.type === 'incubator') {
+      wx.navigateTo({ url: '../incubatorResult/incubatorResult?id=' + detail.recordId });
+    } else if (detail.type === 'structure') {
+      wx.navigateTo({ url: '../structureAnalysisResult/structureAnalysisResult?id=' + detail.recordId });
+    } else {
+      wx.navigateTo({ url: '../detail/detail?id=' + detail.recordId });
+    }
+  },
+
+  // 从详情面板直接生成脑图
+  viewMindmapFromDetail: function () {
+    var node = this.data.selectedNode;
+    if (!node) return;
+    this.setData({ showDetail: false });
+    this._expandMindmap(node);
   },
 
   goToMethod: function () {
@@ -1065,10 +1083,11 @@ Page({
     });
   },
 
-  // H4: 加载知识洞察
-  loadInsights: function () {
+  // H4: 加载知识洞察（自动调用时只预载数据，不展开面板）
+  loadInsights: function (opts) {
     var self = this;
-    self.setData({ insightsLoading: true, showInsights: true });
+    var autoLoad = opts && opts.auto;
+    self.setData({ insightsLoading: true, showInsights: autoLoad ? false : true });
     wx.cloud.callFunction({
       name: 'getKnowledgeInsights',
       data: {}
@@ -1181,5 +1200,24 @@ Page({
         wx.showToast({ title: '导出失败', icon: 'none' });
       }
     });
+  },
+
+  // 保存脑图到本地历史记录
+  _saveMindmapHistory: function (mindmapData, sourceNode) {
+    try {
+      var history = wx.getStorageSync('mindmap_history') || [];
+      history.unshift({
+        id: 'mm_' + Date.now(),
+        title: mindmapData.title || (sourceNode.name || '').substring(0, 15),
+        methodName: sourceNode.methodName || '分析方法',
+        date: Date.now(),
+        data: mindmapData
+      });
+      // 最多保留20条
+      if (history.length > 20) history = history.slice(0, 20);
+      wx.setStorageSync('mindmap_history', history);
+    } catch (e) {
+      console.warn('保存脑图历史失败:', e);
+    }
   }
 });
