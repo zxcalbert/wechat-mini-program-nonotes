@@ -1,4 +1,5 @@
 const db = wx.cloud.database();
+const reportUtil = require('../../utils/reportUtil');
 const app = getApp();
 
 Page({
@@ -350,5 +351,11 @@ Page({
     }
     
     ctx.fillText(line, x, y);
+  },
+
+  reportContent() {
+    var data = this.data.data;
+    if (!data || !data._id) return;
+    reportUtil.showReportDialog(data._id, 'roundtable');
   }
 });

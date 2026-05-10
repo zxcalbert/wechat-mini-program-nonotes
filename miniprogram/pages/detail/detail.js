@@ -1,5 +1,7 @@
 const cloudbaseUtil = require('../../utils/cloudbaseUtil');
 const exportUtil = require('../../utils/exportUtil');
+const reportUtil = require('../../utils/reportUtil');
+const mindmapMixin = require('../../utils/mindmapMixin');
 const app = getApp();
 
 const COMPLIANCE_DATE = new Date('2026-07-15').getTime();
@@ -28,22 +30,24 @@ const methodNameMap = {
   '维特根斯坦': '语言哲学分析'
 };
 
-Page({
+var mindmapMethods = mindmapMixin.create(
+  function() { return this.data.letter && this.data.letter.replyContent; },
+  function() { return this.data.letter.displayMethod || this.data.letter.mentor || '分析方法'; }
+);
+
+Page(Object.assign({}, mindmapMethods, {
   data: {
     letter: null,
     loading: true,
     replyContent: '',
     openid: null,
     themeClass: '',
-    fontClass: '',
-    mindmapData: null,
-    mindmapLoading: false,
-    mindmapError: false
+    fontClass: ''
   },
 
   onLoad: function(options) {
     const openid = wx.getStorageSync('openid');
-    
+
     if (!openid) {
       wx.redirectTo({
         url: '../login/login'
@@ -75,10 +79,10 @@ Page({
    */
   async loadLetterDetail(letterId) {
     this.setData({ loading: true });
-    
+
     try {
       const result = await cloudbaseUtil.getById('letters', letterId);
-      
+
       if (result.success) {
         if (result.data._openid !== this.data.openid) {
           wx.showToast({ title: '无权限访问', icon: 'error' });
@@ -100,7 +104,7 @@ Page({
           showMethod: !!result.data.mentor,
           displayMethod: displayMethod
         };
-        
+
         this.setData({ letter });
         console.log('加载详情成功:', letter);
       } else {
@@ -142,7 +146,7 @@ Page({
    */
   async saveReply() {
     const { letter, replyContent } = this.data;
-    
+
     if (!replyContent.trim()) {
       wx.showToast({ title: '请输入内容', icon: 'error' });
       return;
@@ -189,7 +193,7 @@ Page({
       success: async (res) => {
         if (res.confirm) {
           const result = await cloudbaseUtil.delete('letters', this.data.letter._id);
-          
+
           if (result.success) {
             wx.showToast({ title: '已删除', icon: 'success' });
             setTimeout(() => wx.navigateBack(), 1500);
@@ -201,44 +205,6 @@ Page({
     });
   },
 
-  async generateMindmap() {
-    if (this.data.mindmapLoading) return;
-
-    const letter = this.data.letter;
-    if (!letter || !letter.replyContent) {
-      wx.showToast({ title: '无分析内容', icon: 'none' });
-      return;
-    }
-
-    this.setData({ mindmapLoading: true, mindmapError: false });
-
-    try {
-      const res = await wx.cloud.callFunction({
-        name: 'replyToLetter',
-        data: {
-          type: 'mindmap',
-          analysisContent: letter.replyContent,
-          methodName: letter.displayMethod || letter.mentor || '分析方法'
-        }
-      });
-
-      const result = res.result || {};
-      if (result.success && result.data) {
-        this.setData({ mindmapData: result.data, mindmapLoading: false });
-      } else {
-        this.setData({ mindmapError: true, mindmapLoading: false });
-        wx.showToast({ title: '脑图生成失败', icon: 'none' });
-      }
-    } catch (err) {
-      console.error('生成脑图失败:', err);
-      this.setData({ mindmapError: true, mindmapLoading: false });
-      wx.showToast({ title: '网络错误', icon: 'none' });
-    }
-  },
-
-  /**
-   * 导出分析结果为 Markdown 文本到剪贴板
-   */
   exportAsMarkdown() {
     var letter = this.data.letter;
     if (!letter) return;
@@ -257,42 +223,9 @@ Page({
     });
   },
 
-  saveMindmapImage() {
-    const mindmap = this.selectComponent('#mindmapRenderer');
-    if (!mindmap) {
-      wx.showToast({ title: '脑图未就绪', icon: 'none' });
-      return;
-    }
-
-    wx.showLoading({ title: '保存中...' });
-    mindmap.exportImage().then((tempPath) => {
-      wx.saveImageToPhotosAlbum({
-        filePath: tempPath,
-        success: () => {
-          wx.hideLoading();
-          wx.showToast({ title: '已保存到相册', icon: 'success' });
-        },
-        fail: (err) => {
-          wx.hideLoading();
-          if (err.errMsg && err.errMsg.indexOf('auth deny') !== -1) {
-            wx.showModal({
-              title: '需要授权',
-              content: '请在设置中允许访问相册',
-              confirmText: '去设置',
-              success: (res) => {
-                if (res.confirm) {
-                  wx.openSetting();
-                }
-              }
-            });
-          } else {
-            wx.showToast({ title: '保存失败', icon: 'none' });
-          }
-        }
-      });
-    }).catch(() => {
-      wx.hideLoading();
-      wx.showToast({ title: '导出失败', icon: 'none' });
-    });
+  reportContent() {
+    var letter = this.data.letter;
+    if (!letter || !letter._id) return;
+    reportUtil.showReportDialog(letter._id, 'letter');
   }
-});
+}));

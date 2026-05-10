@@ -47,6 +47,12 @@
           <text>导出 Markdown</text>
         </view>
       </view>
+
+      <view class="action-buttons">
+        <view class="action-btn report-btn" bindtap="reportContent">
+          <text>举报此内容</text>
+        </view>
+      </view>
     </block>
 
     <view wx:elif="{{letter.needReply && letter.showMethod}}" class="waiting-hint">
