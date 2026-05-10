@@ -1083,10 +1083,17 @@ Page({
     });
   },
 
-  // H4: 加载知识洞察（自动调用时只预载数据，不展开面板）
+  // H4: 加载知识洞察
   loadInsights: function (opts) {
     var self = this;
     var autoLoad = opts && opts.auto;
+
+    // 已有数据时直接展开面板，不重新加载
+    if (self.data.insights && self.data.insights.totalAnalyses > 0) {
+      self.setData({ showInsights: true });
+      return;
+    }
+
     self.setData({ insightsLoading: true, showInsights: autoLoad ? false : true });
     wx.cloud.callFunction({
       name: 'getKnowledgeInsights',
