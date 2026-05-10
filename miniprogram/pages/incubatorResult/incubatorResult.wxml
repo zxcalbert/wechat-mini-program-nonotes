@@ -57,6 +57,9 @@
       <button class="action-btn export-btn" bindtap="exportText">
         导出文本
       </button>
+      <button class="action-btn report-btn" bindtap="reportContent">
+        举报此内容
+      </button>
     </view>
   </view>
 

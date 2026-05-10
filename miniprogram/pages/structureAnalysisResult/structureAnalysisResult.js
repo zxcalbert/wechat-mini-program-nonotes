@@ -1,16 +1,20 @@
 const db = wx.cloud.database();
+const reportUtil = require('../../utils/reportUtil');
+const mindmapMixin = require('../../utils/mindmapMixin');
 const app = getApp();
 
-Page({
+var mindmapMethods = mindmapMixin.create(
+  function() { return this.data.data && this.data.data.report; },
+  function() { return '结构分析'; }
+);
+
+Page(Object.assign({}, mindmapMethods, {
   data: {
     data: null,
     statusBarHeight: 0,
     loading: true,
     themeClass: '',
-    fontClass: '',
-    mindmapData: null,
-    mindmapLoading: false,
-    mindmapError: false
+    fontClass: ''
   },
 
   async onLoad(options) {
@@ -53,80 +57,6 @@ Page({
     wx.navigateBack();
   },
 
-  async generateMindmap() {
-    if (this.data.mindmapLoading) return;
-
-    const data = this.data.data;
-    if (!data || !data.report) {
-      wx.showToast({ title: '无报告内容', icon: 'none' });
-      return;
-    }
-
-    this.setData({ mindmapLoading: true, mindmapError: false });
-
-    try {
-      const res = await wx.cloud.callFunction({
-        name: 'replyToLetter',
-        data: {
-          type: 'mindmap',
-          analysisContent: data.report,
-          methodName: '结构分析'
-        }
-      });
-
-      const result = res.result || {};
-      if (result.success && result.data) {
-        this.setData({ mindmapData: result.data, mindmapLoading: false });
-      } else {
-        this.setData({ mindmapError: true, mindmapLoading: false });
-        wx.showToast({ title: '脑图生成失败', icon: 'none' });
-      }
-    } catch (err) {
-      console.error('生成脑图失败:', err);
-      this.setData({ mindmapError: true, mindmapLoading: false });
-      wx.showToast({ title: '网络错误', icon: 'none' });
-    }
-  },
-
-  saveMindmapImage() {
-    const mindmap = this.selectComponent('#mindmapRenderer');
-    if (!mindmap) {
-      wx.showToast({ title: '脑图未就绪', icon: 'none' });
-      return;
-    }
-
-    wx.showLoading({ title: '保存中...' });
-    mindmap.exportImage().then((tempPath) => {
-      wx.saveImageToPhotosAlbum({
-        filePath: tempPath,
-        success: () => {
-          wx.hideLoading();
-          wx.showToast({ title: '已保存到相册', icon: 'success' });
-        },
-        fail: (err) => {
-          wx.hideLoading();
-          if (err.errMsg && err.errMsg.indexOf('auth deny') !== -1) {
-            wx.showModal({
-              title: '需要授权',
-              content: '请在设置中允许访问相册',
-              confirmText: '去设置',
-              success: (res) => {
-                if (res.confirm) {
-                  wx.openSetting();
-                }
-              }
-            });
-          } else {
-            wx.showToast({ title: '保存失败', icon: 'none' });
-          }
-        }
-      });
-    }).catch(() => {
-      wx.hideLoading();
-      wx.showToast({ title: '导出失败', icon: 'none' });
-    });
-  },
-
   exportText() {
     if (!this.data.data) return;
 
@@ -153,5 +83,11 @@ Page({
     if (!date) return '';
     var d = new Date(date);
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0') + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  },
+
+  reportContent() {
+    var data = this.data.data;
+    if (!data || !data._id) return;
+    reportUtil.showReportDialog(data._id, 'structure_analysis');
   }
-});
+}));
