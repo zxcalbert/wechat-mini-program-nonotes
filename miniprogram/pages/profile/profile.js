@@ -1,4 +1,5 @@
 const app = getApp();
+const apiKeyUtil = require('../../utils/apiKeyUtil');
 const ROUND_TABLE_FIX_STORAGE_KEY = 'roundtableOwnershipFixed_v1';
 const ROUND_TABLE_FIX_IDS = [
   'dde8ef4869d88bba03a293ce59345060',
@@ -14,7 +15,9 @@ Page({
     themeClass: '',
     loading: false,
     showRoundtableFixButton: false,
-    fixRoundtableLoading: false
+    fixRoundtableLoading: false,
+    apiKey: '',
+    apiKeyMasked: ''
   },
 
   onLoad: function() {
@@ -33,6 +36,45 @@ Page({
       avatarUrl: userInfo.avatarUrl || '/images/avatar.png',
       nickname: userInfo.nickName || userInfo.nickname || '思考者'
     });
+    this.loadApiKey();
+  },
+
+  loadApiKey() {
+    const apiKey = wx.getStorageSync('wisdomNotesApiKey') || '';
+    this.setData({
+      apiKey: apiKey,
+      apiKeyMasked: apiKey ? apiKeyUtil.maskApiKey(apiKey) : ''
+    });
+  },
+
+  generateApiKey() {
+    wx.showModal({
+      title: '生成 API Key',
+      content: '将生成新的 API Key，旧 Key 将失效。确定继续？',
+      success: (res) => {
+        if (!res.confirm) return;
+        var key = apiKeyUtil.generateApiKey();
+        wx.setStorageSync('wisdomNotesApiKey', key);
+        this.setData({
+          apiKey: key,
+          apiKeyMasked: apiKeyUtil.maskApiKey(key)
+        });
+        wx.showToast({ title: 'API Key 已生成', icon: 'success' });
+      }
+    });
+  },
+
+  copyApiKey() {
+    wx.setClipboardData({
+      data: this.data.apiKey,
+      success: () => {
+        wx.showToast({ title: '已复制到剪贴板', icon: 'success' });
+      }
+    });
+  },
+
+  regenerateApiKey() {
+    this.generateApiKey();
   },
 
   loadFixState() {
@@ -377,6 +419,26 @@ Page({
           if (roundtables.success) {
             for (const rt of roundtables.data) {
               await cloudbaseUtil.delete('roundtable_discussions', rt._id);
+            }
+          }
+
+          const incubators = await cloudbaseUtil.query('incubator_reports', {
+            where: { _openid: openid },
+            limit: 100
+          });
+          if (incubators.success) {
+            for (const item of incubators.data) {
+              await cloudbaseUtil.delete('incubator_reports', item._id);
+            }
+          }
+
+          const structures = await cloudbaseUtil.query('structure_analysis_reports', {
+            where: { _openid: openid },
+            limit: 100
+          });
+          if (structures.success) {
+            for (const item of structures.data) {
+              await cloudbaseUtil.delete('structure_analysis_reports', item._id);
             }
           }
 
