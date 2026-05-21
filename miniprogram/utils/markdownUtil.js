@@ -21,7 +21,7 @@ function parseMarkdown(md) {
   var codeBlocks = [];
   html = html.replace(/```(\w*)\n?([\s\S]*?)```/g, function(m, lang, code) {
     var idx = codeBlocks.length;
-    codeBlocks.push('<pre><code>' + code.trim() + '</code></pre>');
+    codeBlocks.push('<pre style="background-color:#f5f5f5;padding:20rpx;border-radius:12rpx;overflow-x:auto;margin:16rpx 0;"><code style="font-family:monospace;font-size:26rpx;line-height:1.6;word-break:break-word;overflow-wrap:break-word;">' + code.trim() + '</code></pre>');
     return '%%CODEBLOCK_' + idx + '%%';
   });
 
@@ -29,17 +29,18 @@ function parseMarkdown(md) {
   html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
 
   // 标题（必须在行首）
-  html = html.replace(/^#### (.+)$/gm, '<h4>$1</h4>');
-  html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
-  html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
-  html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+  html = html.replace(/^#### (.+)$/gm, '<h4 style="word-break:break-all;overflow-wrap:break-word;">$1</h4>');
+  html = html.replace(/^### (.+)$/gm, '<h3 style="word-break:break-all;overflow-wrap:break-word;">$1</h3>');
+  html = html.replace(/^## (.+)$/gm, '<h2 style="word-break:break-all;overflow-wrap:break-word;">$1</h2>');
+  html = html.replace(/^# (.+)$/gm, '<h1 style="word-break:break-all;overflow-wrap:break-word;">$1</h1>');
 
   // 表格：匹配 | ... | 格式的表格块
   html = html.replace(/((?:^\|.+\|$\n?)+)/gm, function(tableBlock) {
     var rows = tableBlock.trim().split('\n');
     if (rows.length < 2) return tableBlock;
 
-    var tableHtml = '<table>';
+    // rich-text 不继承外部 CSS，必须用内联样式强制换行
+    var tableHtml = '<table style="table-layout:fixed;width:100%;border-collapse:collapse;">';
     var isHeader = true;
 
     rows.forEach(function(row) {
@@ -56,7 +57,12 @@ function parseMarkdown(md) {
       var tag = isHeader ? 'th' : 'td';
       var rowHtml = '<tr>';
       cells.forEach(function(cell) {
-        rowHtml += '<' + tag + '>' + cell.trim() + '</' + tag + '>';
+        // 内联样式防止长文本撑破表格
+        var cellStyle = 'word-break:break-word;overflow-wrap:break-word;padding:10rpx 16rpx;border:1rpx solid #e0e0e0;';
+        if (isHeader) {
+          cellStyle += 'background-color:#f5f5f5;font-weight:600;text-align:left;';
+        }
+        rowHtml += '<' + tag + ' style="' + cellStyle + '">' + cell.trim() + '</' + tag + '>';
       });
       rowHtml += '</tr>';
       tableHtml += rowHtml;
@@ -70,7 +76,7 @@ function parseMarkdown(md) {
   });
 
   // 引用块
-  html = html.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');
+  html = html.replace(/^&gt; (.+)$/gm, '<blockquote style="word-break:break-all;overflow-wrap:break-word;">$1</blockquote>');
 
   // 任务列表（- [x] 或 - [ ]）
   html = html.replace(/^[\-\*] \[x\] (.+)$/gm, '<li class="task-item task-done">$1</li>');
@@ -90,13 +96,13 @@ function parseMarkdown(md) {
   // 无序列表（- 或 * 开头，支持缩进）
   html = html.replace(/^(\s*)[\-\*] (.+)$/gm, function(m, indent, content) {
     var depth = Math.floor(indent.length / 2);
-    return '<li class="list-depth-' + depth + '">' + content + '</li>';
+    return '<li class="list-depth-' + depth + '" style="word-break:break-all;overflow-wrap:break-word;">' + content + '</li>';
   });
 
   // 有序列表（支持缩进）
   html = html.replace(/^(\s*)\d+\. (.+)$/gm, function(m, indent, content) {
     var depth = Math.floor(indent.length / 2);
-    return '<li class="ol-item list-depth-' + depth + '">' + content + '</li>';
+    return '<li class="ol-item list-depth-' + depth + '" style="word-break:break-all;overflow-wrap:break-word;">' + content + '</li>';
   });
 
   // 包裹连续 <li> 为 <ul>（保留 class）
@@ -105,13 +111,13 @@ function parseMarkdown(md) {
   });
 
   // 段落：非标签开头的行包裹 <p>（跳过代码块占位符）
-  html = html.replace(/^(?!<[hublop]|<\/|<hr|<pre|<code|<block|<table|%%CODEBLOCK)(.*\S.*)$/gm, '<p>$1</p>');
+  html = html.replace(/^(?!<[hublop]|<\/|<hr|<pre|<code|<block|<table|%%CODEBLOCK)(.*\S.*)$/gm, '<p style="word-break:break-all;overflow-wrap:break-word;">$1</p>');
 
   // 清理空段落
   html = html.replace(/<p>\s*<\/p>/g, '');
 
-  // 合并连续 blockquote
-  html = html.replace(/<\/blockquote>\s*<blockquote>/g, '<br/>');
+  // 合并连续 blockquote；rich-text 内联样式会让第二个开标签带属性。
+  html = html.replace(/<\/blockquote>\s*<blockquote[^>]*>/g, '<br/>');
 
   // 压缩多余换行
   html = html.replace(/\n{2,}/g, '\n');

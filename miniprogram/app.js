@@ -15,9 +15,6 @@ App({
       });
 
       console.log('✅ 云开发已初始化');
-      console.log('📌 AI 分析使用 DeepSeek API');
-      console.log('📌 云函数: replyToLetter');
-      console.log('📌 环境变量: DEEPSEEK_API_KEY');
     }
 
     this.initTheme();

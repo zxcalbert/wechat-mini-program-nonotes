@@ -140,6 +140,208 @@ function incubatorToMarkdown(record) {
   return lines.join('\n');
 }
 
+/**
+ * 将全部用户数据导出为单个 Markdown 文档
+ * @param {Object} data - 分析数据集合
+ * @returns {string} Markdown 文本
+ */
+function exportAllToMarkdown(data) {
+  data = data || {};
+
+  var letters = Array.isArray(data.letters) ? data.letters : [];
+  var roundtables = Array.isArray(data.roundtables) ? data.roundtables : [];
+  var incubators = Array.isArray(data.incubators) ? data.incubators : [];
+  var structures = Array.isArray(data.structures) ? data.structures : [];
+  var exportedAt = data.exportedAt || new Date();
+  var totalCount = letters.length + roundtables.length + incubators.length + structures.length;
+  var lines = [];
+
+  lines.push('# 智慧笔记 - 数据导出');
+  lines.push('');
+  lines.push('导出时间：' + _formatDate(exportedAt));
+  lines.push('总记录数：' + totalCount + ' 条');
+  lines.push('');
+  lines.push('---');
+  lines.push('');
+  lines.push('## 目录');
+  lines.push('');
+  lines.push('- [分析记录](#分析记录)（' + letters.length + '条）');
+  lines.push('- [多维度分析](#多维度分析)（' + roundtables.length + '条）');
+  lines.push('- [孵化报告](#孵化报告)（' + incubators.length + '条）');
+  lines.push('- [结构分析](#结构分析)（' + structures.length + '条）');
+  lines.push('');
+  lines.push('---');
+  lines.push('');
+
+  _appendAnalysisSection(lines, letters);
+  _appendRoundtableSection(lines, roundtables);
+  _appendIncubatorSection(lines, incubators);
+  _appendStructureSection(lines, structures);
+
+  lines.push('---');
+  lines.push('');
+  lines.push('*以上内容由 AI 生成，仅供参考。导出文件不包含 API Key 明文。*');
+
+  return lines.join('\n');
+}
+
+function _appendAnalysisSection(lines, records) {
+  lines.push('## 分析记录');
+  lines.push('');
+  if (records.length === 0) {
+    lines.push('暂无记录。');
+    lines.push('');
+    return;
+  }
+
+  records.forEach(function(record, i) {
+    var method = record.displayMethod || record.method || record.methodName || record.mentor || '分析方法';
+    lines.push('### ' + (i + 1) + '. ' + method);
+    lines.push('');
+    lines.push('> 分析时间：' + _formatDate(record.createTime));
+    lines.push('> 状态：' + _statusLabel(record.status));
+    lines.push('');
+    lines.push('**原始问题：**');
+    lines.push('');
+    lines.push(record.content || '无');
+    lines.push('');
+    lines.push('**分析结果：**');
+    lines.push('');
+    lines.push(record.replyContent || record.report || '无');
+    lines.push('');
+  });
+}
+
+function _appendRoundtableSection(lines, records) {
+  lines.push('## 多维度分析');
+  lines.push('');
+  if (records.length === 0) {
+    lines.push('暂无记录。');
+    lines.push('');
+    return;
+  }
+
+  records.forEach(function(record, i) {
+    lines.push('### ' + (i + 1) + '. ' + (record.content || '未命名'));
+    lines.push('');
+    lines.push('> 分析时间：' + _formatDate(record.createTime));
+    lines.push('> 状态：' + _statusLabel(record.status));
+    lines.push('');
+
+    var selectedMethods = _methodNames(record.selectedMethods);
+    if (selectedMethods.length > 0) {
+      lines.push('**分析方法：** ' + selectedMethods.join('、'));
+      lines.push('');
+    }
+
+    lines.push('**原始问题：**');
+    lines.push('');
+    lines.push(record.content || '无');
+    lines.push('');
+
+    var replies = Array.isArray(record.replies) ? record.replies : record.discussions;
+    if (Array.isArray(replies) && replies.length > 0) {
+      replies.forEach(function(reply, replyIndex) {
+        var method = reply.method || reply.displayName || reply.mentor || ('分析方法 ' + (replyIndex + 1));
+        lines.push('#### ' + method);
+        lines.push('');
+        lines.push(reply.content || reply.replyContent || reply.reply || '无');
+        lines.push('');
+      });
+    } else {
+      lines.push('**分析结果：**');
+      lines.push('');
+      lines.push(record.replyContent || '无');
+      lines.push('');
+    }
+  });
+}
+
+function _appendIncubatorSection(lines, records) {
+  lines.push('## 孵化报告');
+  lines.push('');
+  if (records.length === 0) {
+    lines.push('暂无记录。');
+    lines.push('');
+    return;
+  }
+
+  records.forEach(function(record, i) {
+    lines.push('### ' + (i + 1) + '. ' + (record.content || record.originalIdea || '未命名'));
+    lines.push('');
+    lines.push('> 生成时间：' + _formatDate(record.createTime));
+    lines.push('');
+
+    var selectedMethods = _methodNames(record.selectedMethods);
+    if (selectedMethods.length > 0) {
+      lines.push('**分析方法：** ' + selectedMethods.join('、'));
+      lines.push('');
+    }
+
+    lines.push('**初始想法：**');
+    lines.push('');
+    lines.push(record.originalIdea || record.content || '无');
+    lines.push('');
+    lines.push('**报告内容：**');
+    lines.push('');
+    lines.push(record.report || record.replyContent || '无');
+    lines.push('');
+
+    if (Array.isArray(record.actionPlan) && record.actionPlan.length > 0) {
+      lines.push('**行动清单：**');
+      lines.push('');
+      record.actionPlan.forEach(function(item, actionIndex) {
+        if (typeof item === 'string') {
+          lines.push((actionIndex + 1) + '. ' + item);
+        } else if (item && typeof item === 'object') {
+          lines.push((actionIndex + 1) + '. ' + (item.action || item.content || ''));
+          if (item.detail) {
+            lines.push('   - ' + item.detail);
+          }
+        }
+      });
+      lines.push('');
+    }
+  });
+}
+
+function _appendStructureSection(lines, records) {
+  lines.push('## 结构分析');
+  lines.push('');
+  if (records.length === 0) {
+    lines.push('暂无记录。');
+    lines.push('');
+    return;
+  }
+
+  records.forEach(function(record, i) {
+    lines.push('### ' + (i + 1) + '. ' + (record.content || '未命名'));
+    lines.push('');
+    lines.push('> 分析时间：' + _formatDate(record.createTime));
+    if (record.analysisType || record.type) {
+      lines.push('> 类型：' + (record.analysisType || record.type));
+    }
+    lines.push('');
+    lines.push('**分析对象：**');
+    lines.push('');
+    lines.push(record.content || '无');
+    lines.push('');
+    lines.push('**分析结果：**');
+    lines.push('');
+    lines.push(record.replyContent || record.report || '无');
+    lines.push('');
+  });
+}
+
+function _methodNames(methods) {
+  if (!Array.isArray(methods)) return [];
+  return methods.map(function(method) {
+    if (typeof method === 'string') return method;
+    if (!method || typeof method !== 'object') return '';
+    return method.displayName || method.method || method.methodName || method.mentor || '';
+  }).filter(Boolean);
+}
+
 function _formatDate(date) {
   if (!date) return '未知';
   if (!(date instanceof Date)) {
@@ -181,5 +383,6 @@ module.exports = {
   analysisToMarkdown: analysisToMarkdown,
   roundtableToMarkdown: roundtableToMarkdown,
   incubatorToMarkdown: incubatorToMarkdown,
+  exportAllToMarkdown: exportAllToMarkdown,
   autoExport: autoExport
 };

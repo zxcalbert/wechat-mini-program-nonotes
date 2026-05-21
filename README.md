@@ -155,22 +155,22 @@ wxapp-project/
 
 | 阶段 | 状态 | 说明 |
 |------|------|------|
-| Phase 0 合规改造 | ✅ 100% | 去拟人化、合规标识、隐私政策、举报功能、一键退出 |
-| Phase 1 脑图 V1 | ✅ 100% | detail + incubatorResult + structureAnalysisResult 全部集成 Canvas 脑图 |
-| Phase 1.5 Markdown 渲染 | 🔵 开发中 | markdown-renderer 组件基础版完成，正在优化表格/链接/嵌套列表支持 |
-| Phase 2 知识全景图 | 🔵 待决策 | 需上线数据（脑图使用率 > 15%） |
-| Phase 3 全可视化 | ⬜ 未开始 | 依赖 Phase 2 |
-| 工程基建 | ✅ ~85% | shared/ + tests/fixtures + prompts 模块化已完成，方法提示词待补全 |
-| AI Agent 接口 | ⬜ 规划中 | 设计面向 Agent 的 API/CLI 接口，支持程序化读写分析数据 |
+| Phase 0 合规改造 | ✅ 代码完成，待 RC 手测 | 去拟人化、合规标识、隐私政策、举报功能、一键退出 |
+| Phase 1 脑图 V1 | ✅ 代码完成，待 RC 手测 | detail + incubatorResult + structureAnalysisResult 全部集成 Canvas 脑图 |
+| Phase 1.5 Markdown/导出 | ✅ 自动化通过 | Markdown rich-text 渲染、结果导出、全量 Markdown 导出已纳入测试 |
+| Phase 2 知识图谱 | ✅ 主要代码完成，待部署/手测 | knowledgeMap、domainDetail、mindmapHistory、关联发现与洞察云函数 |
+| Phase 3 全可视化 | 🔵 RC 外延后 | 小程序内基础可视化已完成；AI 绘图、Web 端、无限层级不属于当前 RC |
+| 工程基建 | ✅ 自动化通过 | Jest 测试、规则检查、fixtures、工具模块已接入 RC 门禁 |
+| AI Agent/自定义模型 | 🔵 设计阶段 | API Key 基础能力已有；自定义 baseUrl/API Key/model 作为 RC 后 P1 功能 |
 
 ### 架构演进方向
 
 ```
 当前：微信小程序（面向人类用户）
-  ↓ Phase 2
-知识全景图 + Markdown 富文本展示
-  ↓ Phase 3
-全可视化浏览 + 个人知识图谱
+  ↓ RC
+合规主流程 + Markdown 导出 + 脑图/知识图谱手测通过
+  ↓ P1
+用户自定义大模型配置 + 个人知识图谱增强
   ↓ 未来
 双端架构：小程序（人类）+ API/CLI（AI Agent）
 ```
@@ -236,6 +236,8 @@ cd scripts && npm run test:integration
 ## 文档导航
 
 - [开发计划](DEVELOPMENT_PLAN.md) — 阶段规划与进度跟踪
+- [设计真源](design.md) — 产品边界、架构、合规和 RC 定义
+- [RC 实施控制](implementation-control.md) — Release Candidate 收口 gate 与验收清单
 - [脑图可视化研究报告](FLIPBOOK_INTEGRATION_REPORT.md) — 可视化方案与演进路径
 - [AI Agent 接口设计](AI_AGENT_INTERFACE_DESIGN.md) — 面向 AI Agent 的 API/CLI 接口设计方案
 - [项目强制规范](.trae/rules/project_rules.md) — 开发规范与红线
@@ -244,6 +246,14 @@ cd scripts && npm run test:integration
 - [测试用例](TEST_CASES.md) — 测试用例文档
 
 ## 更新日志
+
+### v2.3-rc (2026-05-21, 收口中)
+
+- 建立 `design.md` 作为 RC 设计真源，明确小程序 RC 边界与后续 P1 能力。
+- 建立 `implementation-control.md`，按 Gate 0-6 收口测试、文档、云函数部署和小程序手测。
+- 修复 Markdown rich-text 测试契约，`npm run test:jest` 已全绿。
+- 全量 Markdown 导出抽取到 `exportUtil.exportAllToMarkdown()` 并补充自动化测试。
+- 项目规则检查已通过；仍保留 console 数量警告，作为后续清理项。
 
 ### v2.2 (2026-05-05, 进行中)
 

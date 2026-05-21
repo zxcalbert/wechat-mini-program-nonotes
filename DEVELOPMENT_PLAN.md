@@ -5,17 +5,19 @@
 
 ---
 
-## 📍 当前进度总览（2026-05-06 最新审计）
+## 📍 当前进度总览（2026-05-21 RC 收口）
 
 ```
-Phase 0 合规改造：  ████████████████████ 100%  （全部通过）
-Phase 1 脑图 V1：   ████████████████████ 100%  （detail + incubatorResult + structureAnalysisResult 全部集成）
-Phase 1.5 Markdown： ████████████████░░░░ ~75%  （markdown-renderer 增强 + exportUtil + AI输出规范化）
-Phase 2 全景首页：   ████████████████████ 100%  （领域卡片 + 搜索 + 面包屑 + domainDetail + getMethodCatalog）
-Phase 3 全可视化：   ████████████████████ 100%  （H1-H6 全部完成）
-工程基建：           ██████████████████░░ ~95%  （shared/ + tests/fixtures + prompts模块化 + 21方法提示词已生成）
+Phase 0 合规改造：  ████████████████████ 代码完成  （待小程序手测）
+Phase 1 脑图 V1：   ████████████████████ 代码完成  （待小程序手测）
+Phase 1.5 Markdown： ████████████████████ 自动化通过（rich-text 渲染 + 全量 Markdown 导出）
+Phase 2 知识图谱：   ██████████████████░░ 主要代码完成（待云函数部署与手测）
+Phase 3 全可视化：   ████████░░░░░░░░░░░░ RC 外延后（AI 绘图/Web/无限层级不纳入 RC）
+工程基建：           ████████████████████ RC 门禁通过（Jest + 项目规则检查）
 AI Agent 接口：     ██░░░░░░░░░░░░░░░░░░ ~10%  （概念设计完成，详见 AI_AGENT_INTERFACE_DESIGN.md）
 ```
+
+> 当前判断以 `design.md` 和 `implementation-control.md` 为 RC 真源。下方早期 Phase/Stage 计划保留为历史规划，不再单独作为完成度判断依据。
 
 **Phase 1 已完成清单**：
 - detail 页脑图：生成/重试/截图保存 ✅
@@ -32,11 +34,13 @@ AI Agent 接口：     ██░░░░░░░░░░░░░░░░░
 - 用户协议页面「邮票」残留清理 ✅
 - Markdown 渲染增强：表格/任务列表/嵌套列表/链接/暗色主题 ✅
 - AI 输出规范化：prompts.js 增加 Markdown 结构要求 ✅
-- 导出功能：exportUtil.js + detail 页「导出 Markdown」按钮 ✅
+- 导出功能：exportUtil.js + detail 页「导出 Markdown」按钮 + Profile 全量 Markdown 导出 ✅
 - 方法提示词：21 个分析方法独立 prompt 文件 ✅
 - AI Agent 接口概念设计完成 ✅
+- Jest 自动化测试框架：12 个测试套件 / 173 个用例（utils + 页面逻辑）✅
+- GitHub Actions CI 集成 Jest 测试 ✅
 
-**Phase 2 启动决策点**：需先上线运行 2-4 周，收集脑图功能使用率数据。点击率 > 15% 才启动。
+**RC 下一步**：云函数部署确认、微信开发者工具手测、工作区分组提交与临时产物清理。
 
 ---
 

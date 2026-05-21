@@ -1,5 +1,6 @@
 const app = getApp();
 const apiKeyUtil = require('../../utils/apiKeyUtil');
+const exportUtil = require('../../utils/exportUtil');
 const ROUND_TABLE_FIX_STORAGE_KEY = 'roundtableOwnershipFixed_v1';
 const ROUND_TABLE_FIX_IDS = [
   'dde8ef4869d88bba03a293ce59345060',
@@ -218,111 +219,13 @@ Page({
       const incubatorData = incubators.success ? incubators.data : [];
       const structureData = structures.success ? structures.data : [];
       const totalCount = letterData.length + roundtableData.length + incubatorData.length + structureData.length;
-
-      let exportText = '# 智慧笔记 - 数据导出\n\n';
-      exportText += '导出时间：' + dateStr + '\n';
-      exportText += '总记录数：' + totalCount + ' 条\n\n';
-      exportText += '---\n\n';
-
-      exportText += '## 目录\n\n';
-      const tocItems = [];
-      if (letterData.length > 0) {
-        tocItems.push('- [分析记录](#分析记录)（' + letterData.length + '条）');
-      }
-      if (roundtableData.length > 0) {
-        tocItems.push('- [多维度分析](#多维度分析)（' + roundtableData.length + '条）');
-      }
-      if (incubatorData.length > 0) {
-        tocItems.push('- [孵化报告](#孵化报告)（' + incubatorData.length + '条）');
-      }
-      if (structureData.length > 0) {
-        tocItems.push('- [结构分析](#结构分析)（' + structureData.length + '条）');
-      }
-      exportText += tocItems.join('\n') + '\n\n---\n\n';
-
-      if (letterData.length > 0) {
-        exportText += '## 分析记录\n\n';
-        letterData.forEach(function(letter, i) {
-          var time = letter.createTime
-            ? new Date(letter.createTime).toLocaleString('zh-CN', { hour12: false })
-            : '未知';
-          exportText += '### ' + (i + 1) + '. ' + (letter.displayMethod || letter.mentor || '分析') + '\n\n';
-          exportText += '> ' + time + '\n\n';
-          exportText += '**问题：**\n' + (letter.content || '') + '\n\n';
-          exportText += '**分析结果：**\n' + (letter.replyContent || '无') + '\n\n';
-        });
-      }
-
-      if (roundtableData.length > 0) {
-        exportText += '## 多维度分析\n\n';
-        roundtableData.forEach(function(rt, i) {
-          var time = rt.createTime
-            ? new Date(rt.createTime).toLocaleString('zh-CN', { hour12: false })
-            : '未知';
-          exportText += '### ' + (i + 1) + '. ' + (rt.content || '未命名') + '\n\n';
-          exportText += '> ' + time + '\n\n';
-          if (rt.selectedMethods && rt.selectedMethods.length > 0) {
-            var methodNames = rt.selectedMethods.map(function(m) {
-              return typeof m === 'string' ? m : (m.displayName || m.mentor || '');
-            }).filter(Boolean);
-            if (methodNames.length > 0) {
-              exportText += '**分析方法：** ' + methodNames.join('、') + '\n\n';
-            }
-          }
-          if (rt.discussions) {
-            rt.discussions.forEach(function(d) {
-              var mentorName = d.displayName || d.mentor || '未知方法';
-              exportText += '#### ' + mentorName + '\n' + (d.reply || d.content || '无') + '\n\n';
-            });
-          }
-        });
-      }
-
-      if (incubatorData.length > 0) {
-        exportText += '## 孵化报告\n\n';
-        incubatorData.forEach(function(inc, i) {
-          var time = inc.createTime
-            ? new Date(inc.createTime).toLocaleString('zh-CN', { hour12: false })
-            : '未知';
-          exportText += '### ' + (i + 1) + '. ' + (inc.content || '未命名') + '\n\n';
-          exportText += '> ' + time + '\n\n';
-          if (inc.selectedMethods && inc.selectedMethods.length > 0) {
-            var methodNames = inc.selectedMethods.map(function(m) {
-              return typeof m === 'string' ? m : (m.displayName || m.mentor || '');
-            }).filter(Boolean);
-            if (methodNames.length > 0) {
-              exportText += '**分析方法：** ' + methodNames.join('、') + '\n\n';
-            }
-          }
-          exportText += '**报告内容：**\n' + (inc.report || inc.replyContent || '无') + '\n\n';
-          if (inc.actionPlan && inc.actionPlan.length > 0) {
-            exportText += '**行动清单：**\n\n';
-            inc.actionPlan.forEach(function(item, ai) {
-              if (typeof item === 'string') {
-                exportText += (ai + 1) + '. ' + item + '\n';
-              } else if (item && typeof item === 'object') {
-                exportText += (ai + 1) + '. ' + (item.action || item.content || '') + '\n';
-                if (item.detail) {
-                  exportText += '   - ' + item.detail + '\n';
-                }
-              }
-            });
-            exportText += '\n';
-          }
-        });
-      }
-
-      if (structureData.length > 0) {
-        exportText += '## 结构分析\n\n';
-        structureData.forEach(function(st, i) {
-          var time = st.createTime
-            ? new Date(st.createTime).toLocaleString('zh-CN', { hour12: false })
-            : '未知';
-          exportText += '### ' + (i + 1) + '. ' + (st.content || '未命名') + '\n\n';
-          exportText += '> ' + time + '\n\n';
-          exportText += '**分析结果：**\n' + (st.replyContent || st.report || '无') + '\n\n';
-        });
-      }
+      const exportText = exportUtil.exportAllToMarkdown({
+        letters: letterData,
+        roundtables: roundtableData,
+        incubators: incubatorData,
+        structures: structureData,
+        exportedAt: now
+      });
 
       wx.hideLoading();
       wx.showModal({
