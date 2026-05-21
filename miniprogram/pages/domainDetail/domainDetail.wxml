@@ -1,0 +1,46 @@
+<view class="container {{themeClass}} {{fontClass}}">
+  <!-- 面包屑导航 -->
+  <breadcrumb paths="{{breadcrumbPaths}}" bind:navigate="onBreadcrumbNavigate" />
+
+  <!-- 领域标题 -->
+  <view class="domain-banner" style="border-left: 6rpx solid {{domain.color}};">
+    <text class="domain-icon">{{domain.icon}}</text>
+    <view class="domain-info">
+      <text class="domain-name">{{domain.name}}</text>
+      <text class="domain-count">{{domain.methods.length}}种分析方法</text>
+    </view>
+  </view>
+
+  <!-- 方法卡片列表 -->
+  <view class="section-title">分析方法</view>
+  <view class="method-list">
+    <view
+      wx:for="{{methodCards}}"
+      wx:key="index"
+      class="method-card"
+      bindtap="goToMethod"
+      data-method="{{item.name}}"
+    >
+      <text class="method-name">{{item.name}}</text>
+      <text class="method-arrow">→</text>
+    </view>
+  </view>
+
+  <!-- 该领域的历史分析 -->
+  <view wx:if="{{recentAnalyses.length > 0}}" class="section-title">历史分析</view>
+  <view class="analysis-list">
+    <view
+      wx:for="{{recentAnalyses}}"
+      wx:key="_id"
+      class="analysis-card"
+      bindtap="goToDetail"
+      data-id="{{item._id}}"
+    >
+      <text class="analysis-content">{{item.content}}</text>
+      <view class="analysis-footer">
+        <text class="analysis-method">{{item.mentor}}</text>
+        <text class="analysis-date">{{item.displayDate}}</text>
+      </view>
+    </view>
+  </view>
+</view>

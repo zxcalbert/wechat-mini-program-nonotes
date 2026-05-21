@@ -1,0 +1,53 @@
+<view class="about-container {{themeClass}} {{fontClass}}">
+  <view class="about-header">
+    <text class="app-name">智慧笔记</text>
+    <text class="app-version">v2.1</text>
+  </view>
+
+  <view class="about-content">
+    <view class="about-section">
+      <text class="section-title">产品介绍</text>
+      <text class="section-text">智慧笔记是一款基于 AI 方法论分析的个人思考工具。提供 21 种分析方法，涵盖价值思维、创新创业、心理学、哲学四大领域，帮助你从多个维度深度分析问题。</text>
+    </view>
+
+    <view class="about-section">
+      <text class="section-title">核心功能</text>
+      <text class="feature-item">单维度深度分析</text>
+      <text class="feature-item">多维度交叉分析</text>
+      <text class="feature-item">思想孵化器</text>
+      <text class="feature-item">可视化脑图</text>
+      <text class="feature-item">产品/公司结构分析</text>
+    </view>
+
+    <view class="about-section">
+      <text class="section-title">设计理念</text>
+      <text class="section-text">我们相信，好的思考需要时间。18 小时延迟查看机制让你先独立思考，再参考 AI 分析视角。这不是替代思考，而是辅助你思考得更深。</text>
+    </view>
+
+    <view class="about-section">
+      <text class="section-title">技术支持</text>
+      <text class="section-text">AI 分析由 DeepSeek 提供技术支持。所有分析结果仅供参考学习，不代表任何特定个人或机构的观点，不构成任何专业建议。</text>
+    </view>
+
+    <view class="about-section">
+      <text class="section-title">合规声明</text>
+      <text class="section-text">本应用严格遵守《人工智能拟人化互动服务管理暂行办法》，不模拟任何人物身份，所有分析均基于客观方法论框架。</text>
+    </view>
+
+    <view class="about-section">
+      <text class="section-title">法律条款</text>
+      <view class="legal-link" bindtap="viewPrivacy">
+        <text class="legal-link-text">隐私政策</text>
+        <text class="legal-link-arrow">></text>
+      </view>
+      <view class="legal-link" bindtap="viewAgreement">
+        <text class="legal-link-text">用户协议</text>
+        <text class="legal-link-arrow">></text>
+      </view>
+    </view>
+  </view>
+
+  <view class="about-footer">
+    <text class="footer-text">© 2026 智慧笔记</text>
+  </view>
+</view>

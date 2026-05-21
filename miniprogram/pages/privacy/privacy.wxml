@@ -11,17 +11,37 @@
     </view>
 
     <view class="section">
-      <text class="section-title">二、数据存储</text>
-      <text class="section-text">您的所有笔记内容和AI回复将严格保密，仅存储在您的个人云端数据库中，仅您本人可以访问。</text>
+      <text class="section-title">二、AI分析服务说明</text>
+      <text class="section-text">本应用提供的分析服务基于第三方AI服务（DeepSeek API）。用户提交的笔记内容仅用于本次分析处理，不会被用于AI模型训练。分析结果由AI自动生成，不代表任何特定个人或机构的观点，不构成任何专业建议。</text>
     </view>
 
     <view class="section">
-      <text class="section-title">三、数据使用</text>
-      <text class="section-text">您提供的信息仅用于改善用户体验和AI回复的个性化，我们不会将其用于任何其他目的。</text>
+      <text class="section-title">三、数据存储</text>
+      <text class="section-text">您的所有笔记内容和分析结果将严格保密，仅存储在您的个人云端数据库中，仅您本人可以访问。</text>
     </view>
 
     <view class="section">
-      <text class="section-title">四、联系我们</text>
+      <text class="section-title">四、数据使用</text>
+      <text class="section-text">您提供的信息仅用于改善用户体验和分析结果的个性化，我们不会将其用于任何其他目的。</text>
+    </view>
+
+    <view class="section">
+      <text class="section-title">五、数据权利</text>
+      <text class="section-text">用户有权：1. 访问自己的所有笔记和分析记录；2. 更正笔记内容；3. 删除单条或全部笔记及分析记录；4. 导出全部数据为文本格式。</text>
+    </view>
+
+    <view class="section">
+      <text class="section-title">六、内容安全</text>
+      <text class="section-text">本应用已实现内容过滤机制，包括敏感词检测和AI内容安全过滤。如发现不当内容，可通过应用内举报功能进行反馈。</text>
+    </view>
+
+    <view class="section">
+      <text class="section-title">七、使用时长提醒</text>
+      <text class="section-text">为保护用户身心健康，本应用在连续使用超过2小时后会自动提醒用户适当休息。</text>
+    </view>
+
+    <view class="section">
+      <text class="section-title">八、联系我们</text>
       <text class="section-text">如您对隐私政策有任何疑问，请通过小程序内反馈功能联系我们。</text>
     </view>
   </view>

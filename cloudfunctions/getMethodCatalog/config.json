@@ -1,0 +1,7 @@
+{
+  "name": "getMethodCatalog",
+  "description": "获取领域和方法分类目录",
+  "runtime": "nodejs14",
+  "memorySize": 256,
+  "timeout": 30
+}

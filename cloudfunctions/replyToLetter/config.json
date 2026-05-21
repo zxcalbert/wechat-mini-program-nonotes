@@ -1,6 +1,6 @@
 {
   "name": "replyToLetter",
-  "description": "获取人生导师的回复",
+  "description": "AI 分析引擎",
   "runtime": "nodejs14",
   "memorySize": 256,
   "timeout": 60,

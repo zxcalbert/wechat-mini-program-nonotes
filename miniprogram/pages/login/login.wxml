@@ -11,7 +11,7 @@
 
     <view class="info-card">
       <text class="info-title">欢迎使用智慧笔记</text>
-      <text class="info-text">与人生导师对话，获得智慧启发。你的所有记录和回复内容完全保密，仅限本人访问。</text>
+      <text class="info-text">运用多种分析方法，深入理解你的问题。你的所有记录和分析内容完全保密，仅限本人访问。</text>
     </view>
 
     <button class="btn btn-primary" bindtap="goToIndex">开始使用</button>
@@ -23,7 +23,7 @@
       <view class="logo-section">
         <text class="logo">📮</text>
         <text class="app-name">智慧笔记</text>
-        <text class="slogan">与导师对话，获得启发</text>
+        <text class="slogan">运用分析方法，深入思考</text>
       </view>
 
       <view class="intro-section">
@@ -33,7 +33,7 @@
         </view>
         <view class="intro-item">
           <text class="intro-icon">🤖</text>
-          <text class="intro-text">AI 大师智能回复</text>
+          <text class="intro-text">AI 方法论智能分析</text>
         </view>
         <view class="intro-item">
           <text class="intro-icon">🔒</text>
@@ -70,7 +70,7 @@
 
       <view class="privacy-notice">
         <text class="notice-title">隐私说明</text>
-        <text class="notice-text">我们需要获取你的昵称和头像用于识别身份。你的所有信件和回复内容将被严格保护，仅限你本人可以查看。</text>
+        <text class="notice-text">我们需要获取你的昵称和头像用于识别身份。你的所有笔记和分析内容将被严格保护，仅限你本人可以查看。</text>
       </view>
     </scroll-view>
 

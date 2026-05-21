@@ -1,4 +1,4 @@
-<view class="container">
+<view class="container {{themeClass}} {{fontClass}}">
   <view class="header" style="padding-top: {{statusBarHeight + 10}}px;">
     <view class="back-btn" bindtap="goBack">
       <text class="back-icon">←</text>
@@ -30,12 +30,38 @@
 
     <view class="report-section">
       <view class="section-title">📋 分析报告</view>
-      <view class="report-content">{{data.report}}</view>
+      <markdown-renderer content="{{data.report}}" />
+    </view>
+
+    <view class="ai-disclaimer">
+      <text class="disclaimer-text">⚠️ AI 生成内容仅供参考，不代表任何特定个人或机构的观点</text>
+    </view>
+
+    <view class="mindmap-section" wx:if="{{data.report}}">
+      <view class="mindmap-btn" bindtap="generateMindmap">
+        <text class="mindmap-btn-icon">🧠</text>
+        <text class="mindmap-btn-text">{{mindmapLoading ? '生成中...' : '生成可视化脑图'}}</text>
+      </view>
+
+      <view wx:if="{{mindmapError}}" class="mindmap-error">
+        <text>生成失败，</text>
+        <text class="mindmap-retry" bindtap="generateMindmap">点击重试</text>
+      </view>
+
+      <view wx:if="{{mindmapData}}" class="mindmap-result">
+        <mindmap-renderer id="mindmapRenderer" nodeData="{{mindmapData}}" />
+        <view class="mindmap-save-btn" bindtap="saveMindmapImage">
+          <text>💾 保存截图</text>
+        </view>
+      </view>
     </view>
 
     <view class="action-buttons">
       <button class="action-btn export-btn" bindtap="exportText">
         导出文本
+      </button>
+      <button class="action-btn report-btn" bindtap="reportContent">
+        举报此内容
       </button>
     </view>
   </view>

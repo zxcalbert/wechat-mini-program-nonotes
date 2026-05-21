@@ -1,0 +1,7 @@
+{
+  "name": "getKnowledgeInsights",
+  "description": "生成知识图谱洞察和推荐",
+  "runtime": "nodejs14",
+  "memorySize": 256,
+  "timeout": 30
+}

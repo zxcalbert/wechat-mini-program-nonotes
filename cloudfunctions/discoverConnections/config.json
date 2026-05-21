@@ -1,0 +1,7 @@
+{
+  "name": "discoverConnections",
+  "description": "发现分析记录间的知识关联",
+  "runtime": "nodejs14",
+  "memorySize": 256,
+  "timeout": 30
+}

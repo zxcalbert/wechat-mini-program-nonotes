@@ -8,7 +8,11 @@
     "pre-commit": "bash pre-commit-check.sh",
     "test:unit": "node tests/unit-tests.js",
     "test:integration": "node tests/integration-tests.js",
-    "test": "npm run test:unit && npm run test:integration"
+    "test:stage-a": "node tests/stage-a-compliance-tests.js",
+    "test:jest": "jest --verbose",
+    "test:jest:coverage": "jest --coverage",
+    "test:e2e:rc": "node e2e/rc-smoke.js",
+    "test": "npm run test:jest && npm run test:unit && npm run test:integration"
   },
   "keywords": [
     "wechat-miniprogram",
@@ -20,5 +24,9 @@
   "license": "ISC",
   "engines": {
     "node": ">=14.0.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "miniprogram-automator": "^0.12.1"
   }
 }

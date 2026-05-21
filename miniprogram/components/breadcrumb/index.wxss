@@ -1,0 +1,25 @@
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  padding: 8rpx 0;
+  font-size: 24rpx;
+  line-height: 1.4;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.breadcrumb-item {
+  color: var(--secondaryTextColor, #999);
+  flex-shrink: 0;
+}
+
+.breadcrumb-last {
+  color: var(--textColor, #333);
+  font-weight: 500;
+}
+
+.breadcrumb-sep {
+  margin: 0 8rpx;
+  color: var(--secondaryTextColor, #ccc);
+  flex-shrink: 0;
+}

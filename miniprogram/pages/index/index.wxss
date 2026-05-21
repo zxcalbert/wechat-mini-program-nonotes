@@ -274,6 +274,12 @@ page {
   border: 1px solid #c8e6c9;
 }
 
+.tag-green-fade {
+  background-color: #f1f8e9;
+  color: #689f38;
+  border: 1px solid #dcedc8;
+}
+
 .tag-orange {
   background-color: #fff3e0;
   color: #f57c00;
@@ -345,4 +351,88 @@ page {
 .no-more-tip {
   color: var(--secondaryTextColor, #999999);
   font-size: 14px;
+}
+
+/* 领域卡片网格 */
+.domain-section {
+  padding: 0 24rpx 16rpx;
+}
+
+.domain-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16rpx 0 12rpx;
+}
+
+.domain-header-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--textColor, #333);
+}
+
+.domain-header-right {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.domain-graph-btn {
+  font-size: 24rpx;
+  color: var(--highlightColor, #8b4513);
+  padding: 4rpx 12rpx;
+  background: rgba(139, 69, 19, 0.08);
+  border-radius: 8rpx;
+}
+
+.domain-toggle {
+  font-size: 24rpx;
+  color: var(--secondaryTextColor, #999);
+}
+
+.domain-collapsed {
+  text-align: center;
+  padding: 16rpx;
+}
+
+.domain-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16rpx;
+}
+
+.domain-card {
+  background: var(--cardBackgroundColor, #fff);
+  border-radius: 16rpx;
+  padding: 24rpx 20rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.domain-icon {
+  font-size: 36rpx;
+  margin-bottom: 8rpx;
+}
+
+.domain-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--textColor, #333);
+  margin-bottom: 6rpx;
+}
+
+.domain-count {
+  font-size: 22rpx;
+  color: var(--secondaryTextColor, #999);
+}
+
+.domain-used {
+  font-size: 20rpx;
+  color: #27ae60;
+  margin-top: 8rpx;
+  background: rgba(39, 174, 96, 0.1);
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
 }

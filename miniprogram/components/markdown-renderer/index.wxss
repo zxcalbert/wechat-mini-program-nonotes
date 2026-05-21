@@ -1,0 +1,211 @@
+.md-container {
+  font-size: 28rpx;
+  line-height: 1.8;
+  word-break: break-word;
+}
+
+/* 标题 */
+.md-container h1 {
+  font-size: 40rpx;
+  font-weight: 700;
+  margin: 32rpx 0 16rpx;
+  padding-bottom: 12rpx;
+  border-bottom: 2rpx solid #e0e0e0;
+}
+
+.md-container h2 {
+  font-size: 36rpx;
+  font-weight: 700;
+  margin: 28rpx 0 12rpx;
+  padding-bottom: 8rpx;
+  border-bottom: 1rpx solid #eee;
+}
+
+.md-container h3 {
+  font-size: 32rpx;
+  font-weight: 600;
+  margin: 24rpx 0 10rpx;
+}
+
+.md-container h4 {
+  font-size: 30rpx;
+  font-weight: 600;
+  margin: 20rpx 0 8rpx;
+}
+
+/* 段落 */
+.md-container p {
+  margin: 12rpx 0;
+}
+
+/* 列表 */
+.md-container ul {
+  padding-left: 32rpx;
+  margin: 12rpx 0;
+}
+
+.md-container ol {
+  padding-left: 32rpx;
+  margin: 12rpx 0;
+}
+
+.md-container li {
+  margin: 6rpx 0;
+  line-height: 1.7;
+}
+
+/* 嵌套列表缩进 */
+.md-container .list-depth-1 {
+  padding-left: 24rpx;
+}
+
+.md-container .list-depth-2 {
+  padding-left: 48rpx;
+}
+
+/* 任务列表 */
+.md-container .task-item {
+  list-style: none;
+  position: relative;
+  padding-left: 36rpx;
+}
+
+.md-container .task-item::before {
+  content: '☐';
+  position: absolute;
+  left: 0;
+  font-size: 26rpx;
+}
+
+.md-container .task-done {
+  color: #999;
+  text-decoration: line-through;
+}
+
+.md-container .task-done::before {
+  content: '☑';
+  color: #27AE60;
+}
+
+/* 有序列表项 */
+.md-container .ol-item {
+  list-style-type: decimal;
+}
+
+/* 粗体/斜体 */
+.md-container strong {
+  font-weight: 700;
+}
+
+.md-container em {
+  font-style: italic;
+}
+
+/* 链接 */
+.md-container a {
+  color: #4A90D9;
+  text-decoration: underline;
+}
+
+/* 代码 */
+.md-container code {
+  font-family: monospace;
+  background-color: #f5f5f5;
+  padding: 2rpx 8rpx;
+  border-radius: 6rpx;
+  font-size: 26rpx;
+}
+
+.md-container pre {
+  background-color: #f5f5f5;
+  padding: 20rpx;
+  border-radius: 12rpx;
+  overflow-x: auto;
+  margin: 16rpx 0;
+}
+
+.md-container pre code {
+  background: none;
+  padding: 0;
+  font-size: 26rpx;
+  line-height: 1.6;
+}
+
+/* 引用 */
+.md-container blockquote {
+  border-left: 6rpx solid #ccc;
+  padding: 8rpx 16rpx;
+  margin: 12rpx 0;
+  color: #666;
+  background-color: #fafafa;
+}
+
+/* 表格 */
+.md-container table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16rpx 0;
+  font-size: 26rpx;
+}
+
+.md-container th {
+  background-color: #f5f5f5;
+  font-weight: 600;
+  padding: 12rpx 16rpx;
+  text-align: left;
+  border: 1rpx solid #e0e0e0;
+}
+
+.md-container td {
+  padding: 10rpx 16rpx;
+  border: 1rpx solid #e0e0e0;
+}
+
+/* 分隔线 */
+.md-container hr {
+  border: none;
+  border-top: 1rpx solid #e0e0e0;
+  margin: 24rpx 0;
+}
+
+/* 暗色主题 */
+.theme-dark .md-container {
+  color: #e0e0e0;
+}
+
+.theme-dark .md-container h1,
+.theme-dark .md-container h2 {
+  border-bottom-color: #444;
+}
+
+.theme-dark .md-container blockquote {
+  background-color: #2a2a2a;
+  border-left-color: #666;
+  color: #aaa;
+}
+
+.theme-dark .md-container code {
+  background-color: #2a2a2a;
+  color: #e8e8e8;
+}
+
+.theme-dark .md-container pre {
+  background-color: #1e1e1e;
+}
+
+.theme-dark .md-container table th {
+  background-color: #2a2a2a;
+  border-color: #444;
+}
+
+.theme-dark .md-container table td {
+  border-color: #444;
+}
+
+.theme-dark .md-container a {
+  color: #7CB5EC;
+}
+
+.theme-dark .md-container hr {
+  border-top-color: #444;
+}

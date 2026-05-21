@@ -1,94 +1,109 @@
-<view class="container {{themeClass}}">
-  <scroll-view scroll-y="true" class="write-content">
-    <view wx:if="{{needReply}}" class="selector-group">
-      <picker bindchange="onMentorChange" value="{{mentorIndex}}" range="{{mentors}}">
-        <view class="picker-item">
-          <text class="picker-label">指引导师：</text>
-          <text class="highlight">{{mentors[mentorIndex]}}</text>
-          <text class="picker-arrow">▼</text>
-          <text class="picker-hint">点击选择</text>
+<view class="page">
+  <view class="hero">
+    <view class="eyebrow">深度思考工具</view>
+    <view class="title">分析方法</view>
+    <view class="subtitle">输入一个问题或想法，选择分析方法，获得结构化分析结果。</view>
+  </view>
+
+  <view class="panel" wx:if="{{needReply}}">
+    <view class="label">选择分析方法</view>
+    <view class="method-fields">
+      <view wx:for="{{methodFields}}" wx:key="key" class="method-field">
+        <view class="field-header">
+          <text class="field-icon">{{item.icon}}</text>
+          <text class="field-name">{{item.name}}</text>
         </view>
-      </picker>
-      <view class="guide-btn" bindtap="showMentorGuideHandler">
-        <text class="guide-icon">ℹ️</text>
-        <text class="guide-text">查看说明</text>
+        <view class="method-tags">
+          <view
+            wx:for="{{item.methods}}"
+            wx:for-item="method"
+            wx:key="*this"
+            class="method-tag {{selectedMethodMap[method] ? 'selected' : ''}}"
+            data-method="{{method}}"
+            bindtap="toggleMethod"
+          >{{method}}</view>
+        </view>
+      </view>
+    </view>
+    <view class="selected-info">
+      <view class="selected-count">
+        <text class="count-label">已选方法</text>
+        <text class="count-number">{{selectedMethod ? '1/1' : '0/1'}}</text>
+      </view>
+      <view class="selected-list">
+        <text>{{selectedMethod || '请点击上方方法标签进行选择'}}</text>
+      </view>
+    </view>
+    <view class="guide-btn" bindtap="showMethodGuideHandler">
+      <text class="guide-icon">ℹ️</text>
+      <text class="guide-text">查看方法说明</text>
+    </view>
+  </view>
+
+  <!-- 分析方法说明弹窗 -->
+  <view wx:if="{{showMethodGuide}}" class="guide-modal" catchtap="closeMethodGuide">
+    <view class="guide-content" catchtap="">
+      <view class="guide-header">
+        <text class="guide-title">{{selectedMethod}} - 核心框架</text>
+        <text class="guide-close" bindtap="closeMethodGuide">✕</text>
+      </view>
+      <scroll-view scroll-y="true" class="guide-body">
+        <text class="guide-text">{{currentMethodGuide}}</text>
+      </scroll-view>
+    </view>
+  </view>
+
+  <view wx:if="{{hasSensitiveWarning}}" class="sensitive-warning">
+    <text class="warning-icon">⚠️</text>
+    <text class="warning-text">{{sensitiveWarning}}</text>
+  </view>
+
+  <view class="panel">
+    <view class="label">{{needReply ? '需要分析的内容' : '我的思考'}}</view>
+    <textarea
+      class="content-input"
+      placeholder="{{needReply ? '请输入需要分析的问题或内容...' : '记录我的思考...'}}"
+      maxlength="5000"
+      bindinput="onInput"
+      value="{{content}}"
+    />
+  </view>
+
+  <view class="panel">
+    <view class="label">分析选项</view>
+    <view class="stamp-options">
+      <view class="stamp-option {{needReply === false ? 'selected' : ''}}" bindtap="selectNeedReply" data-need="{{false}}">
+        <text class="option-text">无需分析</text>
+        <text class="option-desc">仅保存笔记</text>
+      </view>
+      <view class="stamp-option {{needReply === true ? 'selected' : ''}}" bindtap="selectNeedReply" data-need="{{true}}">
+        <text class="option-text">需要分析</text>
+        <text class="option-desc">使用AI分析</text>
       </view>
     </view>
 
-    <!-- AI助手说明弹窗 -->
-    <view wx:if="{{showMentorGuide}}" class="guide-modal" catchtap="closeMentorGuide">
-      <view class="guide-content" catchtap="">
-        <view class="guide-header">
-          <text class="guide-title">{{mentors[mentorIndex]}} - 核心原则</text>
-          <text class="guide-close" bindtap="closeMentorGuide">✕</text>
-        </view>
-        <scroll-view scroll-y="true" class="guide-body">
-          <text class="guide-text">{{currentMentorGuide}}</text>
-        </scroll-view>
+    <view wx:if="{{needReply && userStamps <= 1}}">
+      <view wx:if="{{userStamps === 0}}" class="warn-section">
+        <text class="warn-text">⚠️ 免费额度已用完，需购买额度才能使用AI分析</text>
+        <button class="buy-stamps-btn" bindtap="buyStamps">购买额度</button>
+      </view>
+      <view wx:if="{{userStamps === 1}}" class="warn-section tip-section">
+        <text class="warn-text">💡 额度即将用完（剩余1次），建议提前购买</text>
+        <button class="buy-stamps-btn" bindtap="buyStamps">购买额度</button>
       </view>
     </view>
 
-
-
-    <view wx:if="{{hasSensitiveWarning}}" class="sensitive-warning">
-      <text class="warning-icon">⚠️</text>
-      <text class="warning-text">{{sensitiveWarning}}</text>
+    <view wx:if="{{needReply}}" class="reply-info">
+      <text class="info-title">分析说明：</text>
+      <text class="info-text">• 每个用户拥有2次免费分析额度</text>
+      <text class="info-text">• 提交分析请求后，需等待18小时才能查看结果</text>
+      <text class="info-text">• 这个机制可帮助你深入思考和沉淀</text>
     </view>
-
-    <view class="letter-paper">
-      <view class="header">
-        <text class="to" wx:if="{{needReply}}">致：{{mentors[mentorIndex]}}</text>
-        <text class="to" wx:else>我的思考</text>
-        <text class="date">{{currentDate}}</text>
-      </view>
-      
-      <textarea 
-        class="content-area" 
-        placeholder="{{needReply ? mentors[mentorIndex] + '先生，您好！我有些思考想与你分享...' : '记录我的思考...'}}" 
-        maxlength="5000"
-        bindinput="onInput"
-        value="{{content}}"
-      />
-    </view>
-
-    <!-- 邮票选择 -->
-    <view class="stamp-section">
-      <view class="stamp-title">📮 需要导师回信吗？</view>
-      <view class="stamp-options">
-        <view class="stamp-option {{needReply === false ? 'selected' : ''}}" bindtap="selectNeedReply" data-need="{{false}}">
-          <text class="option-text">无需回复</text>
-          <text class="option-desc">自己思考就好</text>
-        </view>
-        <view class="stamp-option {{needReply === true ? 'selected' : ''}}" bindtap="selectNeedReply" data-need="{{true}}">
-          <text class="option-text">需要回信</text>
-          <text class="option-desc">使用邮票 ({{userStamps}}/2)</text>
-        </view>
-      </view>
-      
-      <view wx:if="{{needReply && userStamps <= 1}}">
-        <view wx:if="{{userStamps === 0}}" class="warn-section">
-          <text class="warn-text">⚠️ 免费邮票已用完，需购买邮票才能获得导师回信</text>
-          <button class="buy-stamps-btn" bindtap="buyStamps">购买邮票</button>
-        </view>
-
-        <view wx:if="{{userStamps === 1}}" class="warn-section tip-section">
-          <text class="warn-text">💡 邮票即将用完（剩余1张），建议提前购买</text>
-          <button class="buy-stamps-btn" bindtap="buyStamps">购买邮票</button>
-        </view>
-      </view>
-
-      <view wx:if="{{needReply}}" class="reply-info">
-        <text class="info-title">回信说明：</text>
-        <text class="info-text">• 每个用户拥有2张免费邮票</text>
-        <text class="info-text">• 请求回信后，需等待18小时才能收到</text>
-        <text class="info-text">• 这个机制可帮助你深入思考和写作</text>
-      </view>
-    </view>
-  </scroll-view>
+  </view>
 
   <view class="send-buttons">
     <button class="send-btn {{!canSend ? 'disabled' : ''}}" bindtap="submitLetter" disabled="{{!canSend}}">
-      {{needReply ? '📮 寄出并请求回信' : '📝 保存笔记'}}
+      {{needReply ? '🔍 提交分析请求' : '📝 保存笔记'}}
     </button>
   </view>
 </view>

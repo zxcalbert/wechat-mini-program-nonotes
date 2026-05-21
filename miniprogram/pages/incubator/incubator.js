@@ -1,33 +1,31 @@
 const app = getApp();
 
-const MENTOR_FIELDS = [
+const METHOD_FIELDS = [
   {
     key: 'invest',
-    name: '投资领域',
+    name: '价值思维',
     icon: '💰',
-    mentors: ['查理·芒格', '巴菲特', '格雷厄姆']
+    methods: ['多元思维模型分析', '价值投资分析框架', '安全边际分析']
   },
   {
     key: 'startup',
-    name: '创业领域',
+    name: '创业创新',
     icon: '🚀',
-    mentors: ['段永平', '张小龙', '乔布斯', '马斯克', '贝佐斯', '彼得·蒂尔']
+    methods: ['本分经营分析', '极简产品分析', '创新设计分析', '第一性原理分析', '长期主义分析', '垄断竞争分析']
   },
   {
     key: 'psychology',
-    name: '心理学领域',
+    name: '心理学',
     icon: '🧠',
-    mentors: ['荣格', '弗洛伊德', '弗洛姆', '阿德勒', '马斯洛']
+    methods: ['原型心理分析', '精神分析框架', '人本精神分析', '目的论分析', '需求层次分析']
   },
   {
     key: 'philosophy',
-    name: '哲学领域',
+    name: '哲学',
     icon: '📚',
-    mentors: ['老子', '孔子', '苏格拉底', '柏拉图', '亚里士多德', '尼采', '维特根斯坦']
+    methods: ['道家思想分析', '儒家伦理分析', '苏格拉底式提问', '理念论分析', '幸福伦理学分析', '超人哲学分析', '语言哲学分析']
   }
 ];
-
-const DEFAULT_MENTORS = ['查理·芒格', '张小龙', '荣格'];
 
 Page({
   data: {
@@ -35,17 +33,16 @@ Page({
     idea: '',
     loading: false,
     report: '',
-    mentors: [],
+    methods: [],
     dimensions: [],
-    mentorFields: MENTOR_FIELDS,
-    selectedMentors: DEFAULT_MENTORS.slice(),
-    selectedMentorMap: {}
+    methodFields: METHOD_FIELDS,
+    selectedMethods: [],
+    selectedMethodMap: {}
   },
 
   onLoad() {
     this.setData({ 
-      themeClass: app.getThemeClass(),
-      selectedMentorMap: this.buildSelectedMentorMap(DEFAULT_MENTORS)
+      themeClass: app.getThemeClass()
     });
   },
 
@@ -53,9 +50,9 @@ Page({
     this.setData({ themeClass: app.getThemeClass() });
   },
 
-  buildSelectedMentorMap(selectedMentors) {
+  buildSelectedMethodMap(selectedMethods) {
     const map = {};
-    selectedMentors.forEach(name => {
+    selectedMethods.forEach(name => {
       map[name] = true;
     });
     return map;
@@ -65,9 +62,9 @@ Page({
     this.setData({ idea: e.detail.value });
   },
 
-  toggleMentor(e) {
-    const name = e.currentTarget.dataset.name;
-    let selected = this.data.selectedMentors.slice();
+  toggleMethod(e) {
+    const name = e.currentTarget.dataset.method;
+    let selected = this.data.selectedMethods.slice();
     const index = selected.indexOf(name);
 
     if (index > -1) {
@@ -75,7 +72,7 @@ Page({
     } else {
       if (selected.length >= 3) {
         wx.showToast({
-          title: '最多选择3位导师',
+          title: '最多选择3种分析方法',
           icon: 'none'
         });
         return;
@@ -84,13 +81,9 @@ Page({
     }
 
     this.setData({ 
-      selectedMentors: selected,
-      selectedMentorMap: this.buildSelectedMentorMap(selected)
+      selectedMethods: selected,
+      selectedMethodMap: this.buildSelectedMethodMap(selected)
     });
-  },
-
-  isMentorSelected(name) {
-    return this.data.selectedMentors.includes(name);
   },
 
   async generateReport() {
@@ -98,14 +91,6 @@ Page({
     if (idea.length < 10) {
       wx.showToast({
         title: '至少输入10个字',
-        icon: 'none'
-      });
-      return;
-    }
-
-    if (this.data.selectedMentors.length === 0) {
-      wx.showToast({
-        title: '请至少选择1位导师',
         icon: 'none'
       });
       return;
@@ -122,7 +107,7 @@ Page({
         data: {
           type: 'incubator',
           content: idea,
-          mentors: this.data.selectedMentors
+          mentors: this.data.selectedMethods
         }
       });
 
@@ -130,11 +115,15 @@ Page({
         throw new Error(result.result?.error || '生成失败');
       }
 
-      this.setData({
-        report: result.result.data.report || '',
-        mentors: result.result.data.mentors || [],
-        dimensions: result.result.data.dimensions || []
-      });
+      wx.showToast({ title: '分析请求已提交', icon: 'success', duration: 2000 });
+      setTimeout(() => {
+        const pages = getCurrentPages();
+        if (pages.length > 1) {
+          wx.navigateBack({ delta: 1 });
+        } else {
+          wx.redirectTo({ url: '/pages/index/index' });
+        }
+      }, 1500);
     } catch (err) {
       console.error('思想孵化器生成失败:', err);
       wx.showToast({

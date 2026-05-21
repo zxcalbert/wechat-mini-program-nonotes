@@ -1,0 +1,7 @@
+{
+  "name": "reportContent",
+  "description": "用户举报内容",
+  "runtime": "nodejs14",
+  "memorySize": 128,
+  "timeout": 15
+}

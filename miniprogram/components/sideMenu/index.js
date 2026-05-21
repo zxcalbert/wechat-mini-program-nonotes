@@ -64,10 +64,29 @@ Component({
     },
 
     openFontSettings() {
-      wx.showModal({
-        title: '字体设置',
-        content: '功能开发中，敬请期待',
-        showCancel: false
+      const currentSize = wx.getStorageSync('fontSize') || 'medium';
+      const items = [
+        '小号字体',
+        '中号字体（默认）',
+        '大号字体'
+      ];
+
+      wx.showActionSheet({
+        itemList: items,
+        success: (res) => {
+          const sizes = ['small', 'medium', 'large'];
+          const selected = sizes[res.tapIndex];
+          wx.setStorageSync('fontSize', selected);
+
+          const sizeLabels = { small: '小号', medium: '中号', large: '大号' };
+          wx.showToast({
+            title: '已切换为' + sizeLabels[selected],
+            icon: 'success'
+          });
+
+          // 通知父页面刷新
+          this.triggerEvent('fontSizeChanged', { fontSize: selected });
+        }
       });
     },
 
@@ -90,6 +109,14 @@ Component({
         url: '/pages/about/about'
       });
       this.closeSideMenu();
+    },
+
+    // 合规要求第十九条：便捷退出AI服务
+    quickExit() {
+      this.triggerEvent('close');
+      wx.reLaunch({
+        url: '/pages/index/index'
+      });
     },
 
     logout() {

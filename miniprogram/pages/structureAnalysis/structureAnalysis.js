@@ -56,10 +56,15 @@ Page({
         throw new Error(result.result?.error || '生成失败');
       }
 
-      this.setData({
-        report: result.result.data.report || '',
-        dimensions: result.result.data.dimensions || []
-      });
+      wx.showToast({ title: '分析请求已提交', icon: 'success', duration: 2000 });
+      setTimeout(() => {
+        const pages = getCurrentPages();
+        if (pages.length > 1) {
+          wx.navigateBack({ delta: 1 });
+        } else {
+          wx.redirectTo({ url: '/pages/index/index' });
+        }
+      }, 1500);
     } catch (err) {
       console.error('结构分析生成失败:', err);
       wx.showToast({

@@ -1,0 +1,16 @@
+<view class="mindmap-container">
+  <!-- canvas 仅用于绘制和导出 -->
+  <canvas
+    wx:if="{{showCanvas}}"
+    type="2d"
+    id="mindmapCanvas"
+    class="mindmap-canvas"
+  ></canvas>
+  <!-- 转为图片展示，可正常随页面滚动 -->
+  <image
+    wx:if="{{mindmapImage}}"
+    src="{{mindmapImage}}"
+    class="mindmap-image"
+    mode="widthFix"
+  ></image>
+</view>

@@ -1,0 +1,5 @@
+<view class="{{themeClass}}">
+  <view class="md-container">
+    <rich-text nodes="{{htmlNodes}}" user-select="true"></rich-text>
+  </view>
+</view>

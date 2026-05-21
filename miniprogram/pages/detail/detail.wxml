@@ -1,7 +1,7 @@
-<view class="container {{themeClass}}">
+<view class="container {{themeClass}} {{fontClass}}">
   <view class="letter-paper full-view">
-    <view class="letter-header" wx:if="{{letter.showMentor}}">
-      <text class="mentor-name">致：{{letter.mentor}}</text>
+    <view class="letter-header" wx:if="{{letter.showMethod}}">
+      <text class="mentor-name">分析方法：{{letter.displayMethod}}</text>
     </view>
     
     <view class="letter-content">
@@ -19,17 +19,45 @@
         <text class="disclaimer-text">⚠️ AI 生成内容仅供参考，不构成任何建议</text>
       </view>
       <view class="reply-card">
-        <view class="reply-title">导师回响</view>
-        <text class="reply-text" user-select="true">{{letter.replyContent}}</text>
-        <view class="reply-signature" wx:if="{{letter.showMentor}}">
-          <text class="signature-text">—— {{letter.mentor}}</text>
+        <view class="reply-title">分析结果</view>
+        <markdown-renderer content="{{letter.replyContent}}" />
+      </view>
+
+      <view class="mindmap-section" wx:if="{{letter.replyContent}}">
+        <view class="mindmap-btn" bindtap="generateMindmap">
+          <text class="mindmap-btn-icon">🧠</text>
+          <text class="mindmap-btn-text">{{mindmapLoading ? '生成中...' : '生成可视化脑图'}}</text>
+        </view>
+
+        <view wx:if="{{mindmapError}}" class="mindmap-error">
+          <text>生成失败，</text>
+          <text class="mindmap-retry" bindtap="generateMindmap">点击重试</text>
+        </view>
+
+        <view wx:if="{{mindmapData}}" class="mindmap-result">
+          <mindmap-renderer id="mindmapRenderer" nodeData="{{mindmapData}}" />
+          <view class="mindmap-save-btn" bindtap="saveMindmapImage">
+            <text>💾 保存截图</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="export-section">
+        <view class="export-btn" bindtap="exportAsMarkdown">
+          <text>导出 Markdown</text>
+        </view>
+      </view>
+
+      <view class="action-buttons">
+        <view class="action-btn report-btn" bindtap="reportContent">
+          <text>举报此内容</text>
         </view>
       </view>
     </block>
 
-    <view wx:elif="{{letter.needReply && letter.showMentor}}" class="waiting-hint">
+    <view wx:elif="{{letter.needReply && letter.showMethod}}" class="waiting-hint">
       <icon type="waiting" size="18" color="#8b4513"/>
-      <text> {{letter.mentor}}正在{{mentorLocation}}寓所研读，回信约在18小时内送达</text>
+      <text> 深度分析进行中，结果约在18小时后可查看</text>
     </view>
   </view>
 </view>

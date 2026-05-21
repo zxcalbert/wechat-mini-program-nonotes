@@ -1,16 +1,9 @@
 const cloud = require('wx-server-sdk');
 const axios = require('axios');
 const sensitiveWordDetector = require('./sensitiveWordDetector');
-// 优先加载扩展版导师规则，如果没有则回退到原版
-let mentorRules;
-try {
-  mentorRules = require('./mentorRules_expanded.json');
-  console.log('已加载扩展版导师规则，共', Object.keys(mentorRules.mentors).length, '位导师');
-  console.log('领域配置:', Object.keys(mentorRules.fields || {}));
-} catch (e) {
-  console.log('未找到扩展版导师规则，使用原版');
-  mentorRules = require('./mentorRules.json');
-}
+const mentorRules = require('./mentorRules.json');
+const prompts = require('./prompts');
+console.log('已加载分析方法规则，共', Object.keys(mentorRules.mentors).length, '种方法');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
 function getOpenIdFromContext(context) {
@@ -22,37 +15,22 @@ function processReply(replyContent) {
   const detection = sensitiveWordDetector.detect(replyContent);
 
   if (detection.isHighSensitive) {
-    return "感谢你的来信。由于内容合规性要求，我无法针对这个话题给出具体回复。建议你从更宏观的角度思考问题，关注原则和方法论，探索人生智慧和成长方向。";
+    return "由于内容合规性要求，无法针对这个话题给出具体分析。建议从更宏观的角度思考问题，关注原则和方法论。";
   }
 
   return replyContent;
 }
 
 // 添加AI免责声明
-function addAIDisclaimer(replyContent, mentorName) {
-  const aiDisclaimer = `\n\n---\n*以上内容为AI模拟${mentorName}的回复，仅供参考和启发，不代表该人物的真实观点或建议。*`;
+function addAIDisclaimer(replyContent, methodName) {
+  const aiDisclaimer = `\n\n---\n*以上分析基于${methodName}分析框架，仅供参考学习使用。AI生成内容不代表任何特定个人或机构的观点，不构成任何专业建议。*`;
   return replyContent + aiDisclaimer;
 }
 
 // ==================== 字数自适应引擎 ====================
-
-const wordCountConfig = {
-  simple: { min: 200, max: 200, maxTokens: 280, label: '简单' },
-  medium: { min: 200, max: 300, maxTokens: 400, label: '中等' },
-  complex: { min: 400, max: 500, maxTokens: 650, label: '复杂' }
-};
-
-function estimateComplexity(userContent) {
-  const length = userContent.length;
-  if (length < 100) return 'simple';
-  if (length > 300) return 'complex';
-  return 'medium';
-}
-
-function getWordCountConfig(userContent) {
-  const complexity = estimateComplexity(userContent);
-  return wordCountConfig[complexity];
-}
+const wordCountConfig = prompts.wordCountConfig;
+const estimateComplexity = prompts.estimateComplexity;
+const getWordCountConfig = prompts.getWordCountConfig;
 
 function countChineseWords(text) {
   const chineseChars = text.match(/[\u4e00-\u9fa5]/g) || [];
@@ -89,137 +67,14 @@ function truncateByChineseWords(text, maxWords) {
   return lastPunc > 0 ? best.substring(0, lastPunc + 1) : best;
 }
 
-// ==================== 超详细提示词组装器 ====================
+// ==================== 提示词组装器（从 prompts.js 引入） ====================
+const getAIDeducedPrompt = prompts.getAIDeducedPrompt;
+const getOriginalPrompt = prompts.getOriginalPrompt;
+const getMindmapPrompt = prompts.getMindmapPrompt;
 
-// AI自主推断情绪的提示词生成器
-function getAIDeducedPrompt(mentorData, content, mentorName) {
-  const config = getWordCountConfig(content);
-
-  let prompt = `【规则约束部分（不可变，来自规则库）】
-你必须以${mentorData.persona}的身份回复，遵循以下核心原则：
-`;
-
-  mentorData.corePrinciples.forEach((principle) => {
-    prompt += `${principle}\n`;
-  });
-
-  prompt += `
-【重要约束 - 防止幻觉】
-1. 只基于${mentorName}的公开言论和已知观点进行回复
-2. 不要编造${mentorName}没说过的话或没做过的事
-3. 如不确定某个具体观点，使用更通用的人生智慧表述
-4. 不要引用不存在的书籍、演讲或事件
-5. 回复必须直接、具体、有针对性，避免空泛
-
-【情绪推断指令】
-请根据用户的以下内容，自主判断其情绪状态（可能是焦虑、急躁、平和、困惑等），并据此调整你的回复语气和重点：
-- 如果用户表现出焦虑：请温和安抚，强调冷静思考和长期视角
-- 如果用户表现出急躁：请警示提醒，强调耐心和理性决策
-- 如果用户表现出平和：请理性深入，探讨人生智慧和长期思考
-- 如果用户表现出困惑：请耐心引导，帮助理清思路和方向
-
-【超详细自由发挥部分】
-你的完整人设：
-${mentorData.persona}
-
-你的思考框架（5个）：
-`;
-
-  mentorData.thinkingFrameworks.forEach((framework) => {
-    prompt += `${framework}\n`;
-  });
-
-  prompt += `
-你的常用问题（6个）：
-`;
-
-  mentorData.commonQuestions.forEach((question) => {
-    prompt += `${question}\n`;
-  });
-
-  prompt += `
-基于以上约束，针对用户的问题：
-${content}
-
-【字数自适应要求】
-- 先评估内容复杂度：${config.label}
-- ${config.label}问题：${config.min}-${config.max}字
-- 上限：严格${config.max}字，不得超过
-
-请直接、具体、有针对性地回复，${config.min}-${config.max}字。无需重复约束条件。
-`;
-
-  return prompt;
-}
-
-// 历史数据兼容的提示词生成器
-function getOriginalPrompt(mentorData, moodData, content, mentorName) {
-  const config = getWordCountConfig(content);
-
-  let prompt = `【规则约束部分（不可变，来自规则库）】
-你必须以${mentorData.persona}的身份回复，遵循以下核心原则：
-`;
-
-  mentorData.corePrinciples.forEach((principle) => {
-    prompt += `${principle}\n`;
-  });
-
-  prompt += `
-【重要约束 - 防止幻觉】
-1. 只基于${mentorName}的公开言论和已知观点进行回复
-2. 不要编造${mentorName}没说过的话或没做过的事
-3. 如不确定某个具体观点，使用更通用的人生智慧表述
-4. 不要引用不存在的书籍、演讲或事件
-5. 回复必须直接、具体、有针对性，避免空泛
-
-用户当前心境：${moodData.name || '平和'}
-- 语气必须：${moodData.tone}
-- 重点必须：${moodData.focus}
-- 必须涵盖这5个关键点：
-`;
-
-  moodData.keyPoints.forEach((point) => {
-    prompt += `${point}\n`;
-  });
-
-  prompt += `
-【超详细自由发挥部分】
-你的完整人设：
-${mentorData.persona}
-
-你的思考框架（5个）：
-`;
-
-  mentorData.thinkingFrameworks.forEach((framework) => {
-    prompt += `${framework}\n`;
-  });
-
-  prompt += `
-你的常用问题（6个）：
-`;
-
-  mentorData.commonQuestions.forEach((question) => {
-    prompt += `${question}\n`;
-  });
-
-  prompt += `
-基于以上约束，针对用户的问题：
-${content}
-
-【字数自适应要求】
-- 先评估内容复杂度：${config.label}
-- ${config.label}问题：${config.min}-${config.max}字
-- 上限：严格${config.max}字，不得超过
-
-给出直接、具体、有针对性的回复，${config.min}-${config.max}字。
-`;
-
-  return prompt;
-}
-
-// 为不同导师生成个性化的系统提示词
+// 为不同分析方法生成个性化的系统提示词
 function getMentorPrompt(mentor, mood, content) {
-  const mentorData = mentorRules.mentors[mentor] || mentorRules.mentors['查理·芒格'];
+  const mentorData = mentorRules.mentors[mentor] || mentorRules.mentors['多元思维模型分析'];
   
   // mood兼容处理：AI推断 vs 历史数据
   if (mood === null || mood === '由AI推断' || !mood) {
@@ -316,122 +171,63 @@ async function callDeepSeekAPI(systemPrompt, userContent, options = {}) {
 
 // 基于规则的智能回复生成器（临时方案，等AI能力开通后可替换）
 function generateSmartReply(mentor, mood, content) {
-  const mentorProfiles = {
-    '查理·芒格': {
-      opening: ['我注意到你在思考', '从你的描述来看', '让我从另一个角度分析'],
+  const methodProfiles = {
+    '多元思维模型分析': {
+      framework: '多元思维模型分析',
       principles: [
-        '正如我常说的，思考需要多学科思维模型。',
-        '反过来想，总是反过来想。',
-        '在手里拿着锤子的人看来，世界就像一颗钉子。',
+        '反过来想，总是反过来想——从反面角度审视问题往往更有价值。',
+        '多学科思维模型能够帮助避免单一视角的盲区。',
         '避免人类误判心理学中的常见陷阱至关重要。'
       ],
-      advice: [
-        '建议你建立自己的思维模型框架，',
-        '不妨从逆向思考开始，',
-        '记住，避免错误比追求完美更重要。'
+      analysis: [
+        '从多学科角度分析，',
+        '逆向思考该问题时，',
+        '避免常见认知偏误，'
       ]
     },
-    '巴菲特': {
-      opening: ['我理解你的想法', '从长期价值的角度看', '让我分享一些思考'],
+    '价值投资分析框架': {
+      framework: '价值投资分析框架',
       principles: [
         '时间是优秀品质的朋友，平庸品质的敌人。',
         '决策的第一条原则是不要犯不可挽回的错误。',
-        '只做自己理解的事情。',
-        '真正的优势比短期收益更重要。'
+        '只做自己理解的事情。'
       ],
-      advice: [
-        '建议你专注于长期价值，',
-        '保持耐心，让时间发挥作用，',
-        '记住，短期是情绪的放大器，长期是价值的试金石。'
+      analysis: [
+        '从长期价值角度分析，',
+        '基于安全边际原则，',
+        '关注内在价值而非短期波动，'
       ]
     },
-    '段永平': {
-      opening: ['我明白你的困惑', '从本分的角度看', '让我直接说'],
-      principles: [
-        '做对的事情，把事情做对。',
-        '本分是最重要的价值观。',
-        '价值观是最重要的核心竞争力。',
-        '不要做不对的事情，即使短期有好处。'
-      ],
-      advice: [
-        '建议你回归本分，',
-        '专注于做对的事情，',
-        '记住，慢就是快，本分就是最大的智慧。'
-      ]
-    },
-    '张小龙': {
-      opening: ['从用户的角度看', '让我思考一下', '我注意到你关注的问题'],
-      principles: [
-        '好的产品是用完即走。',
-        '用户体验是第一位的。',
-        '让创造发挥价值。',
-        '简单就是美，复杂的东西往往不可靠。'
-      ],
-      advice: [
-        '建议你从用户需求出发，',
-        '追求简单而优雅的解决方案，',
-        '记住，真正的创新来自对用户需求的深刻理解。'
-      ]
-    },
-    '乔布斯': {
-      opening: ['我认为', '从设计的角度看', '让我分享一个想法'],
-      principles: [
-        'Stay hungry, Stay foolish.',
-        '设计不仅仅是外观和感觉，设计是如何工作的。',
-        '创新是把不同的事物连接起来。',
-        '追求完美，即使别人认为不可能。'
-      ],
-      advice: [
-        '建议你追求卓越的设计，',
-        '将科技与艺术完美结合，',
-        '记住，伟大的产品来自对细节的极致追求。'
-      ]
-    },
-    '马斯克': {
-      opening: ['我认为', '从技术角度看', '让我大胆预测'],
+    '第一性原理分析': {
+      framework: '第一性原理分析',
       principles: [
         '第一性原理思考是解决问题的关键。',
-        '要勇于挑战不可能，才能实现伟大目标。',
-        '创新不是线性的，需要跳跃式思维。',
-        '失败是成功的一部分，重要的是快速迭代。'
+        '从物理本质拆解问题，而非从现状出发。',
+        '创新不是线性的，需要跳跃式思维。'
       ],
-      advice: [
-        '建议你采用第一性原理思考问题，',
-        '不要被传统思维限制，',
-        '记住，伟大的事业需要勇气和坚持。'
+      analysis: [
+        '从第一性原理出发，',
+        '回归问题本质分析，',
+        '拆解到最基本的事实，'
       ]
     }
   };
 
-  const profile = mentorProfiles[mentor] || mentorProfiles['查理·芒格'];
+  const profile = methodProfiles[mentor] || methodProfiles['多元思维模型分析'];
   
-  // 根据心境调整语气
-  const moodAdjustments = {
-    '焦虑': '情绪波动是常态，保持内心平和是关键。',
-    '急躁': '急躁时更要停下来思考，慢就是快。',
-    '平和': '平和的心态是长期成长的基础。',
-    '困惑': '困惑时不妨回到基本原则思考。'
-  };
-
-  // 分析用户内容的关键词
   const keywords = extractKeywords(content);
   
-  // 生成回复
-  const opening = profile.opening[Math.floor(Math.random() * profile.opening.length)];
   const principle = profile.principles[Math.floor(Math.random() * profile.principles.length)];
-  const advice = profile.advice[Math.floor(Math.random() * profile.advice.length)];
-  const moodAdvice = moodAdjustments[mood] || '';
+  const analysis = profile.analysis[Math.floor(Math.random() * profile.analysis.length)];
 
-  let reply = `${opening}${keywords.length > 0 ? '，特别是关于' + keywords.slice(0, 2).join('和') + '的部分' : ''}。\n\n`;
+  let reply = `基于${profile.framework}的分析：\n\n`;
+  reply += `${analysis}${keywords.length > 0 ? '特别是关于' + keywords.slice(0, 2).join('和') + '的方面' : ''}。\n\n`;
   reply += `${principle}\n\n`;
-  if (moodAdvice) {
-    reply += `${moodAdvice}\n\n`;
-  }
-  reply += `${advice}结合你当前的情况，我建议你：\n`;
-  reply += `1. 深入思考你提到的核心问题\n`;
-  reply += `2. 建立自己的思考原则和框架\n`;
-  reply += `3. 保持长期视角，避免短期情绪干扰\n\n`;
-  reply += `记住，成长是一场马拉松，不是短跑。持续学习和反思，你会找到属于自己的人生智慧。`;
+  reply += `综合分析建议：\n`;
+  reply += `1. 深入思考核心问题，建立分析框架\n`;
+  reply += `2. 从多角度审视，避免单一视角的局限\n`;
+  reply += `3. 保持长期视角，关注本质而非表象\n\n`;
+  reply += `以上分析基于${profile.framework}，仅供参考。`;
 
   return reply;
 }
@@ -449,10 +245,10 @@ function extractKeywords(text) {
 }
 
 const fieldOrder = [
-  { key: "价值思维领域", name: "价值思维", color: "#8b4513" },
-  { key: "创业创新领域", name: "创业创新", color: "#2ecc71" },
-  { key: "心理学领域", name: "心理学", color: "#9b59b6" },
-  { key: "哲学领域", name: "哲学", color: "#34495e" }
+  { key: "价值思维", name: "价值思维", color: "#8b4513" },
+  { key: "创业创新", name: "创业创新", color: "#2ecc71" },
+  { key: "心理学", name: "心理学", color: "#9b59b6" },
+  { key: "哲学", name: "哲学", color: "#34495e" }
 ];
 
 function sortMentorsByField(mentors, mentorsByDomain) {
@@ -526,7 +322,7 @@ function analyzeDiscussionStructure(userQuestion, discussions) {
 
   if (discussions.length >= 3) {
     structure.disagreementPoints = [
-      "不同领域导师的侧重点有所差异",
+      "不同领域分析方法的侧重点有所差异",
       "方法论层面的多元化视角"
     ];
   }
@@ -542,7 +338,7 @@ function analyzeDiscussionStructure(userQuestion, discussions) {
 function evaluateReplyQuality(mentorName, replyContent, userQuestion, mentorData, previousReplies = []) {
   let score = 0;
   const details = {
-    personaMatch: 0,
+    methodologyFidelity: 0,
     relevance: 0,
     uniqueness: 0,
     depth: 0
@@ -557,8 +353,8 @@ function evaluateReplyQuality(mentorName, replyContent, userQuestion, mentorData
       matchCount++;
     }
   }
-  details.personaMatch = Math.min(0.4, 0.2 + matchCount * 0.05);
-  score += details.personaMatch;
+  details.methodologyFidelity = Math.min(0.4, 0.2 + matchCount * 0.05);
+  score += details.methodologyFidelity;
 
   const questionKeywords = userQuestion.replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/g, '').substring(0, 20);
   let relevanceCount = 0;
@@ -605,16 +401,14 @@ function evaluateReplyQuality(mentorName, replyContent, userQuestion, mentorData
 }
 
 function getIncubatorMentors(mentors) {
-  const defaultMentors = ['查理·芒格', '张小龙', '荣格'];
+  const defaultMethods = ['多元思维模型分析', '极简产品分析', '原型心理分析'];
   if (!Array.isArray(mentors) || mentors.length === 0) {
-    return defaultMentors;
+    return defaultMethods;
   }
 
   return mentors
     .filter(Boolean)
-    .slice(0, 3)
-    .map(name => mentorRules.mentors[name] ? name : null)
-    .filter(Boolean);
+    .slice(0, 3);
 }
 
 function buildIncubatorDimensions() {
@@ -629,28 +423,29 @@ function buildIncubatorDimensions() {
 
 function getIncubatorPrompt(content, mentors) {
   const dimensions = buildIncubatorDimensions();
-  const mentorBlocks = mentors.map((name) => {
+  const methodBlocks = mentors.map((name) => {
     const mentorData = mentorRules.mentors[name] || {};
     const principles = (mentorData.corePrinciples || []).slice(0, 2).join('\n');
-    return `导师：${name}\n人设：${mentorData.persona || name}\n核心原则：\n${principles}`;
+    return `分析方法：${name}\n核心框架：\n${principles || '运用该方法的核心理论框架进行分析'}`;
   }).join('\n\n');
 
-  return `你正在执行“思想孵化器”任务。
+  return `你正在执行"思想孵化器"任务。
 
 目标：把一个还不成熟的想法，拆成可验证、可推进、可规避风险的结构化方案。
 
-请参考以下导师视角：
-${mentorBlocks}
+请参考以下分析方法视角：
+${methodBlocks}
 
 固定输出要求：
 1. 使用中文
 2. 只输出结构化正文，不要解释规则
 3. 必须完整覆盖以下5个一级章节：${dimensions.join('、')}
-4. 必须在最后输出一级章节“未来7天行动清单”
+4. 必须在最后输出一级章节"未来7天行动清单"
 5. 每个一级章节都必须有明确的小点说明，不能只写一句空泛概括
-6. 如果信息不足，也必须在对应章节写出“当前缺失信息”和“如何补齐”
+6. 如果信息不足，也必须在对应章节写出"当前缺失信息"和"如何补齐"
 7. 总篇幅控制在500-800字，优先完整覆盖，不要冗长铺陈
 8. 语气务实，避免空泛鸡汤
+9. 不要使用第一人称，以客观分析方法呈现
 
 固定输出格式如下，必须严格遵守：
 # 思想孵化报告：{一句话命名}
@@ -806,6 +601,229 @@ function ensureStructureAnalysisSummary(report, analysisType) {
   return `${parts[0].trim()}\n\n${fallbackSummary.trim()}`;
 }
 
+async function generateMindmapJSON(analysisContent, methodName) {
+  const prompt = getMindmapPrompt(analysisContent, methodName);
+  const maxRetries = 2;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      if (attempt > 0) {
+        console.log('脑图生成第' + attempt + '次重试...');
+      }
+
+      const rawReply = await callDeepSeekAPI(prompt, analysisContent, {
+        maxTokens: 1000,
+        skipTruncate: true
+      });
+
+      const mindmapData = extractMindmapJSON(rawReply);
+
+      // 兼容两种数据结构：新版 sections 格式和旧版 children 格式
+      if (mindmapData.sections && Array.isArray(mindmapData.sections)) {
+        if (mindmapData.sections.length < 2) {
+          throw new Error('脑图章节数不足: ' + mindmapData.sections.length);
+        }
+      } else if (mindmapData.children && Array.isArray(mindmapData.children)) {
+        // 旧版格式兼容：转换为 sections 格式
+        mindmapData.sections = mindmapData.children.map(function(child, i) {
+          return {
+            id: child.id || 's' + (i + 1),
+            title: child.label || '章节',
+            summary: child.detail || '',
+            color: child.color || '#4A90D9',
+            points: (child.children || []).map(function(sub, j) {
+              return {
+                id: sub.id || 's' + (i + 1) + '-' + (j + 1),
+                title: sub.label || '要点',
+                detail: sub.detail || ''
+              };
+            })
+          };
+        });
+        mindmapData.summary = mindmapData.title || '';
+        delete mindmapData.children;
+      } else {
+        throw new Error('脑图JSON结构不完整: 缺少sections或children');
+      }
+
+      if (!mindmapData.title) {
+        mindmapData.title = methodName + '分析';
+      }
+
+      return { success: true, data: mindmapData };
+    } catch (err) {
+      console.error('脑图生成失败(第' + (attempt + 1) + '次):', err.message);
+      if (attempt === maxRetries) {
+        // 最后一次尝试失败，生成降级脑图
+        console.log('使用降级方案生成脑图');
+        return {
+          success: true,
+          data: generateFallbackMindmap(analysisContent, methodName)
+        };
+      }
+    }
+  }
+
+  return { success: false, error: '所有尝试均失败' };
+}
+
+// H5: Flipbook 深入探索 — 从已有分析中提取子主题，生成新的短分析
+async function generateDeepExploration(sourceContent, sourceMethod) {
+  var prompt = '你是一个知识探索助手。以下是一段已有的分析方法结果，请从中选择一个最值得深入的子主题，生成一段简短的新分析（200-400字）。\n\n' +
+    '原始分析（来自「' + sourceMethod + '」）：\n' + sourceContent.substring(0, 800) + '\n\n' +
+    '要求：\n' +
+    '1. 选择一个子主题深入分析，不要重复原文\n' +
+    '2. 从不同角度展开思考\n' +
+    '3. 返回JSON格式（只输出JSON）：\n' +
+    '{"title": "深入主题标题", "content": "简短分析内容（200-400字）", "method": "推荐使用的方法名（可选）"}\n' +
+    '4. 严格JSON格式，不要markdown代码块';
+
+  try {
+    var rawReply = await callDeepSeekAPI(prompt, sourceContent.substring(0, 500), {
+      maxTokens: 800,
+      skipTruncate: true
+    });
+
+    var jsonStr = rawReply.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    var match = jsonStr.match(/\{[\s\S]*\}/);
+    if (!match) {
+      return { success: false, error: '无法解析探索结果' };
+    }
+
+    var result = JSON.parse(match[0]);
+    return {
+      success: true,
+      data: {
+        title: result.title || '深入探索',
+        content: result.content || '',
+        method: result.method || sourceMethod
+      }
+    };
+  } catch (err) {
+    console.error('深入探索生成失败:', err);
+    return { success: false, error: '深入探索生成失败: ' + err.message };
+  }
+}
+
+/**
+ * 从 AI 回复中提取脑图 JSON，支持多种格式容错
+ */
+function extractMindmapJSON(rawReply) {
+  let jsonStr = rawReply.trim();
+
+  // 尝试1: 直接解析
+  try {
+    return JSON.parse(jsonStr);
+  } catch (e) {}
+
+  // 尝试2: 去掉 markdown 代码块包裹
+  const codeBlockMatch = jsonStr.match(/```(?:json)?\s*\n?([\s\S]*?)\n?\s*```/);
+  if (codeBlockMatch) {
+    try {
+      return JSON.parse(codeBlockMatch[1].trim());
+    } catch (e) {}
+  }
+
+  // 尝试3: 查找第一个 { 到最后一个 } 之间的内容
+  const firstBrace = jsonStr.indexOf('{');
+  const lastBrace = jsonStr.lastIndexOf('}');
+  if (firstBrace >= 0 && lastBrace > firstBrace) {
+    try {
+      return JSON.parse(jsonStr.substring(firstBrace, lastBrace + 1));
+    } catch (e) {}
+  }
+
+  // 尝试4: 移除常见的非JSON前缀文字
+  const jsonStart = jsonStr.indexOf('{"');
+  if (jsonStart >= 0) {
+    try {
+      return JSON.parse(jsonStr.substring(jsonStart));
+    } catch (e) {}
+  }
+
+  throw new Error('无法从AI回复中提取有效JSON: ' + jsonStr.substring(0, 100));
+}
+
+/**
+ * 降级方案：从分析内容中自动提取章节结构生成脑图
+ */
+function generateFallbackMindmap(analysisContent, methodName) {
+  var lines = analysisContent.split('\n');
+  var sections = [];
+  var currentSection = null;
+  var colors = ['#4A90D9', '#27AE60', '#E67E22', '#E74C3C', '#9B59B6'];
+
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i].trim();
+
+    // 检测二级标题 ## 作为 section
+    if (/^##\s+/.test(line)) {
+      var title = line.replace(/^##\s+/, '').trim();
+      if (title.length > 0 && title.length <= 20) {
+        currentSection = {
+          id: 's' + (sections.length + 1),
+          title: title,
+          summary: '',
+          color: colors[sections.length % colors.length],
+          points: []
+        };
+        sections.push(currentSection);
+      }
+      continue;
+    }
+
+    // 在当前 section 下提取列表项作为 points
+    if (currentSection && (/^[\-\*]\s+/.test(line) || /^\d+\.\s+/.test(line))) {
+      var pointText = line.replace(/^[\-\*]\s+/, '').replace(/^\d+\.\s+/, '');
+      pointText = pointText.replace(/\*\*(.+?)\*\*/g, '$1').trim();
+      if (pointText.length > 2 && pointText.length <= 30) {
+        currentSection.points.push({
+          id: currentSection.id + '-' + (currentSection.points.length + 1),
+          title: pointText.substring(0, 10),
+          detail: pointText
+        });
+      }
+    }
+
+    // 第一段非标题文字作为 summary
+    if (currentSection && !currentSection.summary && line.length > 5 && !/^#/.test(line)) {
+      currentSection.summary = line.substring(0, 25);
+    }
+  }
+
+  // 限制 sections 数量
+  if (sections.length > 6) {
+    sections = sections.slice(0, 6);
+  }
+  // 每个 section 限制 points
+  sections.forEach(function(s) {
+    if (s.points.length > 4) {
+      s.points = s.points.slice(0, 4);
+    }
+  });
+
+  // 兜底
+  if (sections.length < 2) {
+    sections = [
+      { id: 's1', title: '核心观点', summary: '分析的核心结论', color: '#4A90D9', points: [
+        { id: 's1-1', title: '主要发现', detail: '基于分析的主要发现' }
+      ]},
+      { id: 's2', title: '分析要点', summary: '分析的关键维度', color: '#27AE60', points: [
+        { id: 's2-1', title: '关键因素', detail: '影响结论的关键因素' }
+      ]},
+      { id: 's3', title: '行动建议', summary: '基于分析的下一步', color: '#9B59B6', points: [
+        { id: 's3-1', title: '建议方向', detail: '建议的后续行动方向' }
+      ]}
+    ];
+  }
+
+  return {
+    title: methodName + '分析',
+    summary: '基于' + methodName + '的结构化分析',
+    sections: sections
+  };
+}
+
 exports.main = async (event, context) => {
   const { letterId, replyContent, mentor, mood, content, type, mentors, analysisType } = event;
   const db = cloud.database();
@@ -937,11 +955,11 @@ exports.main = async (event, context) => {
         };
       }
 
-      // 步骤2：获取导师和构建提示词
+      // 步骤2：获取分析方法和构建提示词
       stepTime = Date.now();
       const incubatorMentors = getIncubatorMentors(mentors);
       const prompt = getIncubatorPrompt(content, incubatorMentors);
-      console.log('【步骤2】构建提示词耗时:', Date.now() - stepTime, 'ms', '| 导师:', incubatorMentors.join(','), '| 提示词长度:', prompt.length, '字符');
+      console.log('【步骤2】构建提示词耗时:', Date.now() - stepTime, 'ms', '| 方法:', incubatorMentors.join(','), '| 提示词长度:', prompt.length, '字符');
 
       let report;
       
@@ -1088,20 +1106,58 @@ exports.main = async (event, context) => {
         };
       }
 
-      const mentorsByDomain = {
-        '价值思维领域': ['查理·芒格', '巴菲特', '格雷厄姆'],
-        '创业创新领域': ['段永平', '张小龙', '乔布斯', '马斯克', '贝佐斯', '彼得·蒂尔'],
-        '心理学领域': ['荣格', '弗洛伊德', '弗洛姆', '阿德勒', '马斯洛'],
-        '哲学领域': ['老子', '孔子', '苏格拉底', '柏拉图', '亚里士多德', '尼采', '维特根斯坦']
+      const methodsByDomain = {
+        '价值思维': ['多元思维模型分析', '价值投资分析框架', '安全边际分析'],
+        '创业创新': ['本分经营分析', '极简产品分析', '创新设计分析', '第一性原理分析', '长期主义分析', '垄断竞争分析'],
+        '心理学': ['原型心理分析', '精神分析框架', '人本精神分析', '目的论分析', '需求层次分析'],
+        '哲学': ['道家思想分析', '儒家伦理分析', '苏格拉底式提问', '理念论分析', '幸福伦理学分析', '超人哲学分析', '语言哲学分析']
       };
 
-      const sortedMentors = sortMentorsByField(mentors, mentorsByDomain);
+      const sortedMentors = sortMentorsByField(mentors, methodsByDomain);
+
+      const addResult = await db.collection('roundtable_discussions').add({
+        data: {
+          _openid: openid,
+          content: content,
+          mentors: sortedMentors,
+          discussions: [],
+          status: 'processing',
+          totalCost: 3,
+          createTime: db.serverDate(),
+          updateTime: db.serverDate()
+        }
+      });
+
+      const roundtableId = addResult._id;
+      console.log('圆桌会议记录已创建:', roundtableId, '| 状态: processing');
+
+      let remainingStamps = 2;
+      try {
+        const userResult = await db.collection('users').where({
+          _openid: openid
+        }).get();
+        if (userResult.data.length > 0) {
+          remainingStamps = (userResult.data[0].stamps || 2) - 3;
+          await db.collection('users').where({
+            _openid: openid
+          }).update({
+            data: {
+              stamps: db.command.inc(-3)
+            }
+          });
+        }
+      } catch (userErr) {
+        console.error('更新用户积分失败:', userErr);
+      }
+
       const discussions = [];
-      
+      let completedCount = 0;
+      const totalMentors = sortedMentors.length;
+
       for (const m of sortedMentors) {
         try {
           const systemPrompt = getMentorPrompt(m, '平和', content);
-          const mentorData = mentorRules.mentors[m] || mentorRules.mentors['查理·芒格'];
+          const mentorData = mentorRules.mentors[m] || mentorRules.mentors['多元思维模型分析'];
           const previousReplies = discussions.map(d => d.reply);
           
           let reply = null;
@@ -1144,7 +1200,7 @@ exports.main = async (event, context) => {
           
           let field = '其他';
           for (const f of fieldOrder) {
-            if ((mentorsByDomain[f.key] || []).includes(m)) {
+            if ((methodsByDomain[f.key] || []).includes(m)) {
               field = f.name;
               break;
             }
@@ -1160,46 +1216,26 @@ exports.main = async (event, context) => {
             timestamp: Date.now(),
             contextSummary: extractContextSummary(content, discussions)
           });
+          completedCount++;
+          console.log(`圆桌会议进度: ${completedCount}/${totalMentors} (${m})`);
         } catch (err) {
           console.error(`生成${m}回复失败:`, err);
         }
       }
 
       const discussionStructure = analyzeDiscussionStructure(content, discussions);
-      
-      const addResult = await db.collection('roundtable_discussions').add({
+      const finalStatus = completedCount > 0 ? 'completed' : 'partial';
+
+      await db.collection('roundtable_discussions').doc(roundtableId).update({
         data: {
-          _openid: openid,
-          content: content,
-          mentors: sortedMentors,
           discussions: discussions,
           structure: discussionStructure,
-          totalCost: 3,
-          createTime: db.serverDate()
+          status: finalStatus,
+          completedCount: completedCount,
+          updateTime: db.serverDate()
         }
       });
-      
-      const roundtableId = addResult._id;
-      
-      let remainingStamps = 2;
-      try {
-        const userResult = await db.collection('users').where({
-          _openid: openid
-        }).get();
-        
-        if (userResult.data.length > 0) {
-          remainingStamps = (userResult.data[0].stamps || 2) - 3;
-          await db.collection('users').where({
-            _openid: openid
-          }).update({
-            data: {
-              stamps: db.command.inc(-3)
-            }
-          });
-        }
-      } catch (userErr) {
-        console.error('更新用户积分失败:', userErr);
-      }
+      console.log(`圆桌会议完成: ${roundtableId} | 状态: ${finalStatus} | 完成: ${completedCount}/${totalMentors}`);
 
       return {
         success: true,
@@ -1208,6 +1244,8 @@ exports.main = async (event, context) => {
           content: content,
           mentors: sortedMentors,
           discussions: discussions,
+          status: finalStatus,
+          completedCount: completedCount,
           totalCost: 3,
           remainingStamps: remainingStamps,
           createTime: new Date().toISOString()
@@ -1215,9 +1253,26 @@ exports.main = async (event, context) => {
       };
     }
 
+    if (type === 'mindmap') {
+      const { analysisContent, methodName } = event;
+      if (!analysisContent) {
+        return { success: false, message: '缺少分析内容' };
+      }
+      return await generateMindmapJSON(analysisContent, methodName || '分析方法');
+    }
+
+    // H5: Flipbook 深入探索 — 从已有分析中提取子主题并生成新分析
+    if (type === 'deepexplore') {
+      const { sourceContent, sourceMethod } = event;
+      if (!sourceContent) {
+        return { success: false, message: '缺少源分析内容' };
+      }
+      return await generateDeepExploration(sourceContent, sourceMethod || '分析方法');
+    }
+
     if (mentor && content) {
       const systemPrompt = getMentorPrompt(mentor, mood || '平和', content);
-      const mentorData = mentorRules.mentors[mentor] || mentorRules.mentors['查理·芒格'];
+      const mentorData = mentorRules.mentors[mentor] || mentorRules.mentors['多元思维模型分析'];
       
       let replyContent = null;
       let qualityResult = null;
