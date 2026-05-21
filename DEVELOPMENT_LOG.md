@@ -1,5 +1,44 @@
 # 智慧笔记 — 开发日志
 
+## 2026-05-20
+
+### 变更
+
+#### docs(rc): 新增设计与实施控制文档 (`99ab5d4`)
+- docs: 新增 `design.md` — Release Candidate 设计真源，定义 RC 边界、合规、数据导出、大模型配置
+- docs: 新增 `implementation-control.md` — Gate 0-6 总控，管理测试/规则/文档/部署/手测/清理
+- docs: `AGENTS.md` 收敛为入口文件，主规范留在 `.trae/rules/AGENTS.md`
+
+#### fix(rc): 关闭测试与导出 Gate (`6df86cb`)
+- feat: 新增 `apiKeyUtil.js` — 用户自定义大模型密钥存取工具
+- feat: 新增 `exportUtil.js` — 全量 Markdown 导出，覆盖四类集合
+- refactor: `profile.js` 移除内联导出逻辑，改用 exportUtil（-113 行）
+- fix: `markdownUtil.js` 连续引用合并支持带 inline style 的 blockquote
+- fix: 移除 `app.js` 启动日志中暴露环境变量的调试输出
+- test: 引入 Jest 到 scripts/，12 个套件 / 173 个用例全绿
+- test: 新增 `pageTestHelper.js` — wx/Page/getApp mock + 页面实例隔离
+
+### Bug 修复
+
+| Bug | 根因 | 修复 |
+|-----|------|------|
+| markdownUtil 连续引用解析失败 | rich-text inline style 增强后 blockquote 匹配规则过严 | 改为校验语义标签和关键内容 |
+| app.js 泄露环境变量名 | 启动日志输出含环境变量名的调试信息 | 移除调试输出 |
+
+### 未提交变更（26 个文件，+359/-72 行）
+
+- CI 工作流优化、云函数微调、脑图组件重构、侧边菜单增强
+- 详情页样式（+73）、个人页新增 UI（+82）、知识图谱调整
+- 回收站修复、Markdown 渲染样式、全局配置更新
+
+### 注意事项
+
+- Gate 1（测试）和 Gate 2（规则检查）已通过
+- 待推进 Gate 3-6：文档口径、云函数部署、手测、清理
+- 26 个未提交文件需按主题拆分提交
+
+---
+
 ## 2026-05-21
 
 ### RC 收口启动
@@ -28,6 +67,26 @@
 - Gate 4：形成云函数部署清单并在微信开发者工具中逐个部署/冒烟。
 - Gate 5：按 `implementation-control.md` 执行小程序手测清单。
 - Gate 6：清理 `.DS_Store`、coverage、临时截图等本地产物，并按主题拆分提交。
+
+## 2026-05-22
+
+### Gate 4/5 手测反馈
+
+- 手测记录文件：`test_log_20260522.md`
+- 云端数据库：`knowledge_connections` 初测时不存在，已在云开发数据库中手动创建。该集合用于知识图谱跨分析关联缓存。
+- 已测通过：启动、老用户登录、新用户隐私授权、首页记录加载、领域入口、知识图谱入口。
+
+### Bug 修复
+
+| Bug | 根因 | 修复 |
+|-----|------|------|
+| BUG-001 首页搜索结果从详情页返回后消失 | 返回首页触发 `onShow -> refreshHomeData()`，各数据源异步刷新时会重建 `displayItems`；过滤逻辑依赖 `showSearch`，而 UI 状态和搜索关键词可能不同步 | `refreshHomeData()` 等待所有数据刷新后统一 `refreshDisplayItems()`；`refreshDisplayItems()` 只要存在 `searchKeyword` 就过滤，不再依赖 `showSearch` |
+| BUG-002 结果页"举报此内容"按钮样式不清晰 | 举报按钮只复用了通用 action 按钮，缺少危险操作的明确配色；detail 页举报按钮容器样式也未补齐 | 四个结果页举报按钮统一改为红底白字；detail 页补齐 action 按钮布局 |
+| BUG-003 结构分析结果页标签文字与背景对比度不足 | 结构分析信息块使用浅色背景，同时标题依赖主题文本变量，暗色/浅色组合下可读性不稳定 | "分析对象"和"分析维度"信息块改为深色背景，标题固定白字；报告区标题保留正文主题色 |
+
+### 验证
+
+- 已补充 `scripts/tests/indexPage.test.js` 回归用例：即使 `showSearch=false`，只要 `searchKeyword` 仍存在，也会恢复过滤结果。
 
 ## 2026-05-10
 

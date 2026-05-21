@@ -115,12 +115,15 @@ Page({
 
   async refreshHomeData() {
     await this.repairRecentRoundtables();
-    this.fetchLetters();
-    this.fetchUserStamps();
-    this.fetchRoundtables();
-    this.fetchIncubators();
-    this.fetchStructureAnalyses();
+    await Promise.all([
+      this.fetchLetters(),
+      this.fetchUserStamps(),
+      this.fetchRoundtables(),
+      this.fetchIncubators(),
+      this.fetchStructureAnalyses()
+    ]);
     this._countDomainUsage();
+    this.refreshDisplayItems();
   },
 
   /**
@@ -514,8 +517,8 @@ Page({
   refreshDisplayItems() {
     const mergedItems = this.mergeAndSortItems();
     
-    if (this.data.showSearch && this.data.searchKeyword) {
-      const keyword = this.data.searchKeyword.toLowerCase();
+    const keyword = (this.data.searchKeyword || '').trim().toLowerCase();
+    if (keyword) {
       const filtered = mergedItems.filter(item => 
         item.content && item.content.toLowerCase().includes(keyword)
       );

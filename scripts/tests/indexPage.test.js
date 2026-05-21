@@ -203,6 +203,25 @@ describe('index 页面逻辑', () => {
         expect(callArgs[0].displayItems[0].content).toContain('AI');
       }
     });
+
+    test('从详情页返回时即使 showSearch 状态丢失，也按残留关键词恢复过滤结果', () => {
+      page.data.showSearch = false;
+      page.data.searchKeyword = '芒格';
+      page.data.letters = [
+        { content: '芒格多元思维模型', createTime: 3, type: 'letter' },
+        { content: '普通记录', createTime: 2, type: 'letter' }
+      ];
+      page.data.roundtables = [
+        { content: '芒格视角讨论', createTime: 1, type: 'roundtable' }
+      ];
+      page.data.incubators = [];
+      page.data.structureAnalyses = [];
+
+      page.refreshDisplayItems();
+      const callArgs = page.setData.mock.calls.find(c => c[0].displayItems);
+      expect(callArgs[0].displayItems.length).toBe(2);
+      expect(callArgs[0].displayItems.every(item => item.content.includes('芒格'))).toBe(true);
+    });
   });
 
   // ==================== domains 数据 ====================

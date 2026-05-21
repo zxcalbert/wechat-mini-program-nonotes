@@ -14,6 +14,8 @@ scripts/
 ├── checks/
 │   ├── config.json              # 检查配置文件
 │   └── project-rules-check.js  # Node.js 版本检查脚本
+├── e2e/
+│   └── rc-smoke.js              # 微信开发者工具自动化 RC 冒烟
 ├── tests/
 │   ├── unit-tests.js            # 单元测试
 │   └── integration-tests.js     # 集成测试
@@ -56,10 +58,39 @@ node checks/project-rules-check.js
 
 ```bash
 cd scripts
+npm run test:jest          # Jest 单元/页面逻辑测试
 npm run test:unit          # 单元测试
 npm run test:integration   # 集成测试
 npm run test               # 全部测试
 ```
+
+### 4. 运行微信开发者工具自动化冒烟
+
+微信小程序可通过微信开发者工具 CLI + `miniprogram-automator` 做本地自动化测试。它适合 RC 冒烟，例如打开首页、输入搜索词、跳转详情、返回后确认搜索结果仍保持过滤。
+
+前置条件：
+
+1. 安装微信开发者工具。
+2. 在开发者工具中开启服务端口/自动化能力。
+3. 本机已有可用登录态或测试数据。
+4. 如 CLI 不在默认路径，设置 `WECHAT_DEVTOOLS_CLI`。
+
+```bash
+cd scripts
+npm run test:e2e:rc
+```
+
+可选环境变量：
+
+```bash
+WECHAT_DEVTOOLS_CLI=/Applications/wechatwebdevtools.app/Contents/MacOS/cli \
+WECHAT_AUTOMATOR_PORT=9420 \
+npm run test:e2e:rc
+```
+
+截图会写入：`tmp/e2e-screenshots/`。
+
+注意：E2E 冒烟依赖本机开发者工具、登录态和云端数据，不纳入默认 `npm test`。云函数部署、真机权限、微信授权弹窗仍需人工确认。
 
 ## 配置说明
 
@@ -142,7 +173,29 @@ npx husky add .husky/pre-commit "bash scripts/pre-commit-check.sh"
 - **! 黄色**：警告（不阻止提交，但建议修复）
 - **✗ 红色**：失败（阻止提交，必须修复）
 
-## 测试覆盖
+## Jest 自动化测试
+
+```bash
+npm run test:jest           # 174 用例，12 套件
+npm run test:jest:coverage  # 带覆盖率报告
+```
+
+| 测试文件 | 覆盖范围 | 用例数 |
+|---------|---------|--------|
+| apiKeyUtil.test.js | API Key 生成/校验/脱敏 | 11 |
+| exportUtil.test.js | Markdown 导出（analysis/roundtable/incubator/autoExport） | ~15 |
+| markdownUtil.test.js | Markdown 解析器（标题/列表/粗体/代码/表格） | ~20 |
+| mindmap.test.js | 脑图组件布局 + 渲染逻辑 | ~15 |
+| sensitiveWordDetector.test.js | 三级敏感词检测 | ~12 |
+| wordCountUtil.test.js | 中文/英文混合字数计算 | ~10 |
+| indexPage.test.js | 首页逻辑（状态映射/数据加载） | ~15 |
+| writePage.test.js | 分析请求页（方法选择/提交） | ~15 |
+| roundtablePage.test.js | 多维度分析页 | ~15 |
+| incubatorPage.test.js | 孵化器页 | ~15 |
+
+辅助文件：`setup.js`（全局配置）、`pageTestHelper.js`（模拟 Page/Component/getApp）
+
+## Legacy 测试
 
 ### 单元测试 (`tests/unit-tests.js`)
 

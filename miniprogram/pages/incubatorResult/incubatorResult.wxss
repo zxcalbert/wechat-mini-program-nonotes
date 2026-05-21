@@ -139,6 +139,11 @@ page {
   color: #ffffff;
 }
 
+.report-btn {
+  background-color: #d93025;
+  color: #ffffff;
+}
+
 .loading-container {
   flex: 1;
   display: flex;

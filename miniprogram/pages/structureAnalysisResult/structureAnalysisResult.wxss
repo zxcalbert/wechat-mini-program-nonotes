@@ -62,8 +62,8 @@ page {
 .user-question {
   margin-bottom: 24px;
   padding: 16px;
-  background-color: #f3e5f5;
-  border: 1px solid #e1bee7;
+  background-color: #2f2140;
+  border: 1px solid #6f4aa0;
   border-radius: 8px;
 }
 
@@ -77,7 +77,7 @@ page {
 .question-text {
   font-size: 15px;
   line-height: 1.8;
-  color: var(--textColor, #333333);
+  color: #f7f1ff;
 }
 
 .type-tag {
@@ -97,9 +97,14 @@ page {
 .dimensions-section {
   margin-bottom: 24px;
   padding: 16px;
-  background-color: #f0f7ff;
-  border: 1px solid #b8d4f0;
+  background-color: #22324a;
+  border: 1px solid #4b6f9d;
   border-radius: 8px;
+}
+
+.user-question .section-title,
+.dimensions-section .section-title {
+  color: #ffffff;
 }
 
 .dimensions-container {
@@ -123,6 +128,13 @@ page {
   background-color: var(--cardBackgroundColor, #fefefe);
   border: 1px solid var(--cardBorderColor, #e8e8e8);
   border-radius: 8px;
+  overflow: hidden;
+  word-break: break-all;
+  overflow-wrap: break-word;
+}
+
+.report-section .section-title {
+  color: var(--textColor, #333333);
 }
 
 .report-content {
@@ -150,6 +162,11 @@ page {
 
 .export-btn {
   background-color: #7b1fa2;
+  color: #ffffff;
+}
+
+.report-btn {
+  background-color: #d93025;
   color: #ffffff;
 }
 
